@@ -11,6 +11,10 @@ def is_least{u}(s: PartialOrder u)(a: u) := ∀ x, a ≤ x
 /- TODO: Should be in `Ordset`, instead. -/
 def meet{u}(s: PartialOrder u)(a b: u) := ∃ c, c ≤ a ∧ c ≤ b ∧ ¬ (is_least s c)
 
+theorem meet_comm{u}(s: PartialOrder u)(a b: u) : meet s a b = meet s b a := by
+    simp [meet]
+    tauto
+
 /- TODO: Should be in `Ordset`, instead. -/
 theorem meet_as_inf {u}
   (s : SemilatticeInf u) (a b : u) :
@@ -34,7 +38,7 @@ by
 structure PointfreeFuncoid {u v}(a: PartialOrder u)(b: PartialOrder v) where
     fwd : u → v
     bwd : v → u
-    rev (x: u) (y: v) : @meet v b (fwd x) y ↔ @meet u a (bwd y) x
+    rev (x: u) (y: v) : @meet _ b (fwd x) y ↔ @meet _ a (bwd y) x
 
 instance inv {u v}
   (a : PartialOrder u)(b : PartialOrder v)
@@ -57,3 +61,31 @@ instance PointfreeFuncoid.instLE
   LE (PointfreeFuncoid a b) :=
 ⟨fun f g =>
   (∀ x, f.fwd x ≤ g.fwd x) ∧ (∀ y, g.bwd y ≤ f.bwd y)⟩
+
+/- TODO: `instLE` is a partial order. -/
+
+/- TODO: Add `Semicategory` to MathLib and use it for `comp`. -/
+-- instance PointfreeFuncoid.instSemigroup
+--   {u v} (a : PartialOrder u) (b : PartialOrder v) :
+--   Semicategory (PointfreeFuncoid a b) := {
+--     mul: f g:
+--   }
+
+def comp {x: Type u} {y: Type v} {z: Type w}{X: PartialOrder x}{Y: PartialOrder y}{Z: PartialOrder z}
+    (f: PointfreeFuncoid X Y) (g: PointfreeFuncoid Y Z)
+    : PointfreeFuncoid X Z
+    := {
+        fwd := g.fwd ∘ f.fwd
+        bwd := f.bwd ∘ g.bwd
+        rev := by
+            simp [Function.comp]
+            have eq1 (a: x) (b: y): @meet _ Y (f.fwd a) b ↔ @meet _ X (f.bwd b) a := by apply f.rev
+            have eq2 (b: y) (c: z): @meet _ Z (g.fwd b) c ↔ @meet _ Y (g.bwd c) b := by apply g.rev
+            have (x_1 : x) (z_1 : z) :
+                meet Z (g.fwd (f.fwd x_1)) z_1 ↔ meet X (f.bwd (g.bwd z_1)) x_1 := by apply eq
+            have (x_1 : x) (z_1 : z) :
+                meet Z (g.fwd (f.fwd x_1)) z_1 = meet X (f.bwd (g.bwd z_1)) x_1 := by rfl
+            rw [(propext this)]
+    }
+
+infixr:80 " ∘ " => comp
