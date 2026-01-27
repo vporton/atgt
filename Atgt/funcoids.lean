@@ -2,17 +2,20 @@ import Mathlib.Data.Ordmap.Ordset
 
 universe u v u2 v2
 
-/- TODO: Should be in `PartialOrder`, instead. -/
+instance {u} : Coe (SemilatticeInf u) (PartialOrder u) where
+    coe s := s.toPartialOrder
+
+/- TODO: Should be in `Ordset`, instead. -/
 def is_least{u}(s: PartialOrder u)(a: u) := ∀ x, a ≤ x
 
-/- TODO: Should be in `PartialOrder`, instead. -/
+/- TODO: Should be in `Ordset`, instead. -/
 def meet{u}(s: PartialOrder u)(a b: u) := ∃ c, c ≤ a ∧ c ≤ b ∧ ¬ (is_least s c)
 
-/- TODO: Should be in `PartialOrder`, instead. -/
+/- TODO: Should be in `Ordset`, instead. -/
 theorem meet_as_inf {u}
   (s : SemilatticeInf u) (a b : u) :
-  meet s.toPartialOrder a b ↔
-  ¬ is_least s.toPartialOrder (a ⊓ b) :=
+  meet s a b ↔
+  ¬ is_least s (a ⊓ b) :=
 by
   constructor
   · intro h
