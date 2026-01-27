@@ -21,13 +21,6 @@ theorem meet_as_inf{u}(s: SemilatticeInf u)(a b: u)
         )
         sorry
 
-theorem meet_on_semilattice{s: SemilatticeInf u}(a b: u) :
-    @meet _ s.toPartialOrder a b ↔ ¬ is_least s.toPartialOrder (a ⊓ b)
-    := Iff.intro
-        (λ m: @meet _ s.toPartialOrder a b =>
-            have m ≤ a := )
-        sorry
-
 structure PointfreeFuncoid {u v}(a: PartialOrder u)(b: PartialOrder v) where
     fwd : u → v
     bwd : v → u
