@@ -44,12 +44,10 @@ instance inv {u v}
 theorem inv_inv_funcoid{u v}(a: PartialOrder u)(b: PartialOrder v)(f: PointfreeFuncoid a b) :
     inv b a (inv a b f) = f := by simp[inv]
 
-/- FIXME: correct? -/
-instance PointfreeFuncoid.on_semilattice_inf
-  (a : SemilatticeInf u) (b : SemilatticeInf v)
-  (f : PointfreeFuncoid a.toPartialOrder b.toPartialOrder) :
-  PointfreeFuncoid a.toPartialOrder b.toPartialOrder :=
-f
+/- FIXME: Can be converted to instance? -/
+def PointfreeFuncoid.on_semilattice_inf
+  (a : SemilatticeInf u) (b : SemilatticeInf v) :=
+  PointfreeFuncoid a.toPartialOrder b.toPartialOrder
 
 instance PointfreeFuncoid.instLE
   {u v} (a : PartialOrder u) (b : PartialOrder v) :
