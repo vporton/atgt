@@ -53,5 +53,4 @@ instance PointfreeFuncoid.instLE
   {u v} (a : PartialOrder u) (b : PartialOrder v) :
   LE (PointfreeFuncoid a b) :=
 ⟨fun f g =>
-  (∀ x, f.fwd x ≤ g.fwd x) ∧
-  (∀ y, g.bwd y ≤ f.bwd y)⟩
+  (∀ x, f.fwd x ≤ g.fwd x) ∧ (∀ y, g.bwd y ≤ f.bwd y)⟩
