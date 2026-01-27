@@ -1,7 +1,6 @@
 import Mathlib.Data.Ordmap.Ordset
 
 universe u v u2 v2
-set_option trace.Meta.synthInstance true
 
 /- TODO: Should be in `PartialOrder`, instead. -/
 def is_least{u}(s: PartialOrder u)(a: u) := ∀ x, a ≤ x
