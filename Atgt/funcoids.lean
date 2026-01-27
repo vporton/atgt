@@ -4,7 +4,7 @@ universe u v u2 v2
 set_option trace.Meta.synthInstance true
 
 /- TODO: Should be in `PartialOrder`, instead. -/
-def is_least{u}(s: PartialOrder u)(x: u) := ∀ a, x ≤ a
+def is_least{u}(s: PartialOrder u)(a: u) := ∀ x, a ≤ x
 
 /- TODO: Should be in `PartialOrder`, instead. -/
 def meet{u}(s: PartialOrder u)(a b: u) := ∃ c, c ≤ a ∧ c ≤ b ∧ ¬ (is_least s c)
@@ -14,10 +14,16 @@ theorem meet_as_inf{u}(s: SemilatticeInf u)(a b: u)
     : (meet s.toPartialOrder a b) ↔ ¬ (is_least s.toPartialOrder (a ⊓ b))
     := λ (s: SemilatticeInf u) (a b: u) ↦
         Iff.intro
-        (λ h: (meet s.toPartialOrder a b) ↦ (
+        (λ h: (meet s.toPartialOrder a b) ↦
+        show ¬ (is_least s.toPartialOrder (a ⊓ b))
+        from
             have conj := h.elim
             have m: (a ⊓ b) ≤ a ∧ (a ⊓ b) ≤ b := And.intro inf_le_left inf_le_right
-            And.right (And.right (conj)))
+            have m2: ∀ c, c ≤ a → c ≤ b → c ≤ a ⊓ b := (λ c ↦ c ≤ le_inf a b)
+            byContradiction (fun h1: is_least s.toPartialOrder (a ⊓ b) ⇒
+
+            )
+            -- And.right (And.right (conj))
         )
         sorry
 
