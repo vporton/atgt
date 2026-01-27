@@ -90,3 +90,5 @@ def comp {x: Type u} {y: Type v} {z: Type w}{X: PartialOrder x}{Y: PartialOrder 
     }
 
 infixr:80 " ∘ " => comp
+
+-- TODO:
