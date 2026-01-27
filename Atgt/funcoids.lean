@@ -12,18 +12,15 @@ def meet{u}(s: PartialOrder u)(a b: u) := ∃ c, c ≤ a ∧ c ≤ b ∧ ¬ (is_
 /- TODO: Should be in `PartialOrder`, instead. -/
 theorem meet_as_inf{u}(s: SemilatticeInf u)(a b: u)
     : (meet s.toPartialOrder a b) ↔ ¬ (is_least s.toPartialOrder (a ⊓ b))
-    := λ (s: SemilatticeInf u) (a b: u) ↦
-        Iff.intro
+    := Iff.intro
         (λ h: (meet s.toPartialOrder a b) ↦
         show ¬ (is_least s.toPartialOrder (a ⊓ b))
         from
             have conj := h.elim
             have m: (a ⊓ b) ≤ a ∧ (a ⊓ b) ≤ b := And.intro inf_le_left inf_le_right
-            have m2: ∀ c, c ≤ a → c ≤ b → c ≤ a ⊓ b := (λ c ↦ c ≤ le_inf a b)
-            byContradiction (fun h1: is_least s.toPartialOrder (a ⊓ b) ⇒
-
-            )
-            -- And.right (And.right (conj))
+            have m2: ∀ c, c ≤ a → c ≤ b → c ≤ a ⊓ b := λ c ↦ (le_inf : c ≤ a → c ≤ b → c ≤ a ⊓ b)
+            suffices ¬ ∀ x, a ⊓ b ≤ x from by simp[is_least, meet]
+            show ¬ ∀ x, a ⊓ b ≤ x from _
         )
         sorry
 
