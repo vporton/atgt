@@ -7,12 +7,26 @@ set_option trace.Meta.synthInstance true
 def is_least{u}(s: PartialOrder u)(x: u) := ∀ a, x ≤ a
 
 /- TODO: Should be in `PartialOrder`, instead. -/
-def meet{u}(s: PartialOrder u)(a b: u) := ∃ c, a ≤ c ∧ c ≤ b ∧ ¬ (is_least s c)
+def meet{u}(s: PartialOrder u)(a b: u) := ∃ c, c ≤ a ∧ c ≤ b ∧ ¬ (is_least s c)
 
-theorem meet_as_inf{u}{s: SemilatticeInf u}(a b: u): ¬ (is_least s.toPartialOrder (a ⊓ b)) := sorry
+/- TODO: Should be in `PartialOrder`, instead. -/
+theorem meet_as_inf{u}(s: SemilatticeInf u)(a b: u)
+    : (meet s.toPartialOrder a b) ↔ ¬ (is_least s.toPartialOrder (a ⊓ b))
+    := λ (s: SemilatticeInf u) (a b: u) ↦
+        Iff.intro
+        (λ h: (meet s.toPartialOrder a b) ↦ (
+            have conj := h.elim
+            have m: (a ⊓ b) ≤ a ∧ (a ⊓ b) ≤ b := And.intro inf_le_left inf_le_right
+            And.right (And.right (conj)))
+        )
+        sorry
 
 theorem meet_on_semilattice{s: SemilatticeInf u}(a b: u) :
-    @meet _ s.toPartialOrder a b ↔ ¬ is_least s.toPartialOrder (a ⊓ b) := sorry
+    @meet _ s.toPartialOrder a b ↔ ¬ is_least s.toPartialOrder (a ⊓ b)
+    := Iff.intro
+        (λ m: @meet _ s.toPartialOrder a b =>
+            have m ≤ a := )
+        sorry
 
 structure PointfreeFuncoid {u v}(a: PartialOrder u)(b: PartialOrder v) where
     fwd : u → v
