@@ -19,6 +19,15 @@ lemma PosetFilterBase.ext_elements {U : PartialOrder u}
 structure PosetFilter{u}(U: PartialOrder u) extends PosetFilterBase U where
   up_closed {x y} : x ∈ elements → x ≤ y → y ∈ elements
 
+@[ext]
+lemma PosetFilter.ext {U : PartialOrder u}
+  (F G : PosetFilter U)
+  (h : F.toPosetFilterBase = G.toPosetFilterBase) : F = G := by
+  cases F
+  cases G
+  cases h
+  rfl
+
 def close_filter_base (U : PartialOrder u)
   (B : PosetFilterBase U) : PosetFilter U :=
 { elements :=
@@ -43,15 +52,6 @@ def close_filter_base (U : PartialOrder u)
 instance (U : PartialOrder u) : LE (PosetFilter U) :=
   ⟨fun F G => G.elements ⊆ F.elements⟩
 
-@[ext]
-lemma PosetFilter.ext_elements {U : PartialOrder u}
-  (F G : PosetFilter U)
-  (h : F.elements = G.elements) : F = G := by
-  cases F
-  cases G
-  cases h
-  rfl
-
 instance (U : PartialOrder u) : PartialOrder (PosetFilter U) where
 le F G := G.elements ⊆ F.elements
 
@@ -63,7 +63,6 @@ le_trans F G H hFG hGH := by
   exact hFG (hGH hx)
 
 le_antisymm F G hFG hGF := by
-  apply PosetFilter.ext_elements
-  apply Set.Subset.antisymm
-  · exact hGF
-  · exact hFG
+  apply PosetFilter.ext
+  apply PosetFilterBase.ext_elements
+  exact Set.Subset.antisymm hGF hFG
