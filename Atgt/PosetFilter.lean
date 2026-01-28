@@ -7,6 +7,15 @@ structure PosetFilterBase{u}(U: PartialOrder u) where
   non_empty: Set.Nonempty elements
   cap_elements {x y} : ∃ z ∈ elements, (z ≤ x ∧ z ≤ y)
 
+@[ext]
+lemma PosetFilterBase.ext_elements {U : PartialOrder u}
+  (F G : PosetFilterBase U)
+  (h : F.elements = G.elements) : F = G := by
+  cases F
+  cases G
+  cases h
+  rfl
+
 structure PosetFilter{u}(U: PartialOrder u) extends PosetFilterBase U where
   up_closed {x y} : x ∈ elements → x ≤ y → y ∈ elements
 
@@ -30,3 +39,31 @@ def close_filter_base (U : PartialOrder u)
     rcases hx with ⟨z, hz, hzx⟩
     exact ⟨z, hz, hzx.trans hxy⟩
 }
+
+instance (U : PartialOrder u) : LE (PosetFilter U) :=
+  ⟨fun F G => G.elements ⊆ F.elements⟩
+
+@[ext]
+lemma PosetFilter.ext_elements {U : PartialOrder u}
+  (F G : PosetFilter U)
+  (h : F.elements = G.elements) : F = G := by
+  cases F
+  cases G
+  cases h
+  rfl
+
+instance (U : PartialOrder u) : PartialOrder (PosetFilter U) where
+le F G := G.elements ⊆ F.elements
+
+le_refl F := by
+  intro x hx; exact hx
+
+le_trans F G H hFG hGH := by
+  intro x hx
+  exact hFG (hGH hx)
+
+le_antisymm F G hFG hGF := by
+  apply PosetFilter.ext_elements
+  apply Set.Subset.antisymm
+  · exact hGF
+  · exact hFG
