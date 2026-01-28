@@ -15,17 +15,17 @@ def close_filter_base (U : PartialOrder u)
 { elements :=
     { y | ∃ x ∈ B.elements, x ≤ y }
 
-, non_empty := by
+  non_empty := by
     rcases B.non_empty with ⟨x, hx⟩
     exact ⟨x, x, hx, le_rfl⟩
 
-, cap_elements := by
+  cap_elements := by
     intro x y
     rcases B.cap_elements (x := x) (y := y) with ⟨z, hz, hzx, hzy⟩
     refine ⟨z, ?_, hzx, hzy⟩
     exact ⟨z, hz, le_rfl⟩
 
-, up_closed := by
+  up_closed := by
     intro x y hx hxy
     rcases hx with ⟨z, hz, hzx⟩
     exact ⟨z, hz, hzx.trans hxy⟩
