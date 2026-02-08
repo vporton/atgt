@@ -40,6 +40,14 @@ structure PointfreeFuncoid {u v}(a: PartialOrder u)(b: PartialOrder v) where
     bwd : v → u
     rev (x: u) (y: v) : @meet _ b (fwd x) y ↔ @meet _ a (bwd y) x
 
+@[ext]
+lemma PointfreeFuncoid.ext {u v} {a : PartialOrder u} {b : PartialOrder v}
+  (f g : PointfreeFuncoid a b)
+  (h_fwd : f.fwd = g.fwd)
+  (h_bwd : f.bwd = g.bwd) : f = g := by
+  cases f; cases g;
+  congr
+
 instance inv {u v}
   (a : PartialOrder u)(b : PartialOrder v)
   (f : PointfreeFuncoid a b) :
@@ -91,10 +99,16 @@ def comp {x: Type u} {y: Type v} {z: Type w}{X: PartialOrder x}{Y: PartialOrder 
 
 infixr:80 " ∘ " => comp
 
--- theorem comp_assoc {x: Type u} {y: Type v} {z: Type w}{X: PartialOrder x}{Y: PartialOrder y}{Z: PartialOrder z}
---     (f: PointfreeFuncoid X Y) (g: PointfreeFuncoid Y Z) (h: PointfreeFuncoid Z W)
---     : comp (comp f g) h = comp f (comp g h) := by
---     intro x z
---     simp [comp]
+theorem comp_assoc {x: Type u} {y: Type v} {z: Type w} {w_type: Type u2}
+    {X: PartialOrder x}{Y: PartialOrder y}{Z: PartialOrder z}{W: PartialOrder w_type}
+    (f: PointfreeFuncoid X Y) (g: PointfreeFuncoid Y Z) (h: PointfreeFuncoid Z W)
+    : (f ∘ g) ∘ h = f ∘ (g ∘ h) := by
+    ext <;> rfl
+
+theorem inv_comp {x: Type u} {y: Type v} {z: Type w}
+    {X: PartialOrder x}{Y: PartialOrder y}{Z: PartialOrder z}
+    (f: PointfreeFuncoid X Y) (g: PointfreeFuncoid Y Z)
+    : inv X Z (f ∘ g) = (inv Y Z g) ∘ (inv X Y f) := by
+    ext <;> rfl
 
 -- TODO:
