@@ -113,9 +113,9 @@ theorem PointfreeFuncoid.sep_rel {u v : Type _} [X : PartialOrder u] [Y : Partia
     change ¬ f.funcoid_rel x y ↔ ¬ g.funcoid_rel x y
     rw [h_rel]
 
-lemma rel_right_flt{α: Type u}{β: Type v}[Filtrator α]{Y: PartialOrder β}
-    (f: PointfreeFuncoid (inferInstance : PartialOrder α) Y) (a: α) (b: β) :
-    f.funcoid_rel a b ↔ ∀ x ∈ Filtrator.up a, f.funcoid_rel x b := by
+lemma rel_right_flt{α: Type u}{β: Type v}[X: PartialOrder α][Y: Filtrator β]
+    (f: PointfreeFuncoid X Y.suporder) (a: α) (b: β) :
+    f.funcoid_rel a b ↔ ∀ y ∈ Filtrator.up b, f.funcoid_rel a y := by
     constructor
     · intro h x hx
       rw [f.funcoid_rel_comm] at h ⊢
