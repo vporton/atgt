@@ -47,9 +47,9 @@ instance PointfreeFuncoid.instLE
 --     mul: f g:
 --   }
 
-def comp {x: Type u} {y: Type v} {z: Type w}{X: PartialOrder x}{Y: PartialOrder y}{Z: PartialOrder z}
-    (f: PointfreeFuncoid X Y) (g: @PointfreeFuncoid y z Y Z)
-    : @PointfreeFuncoid x z X Z
+def comp {X: PartialOrder x}{Y: PartialOrder y}{Z: PartialOrder z}
+    (f: PointfreeFuncoid X Y) (g: PointfreeFuncoid Y Z)
+    : PointfreeFuncoid X Z
     := {
         fwd := g.fwd ∘ f.fwd
         bwd := f.bwd ∘ g.bwd
@@ -67,25 +67,23 @@ def comp {x: Type u} {y: Type v} {z: Type w}{X: PartialOrder x}{Y: PartialOrder 
 
 infixr:80 " ∘ " => comp
 
-theorem comp_assoc {x: Type u} {y: Type v} {z: Type w} {w_type: Type u2}
-    {X: PartialOrder x}{Y: PartialOrder y}{Z: PartialOrder z}{W: PartialOrder w_type}
-    (f: PointfreeFuncoid X Y) (g: @PointfreeFuncoid y z Y Z) (h: @PointfreeFuncoid z w_type Z W)
+theorem comp_assoc {X: PartialOrder u}{Y: PartialOrder v}{Z: PartialOrder w}{W: PartialOrder u2}
+    (f: PointfreeFuncoid X Y) (g: PointfreeFuncoid Y Z) (h: PointfreeFuncoid Z W)
     : (f ∘ g) ∘ h = f ∘ (g ∘ h) := by
     ext <;> rfl
 
-theorem inv_comp {x: Type u} {y: Type v} {z: Type w}
-    {X: PartialOrder x}{Y: PartialOrder y}{Z: PartialOrder z}
-    (f: PointfreeFuncoid X Y) (g: @PointfreeFuncoid y z Y Z)
+theorem inv_comp {X: PartialOrder u}{Y: PartialOrder v}{Z: PartialOrder w}
+    (f: PointfreeFuncoid X Y) (g: PointfreeFuncoid Y Z)
     : (f ∘ g).inv = g.inv ∘ f.inv := by
     ext <;> rfl
 
-def funcoid_rel {x: Type u} {y: Type v} {X: PartialOrder x}{Y: PartialOrder y}
-    (f: PointfreeFuncoid X Y) (a : x) (b : y) :
+def funcoid_rel {X: PartialOrder u}{Y: PartialOrder v}
+    (f: PointfreeFuncoid X Y) (a : u) (b : v) :
     Prop
-    := @meet y Y (f.fwd a) b
+    := @meet v Y (f.fwd a) b
 
-theorem funcoid_rel_comm {x: Type u} {y: Type v} {X: PartialOrder x}{Y: PartialOrder y}
-    (f: PointfreeFuncoid X Y) (a : x) (b : y) :
+theorem funcoid_rel_comm {X: PartialOrder u}{Y: PartialOrder v}
+    (f: PointfreeFuncoid X Y) (a : u) (b : v) :
     funcoid_rel f a b ↔ funcoid_rel f.inv b a :=
     f.rev a b
 
