@@ -114,6 +114,6 @@ theorem inv_comp {x: Type u} {y: Type v} {z: Type w}
 def funcoid_rel {x: Type u} {y: Type v} {X: PartialOrder x}{Y: PartialOrder y}
     (f: @PointfreeFuncoid x y X Y) (a : x) (b : y) :
     Prop
-    := @meet y Y ↑(f.fwd ↑a) ↑b
+    := @meet y Y (f.fwd a) b
 
 -- TODO:
