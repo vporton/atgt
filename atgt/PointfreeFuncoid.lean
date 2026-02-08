@@ -1,5 +1,6 @@
 import Mathlib.Data.Ordmap.Ordset
 import atgt.Poset
+import atgt.Filtrator
 
 universe u v u2 v2
 
@@ -111,5 +112,13 @@ theorem sep_rel {u v : Type _} [X : PartialOrder u] [Y : PartialOrder v] (f g : 
     rw [meet_comm y, meet_comm y]
     change ¬ f.funcoid_rel x y ↔ ¬ g.funcoid_rel x y
     rw [h_rel]
+
+lemma rel_right_flt{α: Type u}(F: Filtrator α){X: PartialOrder u}{Y: PartialOrder v}
+    (f: PointfreeFuncoid X Y) (a: u) (b: v) :
+    f.funcoid_rel a b ↔ ∀ X: a, f.funcoid_rel X b := by
+    intro h
+    apply h
+    intro x hx
+    exact hx
 
 -- TODO:

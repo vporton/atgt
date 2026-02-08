@@ -1,0 +1,8 @@
+✖ [669/669] Building atgt.Filtrator (2.4s)
+trace: .> LEAN_PATH=/home/porton/math/formal/atgt/.lake/packages/Cli/.lake/build/lib/lean:/home/porton/math/formal/atgt/.lake/packages/batteries/.lake/build/lib/lean:/home/porton/math/formal/atgt/.lake/packages/Qq/.lake/build/lib/lean:/home/porton/math/formal/atgt/.lake/packages/aesop/.lake/build/lib/lean:/home/porton/math/formal/atgt/.lake/packages/proofwidgets/.lake/build/lib/lean:/home/porton/math/formal/atgt/.lake/packages/importGraph/.lake/build/lib/lean:/home/porton/math/formal/atgt/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/home/porton/math/formal/atgt/.lake/packages/plausible/.lake/build/lib/lean:/home/porton/math/formal/atgt/.lake/packages/mathlib/.lake/build/lib/lean:/home/porton/math/formal/atgt/.lake/build/lib/lean /home/porton/.elan/toolchains/leanprover--lean4---v4.28.0-rc1/bin/lean /home/porton/math/formal/atgt/atgt/Filtrator.lean -o /home/porton/math/formal/atgt/.lake/build/lib/lean/atgt/Filtrator.olean -i /home/porton/math/formal/atgt/.lake/build/lib/lean/atgt/Filtrator.ilean -c /home/porton/math/formal/atgt/.lake/build/ir/atgt/Filtrator.c --setup /home/porton/math/formal/atgt/.lake/build/ir/atgt/Filtrator.setup.json --json
+error: atgt/Filtrator.lean:11:52: type expected, got
+  (F.order : PartialOrder α)
+error: Lean exited with code 1
+Some required targets logged failures:
+- atgt.Filtrator
+error: build failed
