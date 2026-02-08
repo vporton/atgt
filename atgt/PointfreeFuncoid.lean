@@ -115,6 +115,7 @@ theorem PointfreeFuncoid.sep_rel {u v : Type _} [X : PartialOrder u] [Y : Partia
     change ¬ f.funcoid_rel x y ↔ ¬ g.funcoid_rel x y
     rw [h_rel]
 
+/- It was `.seaprable_core` instead of `.separator_up_property`. -/
 lemma rel_right_flt{α: Type u}{β: Type v}[X: PartialOrder α][Y: Filtrator β]
     (h_sep_up : Y.separator_up_property) (f: PointfreeFuncoid X Y.suporder) (a: α) (b: β) :
     f.funcoid_rel a b ↔ ∀ y ∈ Filtrator.up b, f.funcoid_rel a y := by
