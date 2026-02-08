@@ -111,4 +111,10 @@ theorem inv_comp {x: Type u} {y: Type v} {z: Type w}
     : inv X Z (f ∘ g) = (inv Y Z g) ∘ (inv X Y f) := by
     ext <;> rfl
 
+def funcoid_rel {x: Type u} {y: Type v} {X: PartialOrder x}{Y: PartialOrder y}
+    (f: PointfreeFuncoid X Y) (a : x) (b : y) :
+    Prop
+    := meet Y ↑(f.fwd ↑a) ↑b
+
+
 -- TODO:
