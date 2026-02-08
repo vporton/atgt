@@ -2,6 +2,8 @@ import Mathlib.Data.Ordmap.Ordset
 import atgt.Poset
 import atgt.Filtrator
 
+open Atgt
+
 universe u v u2 v2
 
 structure PointfreeFuncoid {α: Type u}{β: Type v}(a: PartialOrder α)(b: PartialOrder β) where
@@ -114,18 +116,14 @@ theorem PointfreeFuncoid.sep_rel {u v : Type _} [X : PartialOrder u] [Y : Partia
     rw [h_rel]
 
 lemma rel_right_flt{α: Type u}{β: Type v}[X: PartialOrder α][Y: Filtrator β]
-    (f: PointfreeFuncoid X Y.suporder) (a: α) (b: β) :
+    (h_sep_core : Y.separable_core) (f: PointfreeFuncoid X Y.suporder) (a: α) (b: β) :
     f.funcoid_rel a b ↔ ∀ y ∈ Filtrator.up b, f.funcoid_rel a y := by
     constructor
-    · intro h x hx
-      rw [f.funcoid_rel_comm] at h ⊢
-      simp [PointfreeFuncoid.funcoid_rel, PointfreeFuncoid.inv] at h ⊢
-      simp [meet] at h ⊢
-      rcases h with ⟨c, hc_bwd, hc_a, h_not_least⟩
-      refine ⟨c, hc_bwd, ?_, h_not_least⟩
-      exact le_trans hc_a hx
+    · intro h y hy
+      simp [PointfreeFuncoid.funcoid_rel] at h ⊢
+      exact meet_mono_right hy.2 h
     · intro h
-      apply h
-      exact le_rfl
+      /- TODO: Prove using separable_core -/
+      sorry
 
 -- TODO:

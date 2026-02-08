@@ -2,6 +2,8 @@ import Mathlib.Data.Ordmap.Ordset
 
 universe u v u2 v2
 
+namespace Atgt
+
 instance {u} : Coe (SemilatticeInf u) (PartialOrder u) where
     coe s := s.toPartialOrder
 
@@ -14,6 +16,16 @@ def meet {α : Type*}[PartialOrder α] (a b : α) := ∃ c, c ≤ a ∧ c ≤ b 
 theorem meet_comm {α : Type*} [PartialOrder α] (a b : α) : meet a b ↔ meet b a := by
     simp [meet]
     tauto
+
+theorem meet_mono_left {α : Type*} [PartialOrder α] {a b c : α} (h : a ≤ b) : meet a c → meet b c := by
+    intro h_meet
+    rcases h_meet with ⟨d, hd_a, hd_c, hd_not_least⟩
+    exact ⟨d, le_trans hd_a h, hd_c, hd_not_least⟩
+
+theorem meet_mono_right {α : Type*} [PartialOrder α] {a b c : α} (h : b ≤ c) : meet a b → meet a c := by
+    intro h_meet
+    rcases h_meet with ⟨d, hd_a, hd_b, hd_not_least⟩
+    exact ⟨d, hd_a, le_trans hd_b h, hd_not_least⟩
 
 /- TODO: Should be in `Ordset`, instead. -/
 theorem meet_as_inf {α : Type u}
@@ -42,3 +54,5 @@ def base_separator {α : Type u} (β : Set α) [PartialOrder α] (a : α) := β 
 prefix:80 "⋆" => separator
 
 def IsSeparable (α : Type u) [PartialOrder α] := ∀ a b : α, separator a = separator b → a = b
+
+end Atgt

@@ -1,6 +1,8 @@
 import Mathlib.Data.Ordmap.Ordset
 import atgt.Poset
 
+open Atgt
+
 class Filtrator (α : Type*) extends PartialOrder α where
   subset : Set α
 
