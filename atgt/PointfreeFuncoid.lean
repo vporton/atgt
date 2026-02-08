@@ -6,12 +6,12 @@ instance {u} : Coe (SemilatticeInf u) (PartialOrder u) where
     coe s := s.toPartialOrder
 
 /- TODO: Should be in `Ordset`, instead. -/
-def is_least{u}{s: PartialOrder u}(a: u) := ∀ x, a ≤ x
+def is_least{u}(s: PartialOrder u)(a: u) := ∀ x, a ≤ x
 
 /- TODO: Should be in `Ordset`, instead. -/
-def meet{u}{s: PartialOrder u}(a b: u) := ∃ c, c ≤ a ∧ c ≤ b ∧ ¬ (@is_least u s c)
+def meet{u}(s: PartialOrder u)(a b: u) := ∃ c, c ≤ a ∧ c ≤ b ∧ ¬ (is_least s c)
 
-theorem meet_comm{u}{s: PartialOrder u}(a b: u) : @meet _ s a b ↔ @meet _ s b a := by
+theorem meet_comm{u}(s: PartialOrder u)(a b: u) : meet s a b ↔ meet s b a := by
     simp [meet]
     tauto
 
