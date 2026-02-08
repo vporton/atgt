@@ -4,14 +4,14 @@ import atgt.Filtrator
 
 universe u v u2 v2
 
-structure PointfreeFuncoid {u v}(a: PartialOrder u)(b: PartialOrder v) where
-    fwd : u → v
-    bwd : v → u
-    rev (x: u) (y: v) : @meet _ b (fwd x) y ↔ @meet _ a (bwd y) x
+structure PointfreeFuncoid {α: Type u}{β: Type v}(a: PartialOrder α)(b: PartialOrder β) where
+    fwd : α → β
+    bwd : β → α
+    rev (x: α) (y: β) : @meet _ b (fwd x) y ↔ @meet _ a (bwd y) x
 
 @[ext]
-lemma PointfreeFuncoid.ext {u v} {a : PartialOrder u} {b : PartialOrder v}
-  (f g : @PointfreeFuncoid u v a b)
+lemma PointfreeFuncoid.ext {α: Type u}{β: Type v} {a : PartialOrder α} {b : PartialOrder β}
+  (f g : @PointfreeFuncoid α β a b)
   (h_fwd : f.fwd = g.fwd)
   (h_bwd : f.bwd = g.bwd) : f = g := by
   cases f; cases g;
@@ -78,17 +78,17 @@ theorem inv_comp {X: PartialOrder u}{Y: PartialOrder v}{Z: PartialOrder w}
     : (f ∘ g).inv = g.inv ∘ f.inv := by
     ext <;> rfl
 
-def PointfreeFuncoid.funcoid_rel {X: PartialOrder u}{Y: PartialOrder v}
-    (f: PointfreeFuncoid X Y) (a : u) (b : v) :
+def PointfreeFuncoid.funcoid_rel {α: Type u}{β: Type v}{X: PartialOrder α}{Y: PartialOrder β}
+    (f: PointfreeFuncoid X Y) (a : α) (b : β) :
     Prop
-    := @meet v Y (f.fwd a) b
+    := @meet β Y (f.fwd a) b
 
-theorem funcoid_rel_comm {X: PartialOrder u}{Y: PartialOrder v}
+theorem PointfreeFuncoid.funcoid_rel_comm {X: PartialOrder u}{Y: PartialOrder v}
     (f: PointfreeFuncoid X Y) (a : u) (b : v) :
     f.funcoid_rel a b ↔ f.inv.funcoid_rel b a :=
     f.rev a b
 
-theorem sep_fwd {u v : Type _} [X : PartialOrder u] [Y : PartialOrder v] (f g : PointfreeFuncoid X Y) :
+theorem PointfreeFuncoid.sep_fwd {u v : Type _} [X : PartialOrder u] [Y : PartialOrder v] (f g : PointfreeFuncoid X Y) :
     IsSeparable u → f.fwd = g.fwd → f = g := by
     intro h_sep h_fwd
     apply PointfreeFuncoid.ext
@@ -101,10 +101,10 @@ theorem sep_fwd {u v : Type _} [X : PartialOrder u] [Y : PartialOrder v] (f g : 
       rw [← f.rev, ← g.rev]
       rw [h_fwd]
 
-theorem sep_rel {u v : Type _} [X : PartialOrder u] [Y : PartialOrder v] (f g : PointfreeFuncoid X Y) :
+theorem PointfreeFuncoid.sep_rel {u v : Type _} [X : PartialOrder u] [Y : PartialOrder v] (f g : PointfreeFuncoid X Y) :
     IsSeparable u → IsSeparable v → f.funcoid_rel = g.funcoid_rel → f = g := by
     intro h_sep_u h_sep_v h_rel
-    apply sep_fwd f g h_sep_u
+    apply PointfreeFuncoid.sep_fwd f g h_sep_u
     funext x
     apply h_sep_v
     ext y
@@ -113,12 +113,19 @@ theorem sep_rel {u v : Type _} [X : PartialOrder u] [Y : PartialOrder v] (f g : 
     change ¬ f.funcoid_rel x y ↔ ¬ g.funcoid_rel x y
     rw [h_rel]
 
-lemma rel_right_flt{α: Type u}(F: Filtrator α){X: PartialOrder u}{Y: PartialOrder v}
-    (f: PointfreeFuncoid X Y) (a: u) (b: v) :
-    f.funcoid_rel a b ↔ ∀ X: a, f.funcoid_rel X b := by
-    intro h
-    apply h
-    intro x hx
-    exact hx
+lemma rel_right_flt{α: Type u}{β: Type v}[Filtrator α]{Y: PartialOrder β}
+    (f: PointfreeFuncoid (inferInstance : PartialOrder α) Y) (a: α) (b: β) :
+    f.funcoid_rel a b ↔ ∀ x ∈ Filtrator.up a, f.funcoid_rel x b := by
+    constructor
+    · intro h x hx
+      rw [f.funcoid_rel_comm] at h ⊢
+      simp [PointfreeFuncoid.funcoid_rel, PointfreeFuncoid.inv] at h ⊢
+      simp [meet] at h ⊢
+      rcases h with ⟨c, hc_bwd, hc_a, h_not_least⟩
+      refine ⟨c, hc_bwd, ?_, h_not_least⟩
+      exact le_trans hc_a hx
+    · intro h
+      apply h
+      exact le_rfl
 
 -- TODO:

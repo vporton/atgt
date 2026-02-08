@@ -1,18 +1,22 @@
 import Mathlib.Data.Ordmap.Ordset
 import atgt.Poset
 
-structure Filtrator (α : Type u) where
-  order : PartialOrder α
+class Filtrator (α : Type*) extends PartialOrder α where
   subset : Set α
 
-def Filtrator.supset {α : Type u} (F : Filtrator α) := α
+export Filtrator (subset)
 
-def Filtrator.suborder {α : Type u} (F : Filtrator α) : PartialOrder F.subset :=
-  @Subtype.partialOrder α F.order F.subset
+variable {α : Type*} [Filtrator α]
 
-def Filtrator.up {α : Type u} (F : Filtrator α) (x: α): Set α :=
-  letI : PartialOrder α := F.order
+def Filtrator.suborder {α : Type*} [Filtrator α] : PartialOrder (subset : Set α) :=
+  Subtype.partialOrder (· ∈ (subset : Set α))
+
+def Filtrator.supset {α : Type u} [Filtrator α] := α
+
+variable {α : Type*} [Filtrator α]
+
+def Filtrator.up {α : Type u} [Filtrator α] (x: α): Set α :=
   { y | x ≤ y }
 
-def Filtrator.separable_core {α : Type u} (F : Filtrator α) : Prop :=
-  ∀ a b : α, @base_separator α F.subset F.order a = @base_separator α F.subset F.order b → a = b
+def Filtrator.separable_core {α : Type u} [Filtrator α] : Prop :=
+  ∀ a b : α, base_separator (subset) a = base_separator (subset) b → a = b
