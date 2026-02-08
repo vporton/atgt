@@ -131,3 +131,12 @@ lemma rel_left_flt{α: Type u}{β: Type v}[X: Filtrator α][Y: PartialOrder β]
     f.funcoid_rel a b ↔ ∀ x ∈ Filtrator.up a, f.funcoid_rel x b := by
     rw [f.funcoid_rel_comm, rel_right_flt h_sep_up f.inv]
     simp_rw [PointfreeFuncoid.funcoid_rel_comm f.inv, inv_inv_funcoid]
+
+lemma rel_flt{α: Type u}{β: Type v}[X: Filtrator α][Y: Filtrator β]
+    (h_sep_up1 : X.separator_up_property) (h_sep_up2 : Y.separator_up_property)
+    (f: PointfreeFuncoid X.suporder Y.suporder) (a: α) (b: β) :
+    f.funcoid_rel a b ↔ ∀ x ∈ Filtrator.up a, ∀ y ∈ Filtrator.up b, f.funcoid_rel x y := by
+    rw [rel_left_flt h_sep_up1]
+    conv_lhs =>
+      ext x hx
+      rw [rel_right_flt h_sep_up2]
