@@ -116,14 +116,14 @@ theorem PointfreeFuncoid.sep_rel {u v : Type _} [X : PartialOrder u] [Y : Partia
     rw [h_rel]
 
 lemma rel_right_flt{α: Type u}{β: Type v}[X: PartialOrder α][Y: Filtrator β]
-    (h_sep_core : Y.separable_core) (f: PointfreeFuncoid X Y.suporder) (a: α) (b: β) :
+    (h_sep_up : Y.separator_up_property) (f: PointfreeFuncoid X Y.suporder) (a: α) (b: β) :
     f.funcoid_rel a b ↔ ∀ y ∈ Filtrator.up b, f.funcoid_rel a y := by
     constructor
     · intro h y hy
       simp [PointfreeFuncoid.funcoid_rel] at h ⊢
       exact meet_mono_right hy.2 h
     · intro h
-      /- TODO: Prove using separable_core -/
-      sorry
+      simp only [PointfreeFuncoid.funcoid_rel] at h ⊢
+      exact (Filtrator.meet_iff_forall_up h_sep_up (f.fwd a) b).mpr h
 
 -- TODO:
