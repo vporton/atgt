@@ -53,16 +53,16 @@ instance (U : PartialOrder u) : LE (PosetFilter U) :=
   ⟨fun F G => G.elements ⊆ F.elements⟩
 
 instance (U : PartialOrder u) : PartialOrder (PosetFilter U) where
-le F G := G.elements ⊆ F.elements
+  le F G := G.elements ⊆ F.elements
 
-le_refl F := by
-  intro x hx; exact hx
+  le_refl F := by
+    intro x hx; exact hx
 
-le_trans F G H hFG hGH := by
-  intro x hx
-  exact hFG (hGH hx)
+  le_trans F G H hFG hGH := by
+    intro x hx
+    exact hFG (hGH hx)
 
-le_antisymm F G hFG hGF := by
-  apply PosetFilter.ext
-  apply PosetFilterBase.ext_elements
-  exact Set.Subset.antisymm hGF hFG
+  le_antisymm F G hFG hGF := by
+    apply PosetFilter.ext
+    apply PosetFilterBase.ext_elements
+    exact Set.Subset.antisymm hGF hFG
