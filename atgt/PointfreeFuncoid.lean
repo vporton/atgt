@@ -77,14 +77,14 @@ theorem inv_comp {X: PartialOrder u}{Y: PartialOrder v}{Z: PartialOrder w}
     : (f ∘ g).inv = g.inv ∘ f.inv := by
     ext <;> rfl
 
-def funcoid_rel {X: PartialOrder u}{Y: PartialOrder v}
+def PointfreeFuncoid.funcoid_rel {X: PartialOrder u}{Y: PartialOrder v}
     (f: PointfreeFuncoid X Y) (a : u) (b : v) :
     Prop
     := @meet v Y (f.fwd a) b
 
 theorem funcoid_rel_comm {X: PartialOrder u}{Y: PartialOrder v}
     (f: PointfreeFuncoid X Y) (a : u) (b : v) :
-    funcoid_rel f a b ↔ funcoid_rel f.inv b a :=
+    f.funcoid_rel a b ↔ f.inv.funcoid_rel b a :=
     f.rev a b
 
 theorem sep_fwd {u v : Type _} [X : PartialOrder u] [Y : PartialOrder v] (f g : PointfreeFuncoid X Y) :
@@ -99,5 +99,17 @@ theorem sep_fwd {u v : Type _} [X : PartialOrder u] [Y : PartialOrder v] (f g : 
       rw [meet_comm x, meet_comm x]
       rw [← f.rev, ← g.rev]
       rw [h_fwd]
+
+theorem sep_rel {u v : Type _} [X : PartialOrder u] [Y : PartialOrder v] (f g : PointfreeFuncoid X Y) :
+    IsSeparable u → IsSeparable v → f.funcoid_rel = g.funcoid_rel → f = g := by
+    intro h_sep_u h_sep_v h_rel
+    apply sep_fwd f g h_sep_u
+    funext x
+    apply h_sep_v
+    ext y
+    simp [separator]
+    rw [meet_comm y, meet_comm y]
+    change ¬ f.funcoid_rel x y ↔ ¬ g.funcoid_rel x y
+    rw [h_rel]
 
 -- TODO:
