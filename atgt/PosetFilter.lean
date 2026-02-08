@@ -28,7 +28,7 @@ lemma PosetFilter.ext {U : PartialOrder u}
   cases h
   rfl
 
-def close_filter_base (U : PartialOrder u)
+def close_filter_base {U : PartialOrder u}
   (B : PosetFilterBase U) : PosetFilter U :=
 { elements :=
     { y | ∃ x ∈ B.elements, x ≤ y }
