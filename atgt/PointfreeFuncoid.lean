@@ -87,4 +87,17 @@ theorem funcoid_rel_comm {X: PartialOrder u}{Y: PartialOrder v}
     funcoid_rel f a b ↔ funcoid_rel f.inv b a :=
     f.rev a b
 
+theorem sep_fwd {u v : Type _} [X : PartialOrder u] [Y : PartialOrder v] (f g : PointfreeFuncoid X Y) :
+    IsSeparable u → f.fwd = g.fwd → f = g := by
+    intro h_sep h_fwd
+    apply PointfreeFuncoid.ext
+    · exact h_fwd
+    · funext y
+      apply h_sep
+      ext x
+      simp [separator]
+      rw [meet_comm x, meet_comm x]
+      rw [← f.rev, ← g.rev]
+      rw [h_fwd]
+
 -- TODO:

@@ -39,4 +39,4 @@ def separator {α : Type u} [PartialOrder α] (a : α) := { x : α | ¬ meet x a
 
 prefix:80 "⋆" => separator
 
-def Ordset.is_separable {α : Type u} [PartialOrder α] (a b : α) := a ≠ b → separator a ≠ separator b
+def IsSeparable (α : Type u) [PartialOrder α] := ∀ a b : α, separator a = separator b → a = b
