@@ -35,7 +35,7 @@ by
     refine ⟨a ⊓ b, inf_le_left, inf_le_right, ?_⟩
     exact h
 
-structure PointfreeFuncoid {u v}{a: PartialOrder u}{b: PartialOrder v} where
+structure PointfreeFuncoid {u v}(a: PartialOrder u)(b: PartialOrder v) where
     fwd : u → v
     bwd : v → u
     rev (x: u) (y: v) : @meet _ b (fwd x) y ↔ @meet _ a (bwd y) x
@@ -80,7 +80,7 @@ instance PointfreeFuncoid.instLE
 --   }
 
 def comp {x: Type u} {y: Type v} {z: Type w}{X: PartialOrder x}{Y: PartialOrder y}{Z: PartialOrder z}
-    (f: @PointfreeFuncoid x y X Y) (g: @PointfreeFuncoid y z Y Z)
+    (f: PointfreeFuncoid X Y) (g: @PointfreeFuncoid y z Y Z)
     : @PointfreeFuncoid x z X Z
     := {
         fwd := g.fwd ∘ f.fwd
@@ -101,19 +101,24 @@ infixr:80 " ∘ " => comp
 
 theorem comp_assoc {x: Type u} {y: Type v} {z: Type w} {w_type: Type u2}
     {X: PartialOrder x}{Y: PartialOrder y}{Z: PartialOrder z}{W: PartialOrder w_type}
-    (f: @PointfreeFuncoid x y X Y) (g: @PointfreeFuncoid y z Y Z) (h: @PointfreeFuncoid z w_type Z W)
+    (f: PointfreeFuncoid X Y) (g: @PointfreeFuncoid y z Y Z) (h: @PointfreeFuncoid z w_type Z W)
     : (f ∘ g) ∘ h = f ∘ (g ∘ h) := by
     ext <;> rfl
 
 theorem inv_comp {x: Type u} {y: Type v} {z: Type w}
     {X: PartialOrder x}{Y: PartialOrder y}{Z: PartialOrder z}
-    (f: @PointfreeFuncoid x y X Y) (g: @PointfreeFuncoid y z Y Z)
+    (f: PointfreeFuncoid X Y) (g: @PointfreeFuncoid y z Y Z)
     : (f ∘ g).inv = g.inv ∘ f.inv := by
     ext <;> rfl
 
 def funcoid_rel {x: Type u} {y: Type v} {X: PartialOrder x}{Y: PartialOrder y}
-    (f: @PointfreeFuncoid x y X Y) (a : x) (b : y) :
+    (f: PointfreeFuncoid X Y) (a : x) (b : y) :
     Prop
     := @meet y Y (f.fwd a) b
+
+-- theorem funcoid_rel_comm {x: Type u} {y: Type v} {X: PartialOrder x}{Y: PartialOrder y}
+--     (f: PointfreeFuncoid X Y) (a : x) (b : y) :
+--     funcoid_rel f a b ↔ funcoid_rel f.inv b a := by
+--     ext <;> rfl
 
 -- TODO:
