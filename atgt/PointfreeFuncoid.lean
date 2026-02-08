@@ -116,9 +116,9 @@ def funcoid_rel {x: Type u} {y: Type v} {X: PartialOrder x}{Y: PartialOrder y}
     Prop
     := @meet y Y (f.fwd a) b
 
--- theorem funcoid_rel_comm {x: Type u} {y: Type v} {X: PartialOrder x}{Y: PartialOrder y}
---     (f: PointfreeFuncoid X Y) (a : x) (b : y) :
---     funcoid_rel f a b ↔ funcoid_rel f.inv b a := by
---     ext <;> rfl
+theorem funcoid_rel_comm {x: Type u} {y: Type v} {X: PartialOrder x}{Y: PartialOrder y}
+    (f: PointfreeFuncoid X Y) (a : x) (b : y) :
+    funcoid_rel f a b ↔ funcoid_rel f.inv b a :=
+    f.rev a b
 
 -- TODO:
