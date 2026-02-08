@@ -3,7 +3,7 @@ version = "0.1.0"
 defaultTargets = ["atgt"]
 
 [[lean_lib]]
-name = "Atgt"
+name = "atgt"
 
 [[require]]
 name = "mathlib"

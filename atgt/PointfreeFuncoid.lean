@@ -91,4 +91,10 @@ def comp {x: Type u} {y: Type v} {z: Type w}{X: PartialOrder x}{Y: PartialOrder 
 
 infixr:80 " ∘ " => comp
 
+-- theorem comp_assoc {x: Type u} {y: Type v} {z: Type w}{X: PartialOrder x}{Y: PartialOrder y}{Z: PartialOrder z}
+--     (f: PointfreeFuncoid X Y) (g: PointfreeFuncoid Y Z) (h: PointfreeFuncoid Z W)
+--     : comp (comp f g) h = comp f (comp g h) := by
+--     intro x z
+--     simp [comp]
+
 -- TODO:
