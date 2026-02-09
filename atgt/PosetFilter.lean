@@ -5,7 +5,7 @@ universe u
 structure PosetFilterBase{u}(U: PartialOrder u) where
   elements: Set u
   non_empty: Set.Nonempty elements
-  cap_elements {x y} : ∃ z ∈ elements, (z ≤ x ∧ z ≤ y)
+  cap_elements {x y} : x ∈ elements → y ∈ elements → ∃ z ∈ elements, (z ≤ x ∧ z ≤ y)
 
 @[ext]
 lemma PosetFilterBase.ext_elements {U : PartialOrder u}
@@ -28,6 +28,12 @@ lemma PosetFilter.ext {U : PartialOrder u}
   cases h
   rfl
 
+def PosetFilter.principal {u} {U : PartialOrder u} (a : u) : PosetFilter U where
+  elements := { x | a ≤ x }
+  non_empty := ⟨a, le_rfl⟩
+  cap_elements {x y} (hx : a ≤ x) (hy : a ≤ y) := ⟨a, le_rfl, hx, hy⟩
+  up_closed {x y} (hx : a ≤ x) (hxy : x ≤ y) := hx.trans hxy
+
 def close_filter_base {U : PartialOrder u}
   (B : PosetFilterBase U) : PosetFilter U :=
 { elements :=
@@ -38,9 +44,11 @@ def close_filter_base {U : PartialOrder u}
     exact ⟨x, x, hx, le_rfl⟩
 
   cap_elements := by
-    intro x y
-    rcases B.cap_elements (x := x) (y := y) with ⟨z, hz, hzx, hzy⟩
-    refine ⟨z, ?_, hzx, hzy⟩
+    intro x y hx hy
+    rcases hx with ⟨x0, hx0, hx0_le_x⟩
+    rcases hy with ⟨y0, hy0, hy0_le_y⟩
+    rcases B.cap_elements hx0 hy0 with ⟨z, hz, hz_le_x0, hz_le_y0⟩
+    refine ⟨z, ?_, hz_le_x0.trans hx0_le_x, hz_le_y0.trans hy0_le_y⟩
     exact ⟨z, hz, le_rfl⟩
 
   up_closed := by
