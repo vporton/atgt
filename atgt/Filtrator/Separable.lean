@@ -4,12 +4,12 @@ import atgt.Poset
 def Filtrator.star_separable {α : Type*} [Filtrator α] : Prop :=
   ∀ a b : α, base_separator subset a = base_separator subset b → a = b
 
-theorem star_separable_imp_separable {α : Type*} [Filtrator α] (h_star_sep : @Filtrator.star_separable α _)
-  : IsSeparable α := by
-  intro a b h_eq
-  apply h_star_sep
-  unfold base_separator
-  rw [h_eq]
+theorem star_separable_imp_separable {α : Type*} [Filtrator α]
+  (h_star_sep : @Filtrator.star_separable α _) : IsSeparable α := by
+    intro a b h_eq
+    apply h_star_sep
+    unfold base_separator
+    rw [h_eq]
 
 /-- The key property of separable core filtrators: if x doesn't meet y,
     then there exists z in up y such that x doesn't meet z.
