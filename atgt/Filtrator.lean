@@ -22,10 +22,12 @@ variable {α : Type*} [Filtrator α]
 def Filtrator.up {α : Type u} [Filtrator α] (x: α) := { y ∈ subset | x ≤ y }
 
 /-- A filtrator is core-determined if every element is the infimum of its core upper set. -/
+/- TODO: In the book, I call it primary filtrator, instead.-/
 def Filtrator.core_determined {α : Type u} [Filtrator α] : Prop :=
   ∀ x : α, IsGLB (Filtrator.up x) x
 
 /-- The property that meet commutes with infimums from the core. -/
+/- TODO -/
 def Filtrator.meet_inf_property {α : Type u} [Filtrator α] : Prop :=
   ∀ x : α, ∀ S : Set α, S ⊆ subset → S.Nonempty → (∃ i, IsGLB S i) →
     (∀ i, IsGLB S i → (meet x i ↔ ∀ s ∈ S, meet x s))
