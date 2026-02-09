@@ -35,7 +35,7 @@ theorem Filtrator.star_separable_imp_separator_up_property {α : Type u} [Filtra
   exact hx h_neg
 
 def Filtrator.star_separable {α : Type u} [Filtrator α] : Prop :=
-  ∀ a b : α, base_separator (subset) a = base_separator (subset) b → a = b
+  ∀ a b : α, base_separator subset a = base_separator subset b → a = b
 
 /-- For a filtrator with separator_up_property, meet with y is equivalent to meeting all elements in up y -/
 theorem Filtrator.meet_iff_forall_up {α : Type u} [F : Filtrator α]
