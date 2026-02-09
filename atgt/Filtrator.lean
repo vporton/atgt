@@ -19,13 +19,14 @@ def Filtrator.supset {α : Type u} [Filtrator α] := α
 
 def Filtrator.up {α : Type u} [Filtrator α] (x: α) := { y ∈ subset | x ≤ y }
 
+/- TODO: Move the below to `Filtrator.Primary`. -/
 class Filtrator.Filtered (α : Type u) [Filtrator α] : Prop where
   is_filtered : ∀ x y : α, up x ⊆ up y → y ≤ x
 
+/-- A filtrator is up-determined if every element is the infimum of its core upper set. -/
 class Filtrator.UpDetermined (α : Type u) [Filtrator α] : Prop where
   is_up_determined : ∀ x : α, IsGLB (Filtrator.up x) x
 
-/-- A filtrator is up-determined if every element is the infimum of its core upper set. -/
 theorem Filtrator.up_determined_iff_filtered {α : Type u} [Filtrator α] :
   Filtrator.Filtered α ↔ Filtrator.UpDetermined α := by
   constructor
