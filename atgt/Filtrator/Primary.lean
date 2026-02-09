@@ -33,4 +33,4 @@ instance FiltratorOfFilters {X : Type*} [inst : PartialOrder X] : Filtrator (Pos
   subset := Principals (U := inst)
 
 class Filtrator.Primary {α: Type*} extends Filtrator α where
-  is_primary : ∃ β: Type*, ∃ p: PartialOrder β, Nonempty (FiltratorIso (@FiltratorOfFilters β p) self)
+  is_primary : ∃ β: Type*, ∃ p: PartialOrder β, Nonempty (FiltratorIso (FiltratorOfFilters (inst := p)) self)
