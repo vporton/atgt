@@ -1,8 +1,7 @@
 import Mathlib.Data.Ordmap.Ordset
 import atgt.Poset
 import atgt.Filtrator
-
-open Atgt
+import atgt.Filtrator.Separable
 
 universe u v u2 v2
 

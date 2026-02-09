@@ -2,8 +2,6 @@ import Mathlib.Data.Ordmap.Ordset
 
 universe u v u2 v2
 
-namespace Atgt
-
 instance {u} : Coe (SemilatticeInf u) (PartialOrder u) where
     coe s := s.toPartialOrder
 
@@ -54,5 +52,3 @@ def base_separator {α : Type u} (β : Set α) [PartialOrder α] (a : α) := β 
 prefix:80 "⋆" => separator
 
 def IsSeparable (α : Type u) [PartialOrder α] := ∀ a b : α, separator a = separator b → a = b
-
-end Atgt
