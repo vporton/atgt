@@ -116,14 +116,8 @@ theorem PointfreeFuncoid.sep_rel {u v : Type _} [X : PartialOrder u] [Y : Partia
 
 lemma rel_right_flt{α: Type u}{β: Type v}[X: PartialOrder α][Y: Filtrator β]
     (h_sep_up : Y.separator_up_property) (f: PointfreeFuncoid X Y.suporder) (a: α) (b: β) :
-    f.funcoid_rel a b ↔ ∀ y ∈ Filtrator.up b, f.funcoid_rel a y := by
-    constructor
-    · intro h y hy
-      simp [PointfreeFuncoid.funcoid_rel] at h ⊢
-      exact meet_mono_right hy.2 h
-    · intro h
-      simp only [PointfreeFuncoid.funcoid_rel] at h ⊢
-      exact (Filtrator.meet_iff_forall_up h_sep_up (f.fwd a) b).mpr h
+    f.funcoid_rel a b ↔ ∀ y ∈ Filtrator.up b, f.funcoid_rel a y :=
+    h_sep_up (f.fwd a) b
 
 lemma rel_left_flt{α: Type u}{β: Type v}[X: Filtrator α][Y: PartialOrder β]
     (h_sep_up : X.separator_up_property) (f: PointfreeFuncoid X.suporder Y) (a: α) (b: β) :
