@@ -3,7 +3,7 @@ import atgt.Poset
 
 def separator_core {α : Type*} [Filtrator α] (a : α) := subset ∩ separator a
 
-/-TODO: Rename. -/
+/- TODO: Rename. -/
 def Filtrator.star_separable {α : Type*} [Filtrator α] : Prop :=
   ∀ a b : α, separator_core a = separator_core b → a = b
 
