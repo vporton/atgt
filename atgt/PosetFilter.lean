@@ -34,6 +34,8 @@ def PosetFilter.principal {u} {U : PartialOrder u} (a : u) : PosetFilter U where
   cap_elements {x y} (hx : a ≤ x) (hy : a ≤ y) := ⟨a, le_rfl, hx, hy⟩
   up_closed {x y} (hx : a ≤ x) (hxy : x ≤ y) := hx.trans hxy
 
+def Principals {U : PartialOrder u} : Set (PosetFilter U) := { PosetFilter.principal a | a : u }
+
 def close_filter_base {U : PartialOrder u}
   (B : PosetFilterBase U) : PosetFilter U :=
 { elements :=
