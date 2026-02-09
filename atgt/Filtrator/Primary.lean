@@ -1,4 +1,5 @@
 import atgt.Filtrator
+import atgt.PosetFilter
 
 /- TODO: Move the below to `Filtrator.Primary`. -/
 class Filtrator.Filtered (α : Type u) [Filtrator α] : Prop where
@@ -27,3 +28,10 @@ theorem Filtrator.up_determined_iff_filtered {α : Type u} [Filtrator α] :
     apply (h.is_up_determined x).2
     intro z hz
     exact (h.is_up_determined y).1 (h_subs hz)
+
+
+-- instance FiltratorOfFilters {X : Type*} [inst : PartialOrder X] : Filtrator (PosetFilter inst) where
+--   subset := Set.range (PosetFilter.principal (U := inst))
+
+-- class Filtrator.Primary (α : Type u) [Filtrator α] : Prop where
+--   is_primary : True -- placeholder
