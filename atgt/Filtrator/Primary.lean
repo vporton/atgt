@@ -29,9 +29,8 @@ theorem Filtrator.up_determined_iff_filtered {α : Type u} [Filtrator α] :
     intro z hz
     exact (h.is_up_determined y).1 (h_subs hz)
 
-
--- instance FiltratorOfFilters {X : Type*} [inst : PartialOrder X] : Filtrator (PosetFilter inst) where
---   subset := Set.range (PosetFilter.principal (U := inst))
+instance FiltratorOfFilters {X : Type*} [inst : PartialOrder X] : Filtrator (PosetFilter inst) where
+  subset := Principals (U := inst)
 
 -- class Filtrator.Primary (α : Type u) [Filtrator α] : Prop where
 --   is_primary : True -- placeholder
