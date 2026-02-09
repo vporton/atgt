@@ -32,5 +32,6 @@ theorem Filtrator.up_determined_iff_filtered {α : Type u} [Filtrator α] :
 instance FiltratorOfFilters {X : Type*} [inst : PartialOrder X] : Filtrator (PosetFilter inst) where
   subset := Principals (U := inst)
 
+/- TODO: Rename?  -/
 class Filtrator.Primary {α: Type*} extends Filtrator α where
   is_primary : ∃ β: Type*, ∃ p: PartialOrder β, Nonempty (FiltratorIso (FiltratorOfFilters (inst := p)) self)
