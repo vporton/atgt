@@ -17,11 +17,6 @@ namespace Filtrator
 
 universe u v
 
-/-- **Definition 460.** A primary filtrator whose underlying partial order is order-isomorphic to a
-powerset is called a powerset filtrator. -/
--- def PowersetFiltrator (α : Type u) [inst : Filtrator.{u} α] : Prop :=
---   @Filtrator.Primary.{u, u} α inst ∧ ∃ β : Type*, Nonempty (α ≃o Set β)
-
 /- TODO: Rename?  -/
 class Powerset (α: Type*) [inst : Filtrator α] : Prop where
   is_powerset : ∃ β: Type*,
