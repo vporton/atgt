@@ -39,7 +39,7 @@ theorem le_iff_exists_base_le {α : Type u} [Filtrator α] [Filtrator.Primary α
       simpa [close_filter_base] using h
     simpa [S.closes_to] using (show K ∈ (close_filter_base S.base).elements from hmem)
 
-namespace Tuple572
+namespace CoreEquivalence
 
 variable {α : Type u} [Filtrator α]
 
@@ -66,11 +66,11 @@ theorem powerset_imp_mem_up_iff_exists_mem_up [Filtrator.Powerset.{u, v} α] {F 
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
   exact mem_up_iff_exists_mem_up (S := S) (K := K)
 
-end Tuple572
+end CoreEquivalence
 
-export Tuple572 (mem_up_iff_exists_mem_up powerset_imp_mem_up_iff_exists_mem_up)
+export CoreEquivalence (mem_up_iff_exists_mem_up powerset_imp_mem_up_iff_exists_mem_up)
 
-namespace Tuple573
+namespace BotInBaseCharacterization
 
 variable {α : Type u} [Filtrator α] [OrderBot α]
 
@@ -102,11 +102,11 @@ theorem powerset_imp_bot_mem_base_iff_eq_bot [Filtrator.Powerset.{u, v} α] {F :
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
   exact bot_mem_base_iff_eq_bot (hbot := hbot) (S := S)
 
-end Tuple573
+end BotInBaseCharacterization
 
-export Tuple573 (bot_mem_base_iff_eq_bot powerset_imp_bot_mem_base_iff_eq_bot)
+export BotInBaseCharacterization (bot_mem_base_iff_eq_bot powerset_imp_bot_mem_base_iff_eq_bot)
 
-namespace Tuple574
+namespace NoBotBase
 
 variable {α : Type u} [Filtrator α] [OrderBot α]
 
@@ -132,11 +132,11 @@ theorem powerset_imp_ne_bot_of_base_has_no_bot [Filtrator.Powerset.{u, v} α] {F
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
   exact ne_bot_of_base_has_no_bot (hbot := hbot) (S := S) hno_bot
 
-end Tuple574
+end NoBotBase
 
-export Tuple574 (ne_bot_of_base_has_no_bot powerset_imp_ne_bot_of_base_has_no_bot)
+export NoBotBase (ne_bot_of_base_has_no_bot powerset_imp_ne_bot_of_base_has_no_bot)
 
-namespace Tuple575
+namespace PairwiseMeetNoBot
 
 variable {α : Type u} [Filtrator α] [OrderBot α]
 
@@ -170,11 +170,11 @@ theorem powerset_imp_ne_bot_of_pairwise_meet [Filtrator.Powerset.{u, v} α] {F :
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
   exact ne_bot_of_pairwise_meet (hbot := hbot) (S := S) hpair
 
-end Tuple575
+end PairwiseMeetNoBot
 
-export Tuple575 (ne_bot_of_pairwise_meet powerset_imp_ne_bot_of_pairwise_meet)
+export PairwiseMeetNoBot (ne_bot_of_pairwise_meet powerset_imp_ne_bot_of_pairwise_meet)
 
-namespace Tuple576
+namespace Prefilteredness
 
 variable (α : Type u) [Filtrator α]
 
@@ -194,8 +194,8 @@ theorem prefiltered_of_powerset [Filtrator.Powerset.{u, v} α] : Filtrator.PreFi
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
   exact prefiltered_of_primary α
 
-end Tuple576
+end Prefilteredness
 
-export Tuple576 (prefiltered_of_primary prefiltered_of_powerset)
+export Prefilteredness (prefiltered_of_primary prefiltered_of_powerset)
 
 end Filtrator.Primary
