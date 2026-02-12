@@ -64,6 +64,14 @@ open Filtrator
 
 variable {α : Type u} [i : Filtrator α] [Primary α]
 
+theorem order_determined (a b : α) : a ≤ b ↔ up b ⊆ up a := by
+  let h_filtered := Filtrator.primary_imp_filtered (α := α)
+  constructor
+  · intro hab y hy
+    exact ⟨hy.1, le_trans hab hy.2⟩
+  · intro h_sub
+    exact h_filtered.is_filtered _ _ h_sub
+
 theorem exists_up_in_subset (x : α) : ∃ y : subset, x ≤ y.1 := by
   have ⟨β, p, ⟨iso⟩⟩ := Primary.is_primary (self := ‹Primary α›)
   -- iso : FiltratorIso (FiltratorOfFilters p) i
