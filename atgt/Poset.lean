@@ -1,4 +1,7 @@
 import Mathlib.Data.Ordmap.Ordset
+import Mathlib.Data.Set.Basic
+import Mathlib.Data.Set.Operations
+import Mathlib.Order.Hom.Basic
 
 universe u v u2 v2
 
@@ -42,8 +45,7 @@ by
       le_inf hc₁ hc₂
     exact le_trans hcab this
   · intro h
-    refine ⟨a ⊓ b, inf_le_left, inf_le_right, ?_⟩
-    exact h
+    exact ⟨a ⊓ b, inf_le_left, inf_le_right, h⟩
 
 def separator {α : Type u} [PartialOrder α] (a : α) := { x : α | ¬ meet x a }
 
@@ -52,3 +54,38 @@ prefix:80 "⋆" => separator
 def IsSeparable (α : Type u) [PartialOrder α] := ∀ a b : α, separator a = separator b → a = b
 
 def IsStronglySeparable (α : Type u) [PartialOrder α] := ∀ a b : α, separator a ⊆ separator b → a ≤ b
+
+theorem le_imp_separator_superset {α : Type u} [PartialOrder α] {a b : α} (h : a ≤ b) :
+    separator b ⊆ separator a := by
+  intro x hx
+  change ¬ meet x a
+  intro hxa
+  exact hx (meet_mono_right h hxa)
+
+theorem isStronglySeparable_iff_star_orderEmbedding {α : Type u} [PartialOrder α] :
+    IsStronglySeparable α ↔
+      ∃ f : α ↪o Set α, (f : α → Set α) = separator := by
+  constructor
+  · intro h
+    have map_rel : ∀ a b : α, separator a ≤ separator b ↔ a ≤ b := by
+      intro a b
+      constructor
+      · intro h_sub
+        have h_subset : separator a ⊆ separator b := (Set.le_iff_subset.mpr h_sub)
+        exact h a b h_subset
+      · intro hab
+        have h_sub_ba : separator b ⊆ separator a := le_imp_separator_superset hab
+        have hba : b ≤ a := h b a h_sub_ba
+        have hab_eq : a = b := le_antisymm hab hba
+        simpa [hab_eq]
+    let f := OrderEmbedding.ofMapLEIff (fun a => separator a) map_rel
+    refine ⟨f, ?_⟩
+    rfl
+  · intro ⟨f, hf⟩
+    intro a b h_sub
+    have hle : f a ≤ f b := by
+      have h_sub_le : separator a ≤ separator b := h_sub
+      have hfa : f a = separator a := congrFun hf a
+      have hfb : f b = separator b := congrFun hf b
+      simpa [hfa, hfb] using h_sub_le
+    exact (OrderEmbedding.le_iff_le f).mp hle
