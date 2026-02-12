@@ -85,29 +85,6 @@ theorem Filtrator.isomorphicToPrimary_imp_filtered {α : Type*} [i : Filtrator �
   letI : Filtrator.Primary β := hprim
   exact Filtrator.Filtered.of_iso (h := Filtrator.primary_imp_filtered (α := β)) iso
 
-theorem Filtrator.filtered_not_primary_counterexample :
-    ∃ i : Filtrator PUnit, @Filtrator.Filtered PUnit i ∧ ¬ @Filtrator.Primary PUnit i := by
-  let i : Filtrator PUnit := { toPartialOrder := inferInstance, subset := (∅ : Set PUnit) }
-  refine ⟨i, ?_, ?_⟩
-  · show @Filtrator.Filtered PUnit i
-    constructor
-    intro x y h
-    exact le_rfl
-  · show ¬ @Filtrator.Primary PUnit i
-    intro hP
-    rcases Filtrator.Primary.is_primary (self := hP) with ⟨β, p, ⟨iso⟩⟩
-    have h_nonempty : Nonempty β := by
-      let F : PosetFilter p := iso.toRelIso.symm PUnit.unit
-      rcases F.non_empty with ⟨x, hx⟩
-      exact ⟨x⟩
-    rcases h_nonempty with ⟨x⟩
-    have hmem : iso.toRelIso (PosetFilter.principal (U := p) x) ∈ (subset : Set PUnit) := by
-      rw [← iso.core_match]
-      exact ⟨PosetFilter.principal (U := p) x, ⟨x, rfl⟩, rfl⟩
-    have hempty : False := by
-      simp [i] at hmem
-    exact hempty.elim
-
 namespace Filtrator.Primary
 
 open Filtrator
