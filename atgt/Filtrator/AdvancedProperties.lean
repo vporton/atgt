@@ -1,0 +1,79 @@
+import atgt.Filtrator.Primary
+import atgt.Filtrator.Powerset
+import Mathlib.Order.CompleteLattice.Basic
+
+/-!
+# More advanced properties of filters (Section 5.8)
+
+This file adds Theorem 516 and the implication tuples Corollary 517 / Corollary 518
+(from volume-1, pp. 85-86), in the current development vocabulary.
+-/
+
+namespace Filtrator.Primary
+
+universe u v
+
+/--
+Corollary-517 condition (3), rendered in the current formal vocabulary:
+for every nonempty family `S`, its infimum exists and the upper set of this infimum is the
+intersection of upper sets of elements of `S`.
+-/
+def NonemptyInfUpInter (α : Type u) [Filtrator α] : Prop :=
+  ∀ S : Set α, S.Nonempty →
+    ∃ d : α, IsGLB S d ∧ Filtrator.up d = {x : α | ∀ s ∈ S, x ∈ Filtrator.up s}
+
+/--
+Theorem 516 (pp. 85-86), formalized in the present framework as the meet-side statement
+used by Corollaries 517/518.
+-/
+theorem theorem516 {α : Type u}
+    [Filtrator α] [SemilatticeInf α] [OrderTop α] [Filtrator.Primary α] :
+    NonemptyInfUpInter α := by
+  sorry
+
+namespace PrimaryMeetTopInfimumTuple
+
+variable {α : Type u} [Filtrator α]
+
+/-- 1⇒2 in Corollary 517 tuple. -/
+lemma one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α := by
+  exact Filtrator.Powerset.primary (α := α)
+
+/-- 2⇒3 in Corollary 517 tuple. -/
+theorem two_imp_three [SemilatticeInf α] [OrderTop α] [Filtrator.Primary α] : NonemptyInfUpInter α := by
+  exact theorem516 (α := α)
+
+/-- 1⇒3 in Corollary 517 tuple. -/
+theorem one_imp_three [SemilatticeInf α] [OrderTop α] [Filtrator.Powerset.{u, v} α] :
+    NonemptyInfUpInter α := by
+  letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
+  exact two_imp_three (α := α)
+
+end PrimaryMeetTopInfimumTuple
+
+export PrimaryMeetTopInfimumTuple (two_imp_three one_imp_three)
+
+namespace PrimaryMeetTopCompleteLatticeTuple
+
+variable {α : Type u} [Filtrator α]
+
+/-- 1⇒2 in Corollary 518 tuple. -/
+lemma one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α := by
+  exact Filtrator.Powerset.primary (α := α)
+
+/-- 2⇒3 in Corollary 518 tuple. -/
+theorem two_imp_three [SemilatticeInf α] [OrderTop α] [Filtrator.Primary α] :
+    Nonempty (CompleteLattice α) := by
+  sorry
+
+/-- 1⇒3 in Corollary 518 tuple. -/
+theorem one_imp_three [SemilatticeInf α] [OrderTop α] [Filtrator.Powerset.{u, v} α] :
+    Nonempty (CompleteLattice α) := by
+  letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
+  exact two_imp_three (α := α)
+
+end PrimaryMeetTopCompleteLatticeTuple
+
+export PrimaryMeetTopCompleteLatticeTuple (two_imp_three one_imp_three)
+
+end Filtrator.Primary

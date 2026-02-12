@@ -4,4 +4,5 @@ import atgt.PointfreeFuncoid
 import atgt.Filtrator.GeneralizedFilterBase
 import atgt.Filtrator.Powerset
 import atgt.Filtrator.GeneralizedFilterBase
+import atgt.Filtrator.AdvancedProperties
 import atgt.AlternativePrimaryFiltrators
