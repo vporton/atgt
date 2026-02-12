@@ -2,6 +2,7 @@ import Mathlib.Data.Ordmap.Ordset
 import Mathlib.Data.Set.Basic
 import Mathlib.Order.Bounds.Basic
 import Mathlib.Order.RelIso.Basic
+import Mathlib.Order.Lattice
 import atgt.Poset
 import Mathlib.Order.Bounds.Defs
 
@@ -27,6 +28,52 @@ def Filtrator.up_suborder {α : Type u} [Filtrator α] (x : α) : Set (subset : 
 /- For simplicity, I define it only for semilattices. In the book it's more general. -/
 def Filtrator.binary_meet_closed {α : Type u} [Filtrator α] [SemilatticeInf α] : Prop :=
   ∀ x y : α, x ∈ subset → y ∈ subset → x ⊓ y ∈ subset
+
+def Filtrator.up_is_filter {α : Type u} [Filtrator α] [SemilatticeInf α] (a : α) : Prop :=
+  Set.Nonempty (Filtrator.up a) ∧
+    (∀ x y : α, x ∈ Filtrator.up a → y ∈ Filtrator.up a → x ⊓ y ∈ Filtrator.up a) ∧
+    (∀ x y : α, x ∈ Filtrator.up a → y ∈ subset → x ≤ y → y ∈ Filtrator.up a)
+
+/-- Theorem 535: under the usual core assumptions, the core is binary-meet closed iff each
+upper set is a filter. -/
+theorem Filtrator.binary_meet_closed_iff_up_filters {α : Type u} [Filtrator α] [SemilatticeInf α]
+    (h_nonempty : ∀ a : α, Set.Nonempty (Filtrator.up a))
+    (hord : ∀ a b : α, a ≤ b ↔ @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) :
+    Filtrator.binary_meet_closed (α := α) ↔ ∀ a : α, Filtrator.up_is_filter a := by
+  constructor
+  · intro h_closed a
+    constructor
+    · exact h_nonempty a
+    · constructor
+      · intro x y hx hy
+        let z_val := x ⊓ y
+        have z_mem : z_val ∈ subset := h_closed x y hx.1 hy.1
+        have h_a_x : a ≤ x := hx.2
+        have h_a_y : a ≤ y := hy.2
+        have h_a_x' :
+            @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a x :=
+          (hord a x).1 h_a_x
+        have h_a_y' :
+            @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a y :=
+          (hord a y).1 h_a_y
+        have h_a_z' :
+            @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a z_val :=
+          le_inf h_a_x' h_a_y'
+        have : a ≤ z_val := (hord a z_val).2 h_a_z'
+        exact show z_val ∈ Filtrator.up a from ⟨z_mem, this⟩
+      · intro x y hx hy hxy
+        have h_ax : a ≤ x := hx.2
+        exact ⟨hy, le_trans h_ax hxy⟩
+  · intro h x y hx hy
+    let a := x ⊓ y
+    have hx' : x ∈ Filtrator.up a := by
+      refine ⟨hx, ?_⟩
+      exact (hord a x).2 inf_le_left
+    have hy' : y ∈ Filtrator.up a := by
+      refine ⟨hy, ?_⟩
+      exact (hord a y).2 inf_le_right
+    rcases h a with ⟨_, ⟨hcap, _⟩⟩
+    exact (hcap x y hx' hy').1
 
 structure FiltratorIso {α β : Type*} (a: Filtrator α) (b: Filtrator β) extends RelIso a.suporder.le b.suporder.le where
   core_match: toFun '' a.subset = b.subset
