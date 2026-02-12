@@ -1,4 +1,4 @@
-For a chain of implications referred as "implication tuple" in informal theorem condition (1)->(2)->...->(n) create a namespace with implications:
+For a chain of implications explicitly referred by words "implication tuple" in informal theorem condition (1)->(2)->...->(n) create a namespace with implications:
 (1)->(2), (2)->(3), ..., (n-1)->(n)
 and as their consequences (1)->(n), (2)->(n), ..., (n-2)->(n).
 Use keyword `lemma` for (1)->(2), (2)->(3), ..., (n-2)->(n-1), because these implications are meant only to prove theorems:
