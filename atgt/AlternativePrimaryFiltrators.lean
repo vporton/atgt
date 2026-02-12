@@ -1,6 +1,9 @@
 import Mathlib.Data.Set.Basic
 import Mathlib.Order.Lattice
+import Mathlib.Order.CompleteLattice.Basic
+import Mathlib.Order.CompleteBooleanAlgebra
 import Mathlib.Order.Hom.Set
+import atgt.Poset
 
 universe u
 
@@ -392,5 +395,101 @@ export PrincipalConstructions
     mem_principalIdeal_iff principalIdeal_generated ideal_principal_iff_generated
     principalUpper_iff_exists_least_mem principalLower_iff_exists_greatest_mem
     principalFreeStar_iff_exists_least_mem principalMixer_iff_exists_greatest_mem)
+
+namespace StarrishPosets
+
+def IsFreeStarLike [SemilatticeSup α] (S : Set α) : Prop :=
+  IsUpperSet S ∧ ∀ x y : α, x ⊔ y ∈ S → x ∈ S ∨ y ∈ S
+
+def IsStarrish (α : Type u) [SemilatticeSup α] : Prop :=
+  ∀ a : α, IsFreeStarLike (⋆a)
+
+def atoms [SemilatticeSup α] (a : α) : Set α := {c : α | a ∈ ⋆c}
+
+def IsCompletelyStarrish (α : Type u) [CompleteLattice α] : Prop :=
+  ∀ a : α, IsFreeStarLike (⋆a) ∧ ∀ T : Set α, sSup T ∈ ⋆a ↔ ∃ x ∈ T, x ∈ ⋆a
+
+theorem distributiveLattice_isStarrish (α : Type u) [DistribLattice α] :
+    IsStarrish α := by
+  intro a
+  refine ⟨?_, ?_⟩
+  · intro x y hx hxy
+    exact meet_mono_left hxy hx
+  · intro x y hxy
+    have hxy_notleast : ¬ is_least ((x ⊔ y) ⊓ a) := (meet_as_inf (x ⊔ y) a).1 hxy
+    have hxy_or : ¬ is_least (x ⊓ a) ∨ ¬ is_least (y ⊓ a) := by
+      by_contra h
+      push_neg at h
+      have hleast_sup : is_least ((x ⊓ a) ⊔ (y ⊓ a)) := by
+        intro t
+        exact sup_le (h.1 t) (h.2 t)
+      exact hxy_notleast (by simpa [inf_sup_right] using hleast_sup)
+    rcases hxy_or with hx_notleast | hy_notleast
+    · exact Or.inl ((meet_as_inf x a).2 hx_notleast)
+    · exact Or.inr ((meet_as_inf y a).2 hy_notleast)
+
+theorem atoms_sup_eq_union [SemilatticeSup α]
+    (hstar : IsStarrish α) (a b : α) :
+    atoms (a ⊔ b) = atoms a ∪ atoms b := by
+  ext c
+  rcases hstar c with ⟨hupper, hsup_imp_or⟩
+  constructor
+  · intro hc
+    exact hsup_imp_or a b hc
+  · intro hc
+    cases hc with
+    | inl ha => exact hupper ha (show a ≤ a ⊔ b from le_sup_left)
+    | inr hb => exact hupper hb (show b ≤ a ⊔ b from le_sup_right)
+
+theorem completelyStarrish_imp_starrish [CompleteLattice α]
+    (h : IsCompletelyStarrish α) : IsStarrish α := by
+  intro a
+  exact (h a).1
+
+theorem atoms_sSup_eq_iUnion_atoms [CompleteLattice α]
+    (h : IsCompletelyStarrish α) (T : Set α) :
+    atoms (sSup T) = ⋃ x ∈ T, atoms x := by
+  ext c
+  constructor
+  · intro hc
+    rcases ((h c).2 T).1 hc with ⟨x, hxT, hxc⟩
+    exact Set.mem_iUnion.2 ⟨x, Set.mem_iUnion.2 ⟨hxT, hxc⟩⟩
+  · intro hc
+    rcases Set.mem_iUnion.1 hc with ⟨x, hx⟩
+    rcases Set.mem_iUnion.1 hx with ⟨hxT, hxc⟩
+    exact ((h c).2 T).2 ⟨x, hxT, hxc⟩
+
+theorem completeDistribLattice_isCompletelyStarrish (α : Type u) [CompleteDistribLattice α] :
+    IsCompletelyStarrish α := by
+  intro a
+  refine ⟨(distributiveLattice_isStarrish α a), ?_⟩
+  intro T
+  constructor
+  · intro hsSup
+    by_contra h
+    push_neg at h
+    have hleast_x : ∀ x ∈ T, is_least (x ⊓ a) := by
+      intro x hx
+      apply not_not.mp
+      intro hx_notleast
+      exact (h x hx) ((meet_as_inf x a).2 hx_notleast)
+    have hleast_sup : is_least (sSup T ⊓ a) := by
+      intro t
+      rw [sSup_inf_eq]
+      refine iSup₂_le ?_
+      intro x hx
+      exact hleast_x x hx t
+    exact ((meet_as_inf (sSup T) a).1 hsSup) hleast_sup
+  · intro hmem
+    rcases hmem with ⟨x, hxT, hxmem⟩
+    exact meet_mono_left (le_sSup hxT) hxmem
+
+end StarrishPosets
+
+export StarrishPosets
+  (IsFreeStarLike IsStarrish atoms IsCompletelyStarrish
+    distributiveLattice_isStarrish atoms_sup_eq_union
+    completelyStarrish_imp_starrish atoms_sSup_eq_iUnion_atoms
+    completeDistribLattice_isCompletelyStarrish)
 
 end AlternativePrimaryFiltrators
