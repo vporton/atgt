@@ -35,6 +35,79 @@ instance FiltratorOfFilters {X : Type*} [inst : PartialOrder X] : Filtrator (Pos
 class Filtrator.Primary (α: Type*) [inst : Filtrator α] : Prop where
   is_primary : ∃ β: Type*, ∃ p: PartialOrder β, Nonempty (FiltratorIso (FiltratorOfFilters (inst := p)) inst)
 
+theorem Filtrator.filtered_of_filters {β : Type u} (p : PartialOrder β) :
+  Filtrator.Filtered (PosetFilter p) := by
+  constructor
+  intro F G h_sub x hxF
+  have hF_le_principal : F ≤ PosetFilter.principal (U := p) x := by
+    exact (le_principal_iff_subset (U := p) F x).2 hxF
+  have hprincipal_in_upF : PosetFilter.principal (U := p) x ∈ Filtrator.up F := by
+    exact ⟨⟨x, rfl⟩, hF_le_principal⟩
+  have hprincipal_in_upG : PosetFilter.principal (U := p) x ∈ Filtrator.up G := h_sub hprincipal_in_upF
+  have hG_le_principal : G ≤ PosetFilter.principal (U := p) x := hprincipal_in_upG.2
+  exact (le_principal_iff_subset (U := p) G x).1 hG_le_principal
+
+theorem Filtrator.Filtered.of_iso {α β : Type*} [i : Filtrator α] [j : Filtrator β]
+    (h : Filtrator.Filtered α) (iso : FiltratorIso i j) :
+    Filtrator.Filtered β := by
+  constructor
+  intro x y h_sub
+  have h_preimage_up : Filtrator.up (iso.toRelIso.symm x) ⊆ Filtrator.up (iso.toRelIso.symm y) := by
+    intro z hz
+    let w := iso.toRelIso z
+    have hw_in_subset : w ∈ (subset : Set β) := by
+      rw [← iso.core_match]
+      exact ⟨z, hz.1, rfl⟩
+    have hx_le_w : x ≤ w := by
+      have hx_pre : iso.toRelIso.symm x ≤ z := hz.2
+      have hx_map : iso.toRelIso (iso.toRelIso.symm x) ≤ iso.toRelIso z :=
+        (iso.toRelIso.map_rel_iff).2 hx_pre
+      simpa [w] using hx_map
+    have hy_le_w : y ≤ w := (h_sub ⟨hw_in_subset, hx_le_w⟩).2
+    have hy_pre : iso.toRelIso.symm y ≤ z := by
+      have hy_pre' : iso.toRelIso.symm y ≤ iso.toRelIso.symm w :=
+        (iso.toRelIso.symm.map_rel_iff).2 hy_le_w
+      simpa [w] using hy_pre'
+    exact ⟨hz.1, hy_pre⟩
+  have hyx_pre : iso.toRelIso.symm y ≤ iso.toRelIso.symm x := h.is_filtered _ _ h_preimage_up
+  exact (iso.toRelIso.symm.map_rel_iff).1 hyx_pre
+
+theorem Filtrator.primary_imp_filtered {α : Type*} [i : Filtrator α] [Filtrator.Primary α] :
+    Filtrator.Filtered α := by
+  rcases Filtrator.Primary.is_primary (self := ‹Filtrator.Primary α›) with ⟨β, p, ⟨iso⟩⟩
+  exact Filtrator.Filtered.of_iso (h := Filtrator.filtered_of_filters p) iso
+
+theorem Filtrator.isomorphicToPrimary_imp_filtered {α : Type*} [i : Filtrator α]
+    (h : ∃ (β : Type*) (j : Filtrator β), Filtrator.Primary β ∧ Nonempty (FiltratorIso j i)) :
+    Filtrator.Filtered α := by
+  rcases h with ⟨β, j, hprim, ⟨iso⟩⟩
+  letI : Filtrator β := j
+  letI : Filtrator.Primary β := hprim
+  exact Filtrator.Filtered.of_iso (h := Filtrator.primary_imp_filtered (α := β)) iso
+
+theorem Filtrator.filtered_not_primary_counterexample :
+    ∃ i : Filtrator PUnit, @Filtrator.Filtered PUnit i ∧ ¬ @Filtrator.Primary PUnit i := by
+  let i : Filtrator PUnit := { toPartialOrder := inferInstance, subset := (∅ : Set PUnit) }
+  refine ⟨i, ?_, ?_⟩
+  · show @Filtrator.Filtered PUnit i
+    constructor
+    intro x y h
+    exact le_rfl
+  · show ¬ @Filtrator.Primary PUnit i
+    intro hP
+    rcases Filtrator.Primary.is_primary (self := hP) with ⟨β, p, ⟨iso⟩⟩
+    have h_nonempty : Nonempty β := by
+      let F : PosetFilter p := iso.toRelIso.symm PUnit.unit
+      rcases F.non_empty with ⟨x, hx⟩
+      exact ⟨x⟩
+    rcases h_nonempty with ⟨x⟩
+    have hmem : iso.toRelIso (PosetFilter.principal (U := p) x) ∈ (subset : Set PUnit) := by
+      rw [← iso.core_match]
+      exact ⟨PosetFilter.principal (U := p) x, ⟨x, rfl⟩, rfl⟩
+    have hempty : False := by
+      simp [i] at hmem
+    exact hempty.elim
+
 namespace Filtrator.Primary
 
 open Filtrator
