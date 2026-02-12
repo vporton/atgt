@@ -1,4 +1,5 @@
 import Mathlib.Data.Ordmap.Ordset
+import Mathlib.Data.Set.Basic
 import Mathlib.Order.Bounds.Basic
 import atgt.Poset
 import Mathlib.Order.Bounds.Defs
@@ -52,3 +53,15 @@ theorem Filtrator.up_determined_iff_filtered {α : Type u} [Filtrator α] :
     apply (h.is_up_determined x).2
     intro z hz
     exact (h.is_up_determined y).1 (h_subs hz)
+
+class Filtrator.PreFiltered (α : Type u) [Filtrator α] : Prop where
+  is_pre_filtered : ∀ x y : α, up x = up y → y = x
+
+theorem filtered_imp_prefiltered (α : Type*) [Filtrator α] :
+    Filtrator.Filtered α → Filtrator.PreFiltered α := by
+  intro h
+  constructor
+  intro x y h_up_eq
+  have hy_le_x := h.is_filtered x y (h_up_eq ▸ subset_rfl)
+  have hx_le_y := h.is_filtered y x (Eq.symm h_up_eq ▸ subset_rfl)
+  exact le_antisymm hy_le_x hx_le_y
