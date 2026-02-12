@@ -25,3 +25,30 @@ def Filtrator.binary_meet_closed {α : Type u} [Filtrator α] [SemilatticeInf α
 
 structure FiltratorIso {α β : Type*} (a: Filtrator α) (b: Filtrator β) extends RelIso a.suporder.le b.suporder.le where
   core_match: toFun '' a.subset = b.subset
+
+class Filtrator.Filtered (α : Type u) [Filtrator α] : Prop where
+  is_filtered : ∀ x y : α, up x ⊆ up y → y ≤ x
+
+/-- A filtrator is up-determined if every element is the infimum of its core upper set. -/
+class Filtrator.UpDetermined (α : Type u) [Filtrator α] : Prop where
+  is_up_determined : ∀ x : α, IsGLB (Filtrator.up x) x
+
+theorem Filtrator.up_determined_iff_filtered {α : Type u} [Filtrator α] :
+  Filtrator.Filtered α ↔ Filtrator.UpDetermined α := by
+  constructor
+  · intro h
+    constructor
+    intro x
+    constructor
+    · intro y hy
+      exact hy.2
+    · intro y hy
+      apply h.is_filtered
+      intro z hz
+      exact ⟨hz.1, hy hz⟩
+  · intro h
+    constructor
+    intro x y h_subs
+    apply (h.is_up_determined x).2
+    intro z hz
+    exact (h.is_up_determined y).1 (h_subs hz)
