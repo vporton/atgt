@@ -5,3 +5,6 @@ Use keyword `lemma` for (1)->(2), (2)->(3), ..., (n-2)->(n-1), because these imp
 (1)->(n), (2)->(n), ..., (n-1)->(n).
 Export these theorems from the namespace.
 Name the namespace accordingly the statement semantic name, not like Tuple572 or Theorem572.
+
+In uploaded images or LaTeX fragments accept unusual set notation like
+$\left\{\frac{x\in A}{P(x)}\right\}$.
