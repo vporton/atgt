@@ -1,4 +1,5 @@
 import Mathlib.Data.Ordmap.Ordset
+import Mathlib.Order.CompleteBooleanAlgebra
 import atgt.Poset
 import atgt.Filtrator
 import atgt.Filtrator.Separable
@@ -133,3 +134,74 @@ lemma rel_flt{α: Type u}{β: Type v}[X: Filtrator α][Y: Filtrator β]
     conv_lhs =>
       ext x hx
       rw [rel_right_flt h_sep_up2]
+
+def PointfreeFuncoid.continuationSeparator {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (f : PointfreeFuncoid X.suporder Y.suporder) (x : α) : Set β :=
+  { y : β | ∀ X' ∈ Filtrator.up x, f.funcoid_rel X' y }
+
+/--
+Proposition 1615 (source-side form used later): under the source separability-over-up
+hypothesis, membership in the separator of `⟨f⟩ x` is equivalent to satisfying the relation
+for all `X' ∈ up x`.
+-/
+theorem proposition1615_source
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (h_sep_up : X.separator_up_property)
+    (f : PointfreeFuncoid X.suporder Y.suporder)
+    (x : α) :
+    separator (f.fwd x) = f.continuationSeparator x := by
+  ext y
+  constructor
+  · intro hy X' hX'
+    have hxy : f.funcoid_rel x y := by
+      simpa [PointfreeFuncoid.funcoid_rel, separator, meet_comm] using hy
+    exact (rel_left_flt (h_sep_up := h_sep_up) (f := f) (a := x) (b := y)).1 hxy X' hX'
+  · intro hy
+    have hxy : f.funcoid_rel x y :=
+      (rel_left_flt (h_sep_up := h_sep_up) (f := f) (a := x) (b := y)).2 hy
+    simpa [PointfreeFuncoid.funcoid_rel, separator, meet_comm] using hxy
+
+/--
+Corollary form used in theorem 1617: if the destination order is separable, any value whose
+separator equals the continuation separator must be `⟨f⟩ x`.
+-/
+theorem continuation_value_of_separator
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (h_sep_up : X.separator_up_property)
+    (h_sep_dst : IsSeparable β)
+    (f : PointfreeFuncoid X.suporder Y.suporder)
+    (x : α) (z : β)
+    (hz : separator z = f.continuationSeparator x) :
+    z = f.fwd x := by
+  apply h_sep_dst
+  calc
+    separator z = f.continuationSeparator x := hz
+    _ = separator (f.fwd x) := (proposition1615_source (h_sep_up := h_sep_up) (f := f) (x := x)).symm
+
+/--
+Theorem 1617 (p. 317), literal value equation form:
+`⟨f⟩ x = sInf (⟨⟨f⟩⟩ (up x))`.
+-/
+theorem theorem1617
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    [SemilatticeInf α]
+    [Filtrator.Primary β]
+    (Bdst : CompleteBooleanAlgebra β)
+    (h_src_binary_meet_closed : Filtrator.binary_meet_closed (α := α))
+    (h_src_sep_up : X.separator_up_property)
+    (h_src_up_nonempty : ∀ x : α, Set.Nonempty (Filtrator.up x))
+    (f : PointfreeFuncoid X.suporder Y.suporder)
+    (x : α) :
+    f.fwd x = @sInf β Bdst.toCompleteLattice.toInfSet (f.fwd '' Filtrator.up x) := by
+  have _ := h_src_binary_meet_closed
+  have _ := h_src_up_nonempty
+  have _ := h_src_sep_up
+  -- The proof path is established in helpers above (Proposition 1615 separator form and
+  -- separator-based value recovery). The remaining bridge is to identify the separator of
+  -- `sInf (f.fwd '' Filtrator.up x)` with `continuationSeparator`, via generalized-filter-base
+  -- machinery (Theorem 572 / Proposition 579 route from the PDF proof).
+  sorry

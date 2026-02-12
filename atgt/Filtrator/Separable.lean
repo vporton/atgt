@@ -2,23 +2,23 @@ import atgt.Filtrator
 import atgt.Filtrator.Powerset
 import atgt.Poset
 
-def separator_core {α : Type*} [PartialOrder α] (F : Filtrator α) (a : α) := F.subset ∩ separator a
+def separator_core {α : Type*} [PartialOrder α] {F : Filtrator α} (a : α) := F.subset ∩ separator a
 
 def Filtrator.of_subset {α : Type*} [PartialOrder α] (s : Set α) : Filtrator α :=
   { subset := s }
 
 /- TODO: Rename. -/
-def Filtrator.star_separable {α : Type*} (F : Filtrator α) : Prop :=
-  ∀ a b : α, separator_core F a = separator_core F b → a = b
+def Filtrator.star_separable {α : Type*} [PartialOrder α] (F : Filtrator α) : Prop :=
+  ∀ a b : α, separator_core (F := F) a = separator_core (F := F) b → a = b
 
 def has_separation_subset (α : Type*) [PartialOrder α] : Prop :=
   ∃ s : Set α, Filtrator.star_separable (Filtrator.of_subset s)
 
-theorem star_separable_imp_separable {α : Type*} {F : Filtrator α}
+theorem star_separable_imp_separable {α : Type*} [PartialOrder α] {F : Filtrator α}
   (h_star_sep : Filtrator.star_separable F) : IsSeparable α := by
     intro a b h_eq
     apply h_star_sep
-    have h_core_eq : separator_core F a = separator_core F b := by
+    have h_core_eq : separator_core (F := F) a = separator_core (F := F) b := by
       simp [separator_core, h_eq]
     exact h_core_eq
 
@@ -41,14 +41,10 @@ theorem is_separable_implies_has_subset {α : Type*} [PartialOrder α] (h : IsSe
 theorem has_subset_implies_is_separable {α : Type*} [PartialOrder α]
   (h : has_separation_subset α) : IsSeparable α := by
   rcases h with ⟨s, h_star⟩
+  let core := Filtrator.of_subset s
   intro a b h_eq
-  have h_core_eq : separator_core (Filtrator.of_subset s) a = separator_core (Filtrator.of_subset s) b := by
-    calc
-      separator_core (Filtrator.of_subset s) a = s ∩ separator a := by
-        simp [separator_core, Filtrator.of_subset]
-      _ = s ∩ separator b := congrArg (fun t => s ∩ t) h_eq
-      _ = separator_core (Filtrator.of_subset s) b := by
-        simp [separator_core, Filtrator.of_subset]
+  have h_core_eq : separator_core (F := core) a = separator_core (F := core) b := by
+    simp [separator_core, h_eq]
   apply h_star a b h_core_eq
 
 theorem is_separable_iff_has_subset {α : Type*} [PartialOrder α] :
