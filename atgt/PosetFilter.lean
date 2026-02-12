@@ -76,3 +76,28 @@ instance (U : PartialOrder u) : PartialOrder (PosetFilter U) where
     apply PosetFilter.ext
     apply PosetFilterBase.ext_elements
     exact Set.Subset.antisymm hGF hFG
+
+lemma le_principal_iff_subset {U : PartialOrder u} (F : PosetFilter U) (x : u) : F ≤ PosetFilter.principal x ↔ x ∈ F.elements := by
+  constructor
+  . intro h
+    change (PosetFilter.principal x).elements ⊆ F.elements at h
+    apply h
+    exact le_rfl
+  . intro h
+    change (PosetFilter.principal x).elements ⊆ F.elements
+    intro y hy
+    exact F.up_closed h hy
+
+lemma principals_le_iff {U : PartialOrder u} (x y : u) : PosetFilter.principal x ≤ PosetFilter.principal (U := U) y ↔ x ≤ y := by
+  rw [le_principal_iff_subset]
+  rfl
+
+lemma principal_injective {U : PartialOrder u} : Function.Injective (PosetFilter.principal (U := U)) := by
+  intro x y h
+  apply le_antisymm
+  . rw [← principals_le_iff]
+    rw [h]
+    exact le_rfl
+  . rw [← principals_le_iff]
+    rw [h]
+    exact le_rfl
