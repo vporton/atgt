@@ -15,7 +15,7 @@ def setPartialOrder (U : Type*) : PartialOrder (Set U) := inferInstance
 
 namespace Filtrator
 
-variable {u : Level}
+universe u v
 
 /-- **Definition 460.** A primary filtrator whose underlying partial order is order-isomorphic to a
 powerset is called a powerset filtrator. -/
@@ -24,7 +24,13 @@ powerset is called a powerset filtrator. -/
 
 /- TODO: Rename?  -/
 class Powerset (α: Type*) [inst : Filtrator α] : Prop where
-  is_powerset : ∃ β: Type*, ∃ (U : Set β),
-    Nonempty (FiltratorIso (FiltratorOfFilters (inst := setPartialOrder U)) inst)
+  is_powerset : ∃ β: Type*,
+    Nonempty (FiltratorIso (FiltratorOfFilters (inst := setPartialOrder β)) inst)
+
+variable {α : Type u} {inst : Filtrator α}
+
+theorem Powerset.primary (h : @Powerset.{u, v} α inst) : @Filtrator.Primary.{u, v} α inst := by
+  rcases h.is_powerset with ⟨β, hIso⟩
+  exact { is_primary := ⟨_, setPartialOrder β, hIso⟩ }
 
 end Filtrator
