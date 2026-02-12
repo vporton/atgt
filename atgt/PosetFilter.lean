@@ -1,4 +1,5 @@
 import Mathlib.Data.Ordmap.Ordset
+import Mathlib.Order.Lattice
 
 universe u
 
@@ -99,3 +100,46 @@ lemma principal_injective {U : PartialOrder u} : Function.Injective (PosetFilter
     simp [h]
   · rw [← principals_le_iff]
     simp [h]
+
+namespace FilterBaseMeet
+
+variable {α : Type u} [SemilatticeInf α]
+
+/-- The set `⟨a⊓⟩* S = { a ⊓ s | s ∈ S.elements } on a meet-semilattice `α` inherits the filter-base
+structure from `S`. This is Proposition 425: meeting every element of a filter base with a fixed element
+again yields a filter base. -/
+def meet_filter_base_set (a : α) (S : PosetFilterBase (U := (inferInstance : PartialOrder α))) : Set α :=
+  { x | ∃ s ∈ S.elements, x = a ⊓ s }
+
+lemma meet_filter_base_set_nonempty (a : α) (S : PosetFilterBase (U := (inferInstance : PartialOrder α))) :
+    Set.Nonempty (meet_filter_base_set a S) := by
+  rcases S.non_empty with ⟨s, hs⟩
+  refine ⟨a ⊓ s, ⟨s, hs, rfl⟩⟩
+
+lemma meet_filter_base_set_cap {a : α} (S : PosetFilterBase (U := (inferInstance : PartialOrder α)))
+    {x y : α}
+    (hx : x ∈ meet_filter_base_set a S)
+    (hy : y ∈ meet_filter_base_set a S) :
+    ∃ z ∈ meet_filter_base_set a S, z ≤ x ∧ z ≤ y := by
+  rcases hx with ⟨sx, hsx, rfl⟩
+  rcases hy with ⟨sy, hsy, rfl⟩
+  rcases S.cap_elements hsx hsy with ⟨sz, hsz, hsz_le_sx, hsz_le_sy⟩
+  use a ⊓ sz
+  constructor
+  · exact ⟨sz, hsz, rfl⟩
+  constructor
+  · have : a ⊓ sz ≤ a ⊓ sx := inf_le_inf le_rfl hsz_le_sx
+    exact this
+  · have : a ⊓ sz ≤ a ⊓ sy := inf_le_inf le_rfl hsz_le_sy
+    exact this
+
+/- Proposition 425: meeting each element of a filter base with `a : α` yields another filter base. -/
+def meet_filter_base (a : α)
+    (S : PosetFilterBase (U := (inferInstance : PartialOrder α))) : PosetFilterBase (U := (inferInstance : PartialOrder α)) where
+  elements := meet_filter_base_set a S
+  non_empty := meet_filter_base_set_nonempty a S
+  cap_elements := meet_filter_base_set_cap S
+
+end FilterBaseMeet
+
+export FilterBaseMeet (meet_filter_base)
