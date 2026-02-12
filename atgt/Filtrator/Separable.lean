@@ -1,4 +1,5 @@
 import atgt.Filtrator
+import atgt.Filtrator.Powerset
 import atgt.Poset
 
 def separator_core {α : Type*} [PartialOrder α] (F : Filtrator α) (a : α) := F.subset ∩ separator a
@@ -58,3 +59,65 @@ theorem is_separable_iff_has_subset {α : Type*} [PartialOrder α] :
 
 def Filtrator.separator_up_property {α : Type u} [Filtrator α] : Prop :=
   ∀ x y : α, meet x y ↔ ∀ z ∈ Filtrator.up y, meet x z
+
+namespace StrongSeparability
+
+universe u v
+
+variable {α : Type u}
+
+/-- "A is strongly separable" interpreted in the boolean-lattice order on `α`. -/
+abbrev BooleanStronglySeparable (α : Type u) [BooleanAlgebra α] : Prop :=
+  IsStronglySeparable α
+
+/-- Boolean lattices are strongly separable (order-theoretic form used by Proposition 579). -/
+theorem boolean_imp_stronglySeparable [BooleanAlgebra α] : BooleanStronglySeparable α := by
+  intro a b h_sub
+  by_contra h_not_le
+  let x : α := a ⊓ bᶜ
+  have hx_ne_bot : x ≠ ⊥ := by
+    intro hx_bot
+    have hdisj : Disjoint a bᶜ := by
+      exact disjoint_iff.mpr (by simpa [x] using hx_bot)
+    have hab : a ≤ b := by
+      have hle : a ≤ (bᶜ)ᶜ := (le_compl_iff_disjoint_right).2 hdisj
+      simpa using hle
+    exact h_not_le hab
+  have hx_not_least : ¬ is_least x := by
+    intro hleast
+    exact hx_ne_bot (le_antisymm (hleast ⊥) (bot_le : (⊥ : α) ≤ x))
+  have hx_sep_a : x ∈ separator a := by
+    change meet x a
+    exact (meet_as_inf x a).2 (by simpa [x] using hx_not_least)
+  have hx_not_sep_b : x ∉ separator b := by
+    intro hx_sep_b
+    change meet x b at hx_sep_b
+    have hx_inf_b_not_least : ¬ is_least (x ⊓ b) := (meet_as_inf x b).1 hx_sep_b
+    have hx_inf_b_eq_bot : x ⊓ b = ⊥ := by
+      simp [x, inf_left_comm, inf_comm]
+    have hleast_bot : is_least (⊥ : α) := by
+      intro y
+      exact (bot_le : (⊥ : α) ≤ y)
+    exact hx_inf_b_not_least (hx_inf_b_eq_bot ▸ hleast_bot)
+  exact hx_not_sep_b (h_sub hx_sep_a)
+
+variable [Filtrator α]
+
+/-- 1⇒2 in Proposition 579 tuple. -/
+lemma one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α := by
+  exact Filtrator.Powerset.primary (α := α)
+
+/-- 2⇒3 in Proposition 579 tuple. -/
+theorem two_imp_three [Filtrator.Primary α] [BooleanAlgebra α] :
+    BooleanStronglySeparable α := by
+  exact boolean_imp_stronglySeparable (α := α)
+
+/-- 1⇒3 in Proposition 579 tuple. -/
+theorem one_imp_three [Filtrator.Powerset.{u, v} α] [BooleanAlgebra α] :
+    BooleanStronglySeparable α := by
+  letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
+  exact two_imp_three (α := α)
+
+end StrongSeparability
+
+export StrongSeparability (two_imp_three one_imp_three)
