@@ -21,8 +21,6 @@ theorem star_separable_imp_separable {α : Type*} {F : Filtrator α}
       simp [separator_core, h_eq]
     exact h_core_eq
 
-namespace separation_subset
-
 lemma is_separable_imp_star_sep {α : Type*} [PartialOrder α]
   (h_sep : IsSeparable α) : Filtrator.star_separable (Filtrator.of_subset (Set.univ : Set α)) := by
   intro a b h_eq
@@ -57,10 +55,6 @@ theorem is_separable_iff_has_subset {α : Type*} [PartialOrder α] :
   constructor
   · apply is_separable_implies_has_subset
   · apply has_subset_implies_is_separable
-
-end separation_subset
-
-export separation_subset (is_separable_implies_has_subset has_subset_implies_is_separable is_separable_iff_has_subset)
 
 def Filtrator.separator_up_property {α : Type u} [Filtrator α] : Prop :=
   ∀ x y : α, meet x y ↔ ∀ z ∈ Filtrator.up y, meet x z
