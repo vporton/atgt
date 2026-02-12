@@ -156,17 +156,20 @@ theorem directed_up_in_subset (x : α) (a b : subset) (ha : x ≤ a.1) (hb : x �
 attribute [local instance] Filtrator.suborder
 
 def to_poset_filter (x : α) : PosetFilter (Filtrator.suborder (α := α)) :=
-{ elements := { y | x ≤ y.1 }
-  non_empty := by
-    let ⟨y, hy⟩ := exists_up_in_subset x
-    use y
-    exact hy
-  cap_elements := fun {a b} ha hb => by
-    simp at ha hb
-    exact directed_up_in_subset x a b ha hb
-  up_closed := fun {a b} ha hab => by
-    simp at ha hab ⊢
-    exact le_trans ha hab }
+  { elements := Filtrator.up_suborder (x := x)
+    non_empty := by
+      let ⟨y, hy⟩ := exists_up_in_subset x
+      use y
+      exact hy
+    cap_elements := fun {a b} ha hb => by
+      exact directed_up_in_subset x a b ha hb
+    up_closed := fun {a b} ha hab => by
+      exact le_trans ha hab }
+
+def up_is_filter (x : α) :
+    PosetFilter (Filtrator.suborder (α := α)) :=
+  -- Obvious 461, first direction: the upper set of any core element is a filter.
+  to_poset_filter x
 
 /-- The canonical map from α to filters on its suborder. -/
 noncomputable def to_filters_iso :
@@ -371,5 +374,11 @@ noncomputable def to_filters_iso :
            . have hs := hprincipal (sub_iso.symm s)
              simpa using hs.trans (by simp)
   }
+
+theorem exists_filter_for_up (F : PosetFilter (Filtrator.suborder (α := α))) :
+    ∃ x : α, to_filters_iso.toRelIso x = F := by
+  -- Conversely to Obvious 461: every suborder filter comes from some up-set.
+  use (to_filters_iso.toRelIso).symm F
+  exact (to_filters_iso.toRelIso).apply_symm_apply F
 
 end Filtrator.Primary

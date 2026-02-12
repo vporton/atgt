@@ -20,6 +20,9 @@ def Filtrator.supset {α : Type u} [Filtrator α] := α
 
 def Filtrator.up {α : Type u} [Filtrator α] (x: α) := { y ∈ subset | x ≤ y }
 
+def Filtrator.up_suborder {α : Type u} [Filtrator α] (x : α) : Set (subset : Set α) :=
+  { y | x ≤ y.1 }
+
 /- For simplicity, I define it only for semilattices. In the book it's more general. -/
 def Filtrator.binary_meet_closed {α : Type u} [Filtrator α] [SemilatticeInf α] : Prop :=
   ∀ x y : α, x ∈ subset → y ∈ subset → x ⊓ y ∈ subset
