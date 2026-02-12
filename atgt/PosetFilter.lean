@@ -95,9 +95,7 @@ lemma principals_le_iff {U : PartialOrder u} (x y : u) : PosetFilter.principal x
 lemma principal_injective {U : PartialOrder u} : Function.Injective (PosetFilter.principal (U := U)) := by
   intro x y h
   apply le_antisymm
-  . rw [← principals_le_iff]
-    rw [h]
-    exact le_rfl
-  . rw [← principals_le_iff]
-    rw [h]
-    exact le_rfl
+  · rw [← principals_le_iff]
+    simp [h]
+  · rw [← principals_le_iff]
+    simp [h]
