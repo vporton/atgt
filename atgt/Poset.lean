@@ -102,15 +102,18 @@ theorem separable_imp_stronglySeparable {α : Type u} [SemilatticeInf α]
   let y := x ⊓ a
   have hy_not_least : ¬ is_least y := by
     have hx_not_least : ¬ is_least (x ⊓ a) := (meet_as_inf x a).1 hx_sep_a
-    simpa [y] using hx_not_least
+    exact hx_not_least
   have hy_sep_a : y ∈ separator a := by
     refine ⟨y, le_rfl, ?_, hy_not_least⟩
-    simpa [y] using (inf_le_right : x ⊓ a ≤ a)
+    simp [y]
   have hy_not_sep_b : y ∉ separator b := by
     intro hy_sep_b
     have hyb_not_least : ¬ is_least (y ⊓ b) := (meet_as_inf y b).1 hy_sep_b
     have hxab_not_least : ¬ is_least (x ⊓ (a ⊓ b)) := by
-      simpa [y, inf_assoc, inf_left_comm, inf_comm] using hyb_not_least
+      have heq : y ⊓ b = x ⊓ (a ⊓ b) := by
+        simp [y]
+        exact inf_assoc x a b
+      exact heq ▸ hyb_not_least
     have hx_sep_inf : x ∈ separator (a ⊓ b) := (meet_as_inf x (a ⊓ b)).2 hxab_not_least
     exact hx_not_sep_inf hx_sep_inf
   exact hy_not_sep_b (h_sub hy_sep_a)
@@ -144,8 +147,7 @@ theorem isStronglySeparable_iff_star_orderEmbedding {α : Type u} [PartialOrder 
     let f := OrderEmbedding.ofMapLEIff (fun a => separator a) map_rel
     refine ⟨f, ?_⟩
     rfl
-  · intro ⟨f, hf⟩
-    intro a b h_sub
+  · intro ⟨f, hf⟩ a b h_sub
     have hle : f a ≤ f b := by
       have h_sub_le : separator a ≤ separator b := h_sub
       have hfa : f a = separator a := congrFun hf a
