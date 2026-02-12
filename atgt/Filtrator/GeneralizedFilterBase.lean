@@ -72,14 +72,14 @@ export CoreEquivalence (mem_up_iff_exists_mem_up powerset_imp_mem_up_iff_exists_
 
 namespace BotInBaseCharacterization
 
-variable {α : Type u} [Filtrator α] [OrderBot α]
+variable {α : Type u} [Filtrator α]
 
 /-- 1⇒2 in Corollary 573 tuple. -/
 lemma one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α := by
   exact Filtrator.Powerset.primary (α := α)
 
 /-- 2⇒3 in Corollary 573 tuple. -/
-theorem bot_mem_base_iff_eq_bot [Filtrator.Primary α] {F : α}
+theorem bot_mem_base_iff_eq_bot [Filtrator.Primary α] [OrderBot α] {F : α}
     (hbot : (⊥ : α) ∈ subset) (S : GeneralizedFilterBaseOf (α := α) F) :
     (⟨⊥, hbot⟩ : (subset : Set α)) ∈ S.base.elements ↔ F = ⊥ := by
   constructor
@@ -96,7 +96,7 @@ theorem bot_mem_base_iff_eq_bot [Filtrator.Primary α] {F : α}
     exact hEq ▸ hL
 
 /-- 1⇒3 in Corollary 573 tuple. -/
-theorem powerset_imp_bot_mem_base_iff_eq_bot [Filtrator.Powerset.{u, v} α] {F : α}
+theorem powerset_imp_bot_mem_base_iff_eq_bot [Filtrator.Powerset.{u, v} α] [OrderBot α] {F : α}
     (hbot : (⊥ : α) ∈ subset) (S : GeneralizedFilterBaseOf (α := α) F) :
     (⟨⊥, hbot⟩ : (subset : Set α)) ∈ S.base.elements ↔ F = ⊥ := by
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
@@ -108,14 +108,14 @@ export BotInBaseCharacterization (bot_mem_base_iff_eq_bot powerset_imp_bot_mem_b
 
 namespace NoBotBase
 
-variable {α : Type u} [Filtrator α] [OrderBot α]
+variable {α : Type u} [Filtrator α]
 
 /-- 1⇒2 in Theorem 574 tuple. -/
 lemma one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α := by
   exact Filtrator.Powerset.primary (α := α)
 
 /-- 2⇒3 in Theorem 574 tuple. -/
-theorem ne_bot_of_base_has_no_bot [Filtrator.Primary α] {F : α}
+theorem ne_bot_of_base_has_no_bot [Filtrator.Primary α] [OrderBot α] {F : α}
     (hbot : (⊥ : α) ∈ subset) (S : GeneralizedFilterBaseOf (α := α) F)
     (hno_bot : ∀ K : (subset : Set α), K ∈ S.base.elements → K.1 ≠ ⊥) :
     F ≠ ⊥ := by
@@ -125,7 +125,7 @@ theorem ne_bot_of_base_has_no_bot [Filtrator.Primary α] {F : α}
   exact (hno_bot ⟨⊥, hbot⟩ hmem_bot) rfl
 
 /-- 1⇒3 in Theorem 574 tuple. -/
-theorem powerset_imp_ne_bot_of_base_has_no_bot [Filtrator.Powerset.{u, v} α] {F : α}
+theorem powerset_imp_ne_bot_of_base_has_no_bot [Filtrator.Powerset.{u, v} α] [OrderBot α] {F : α}
     (hbot : (⊥ : α) ∈ subset) (S : GeneralizedFilterBaseOf (α := α) F)
     (hno_bot : ∀ K : (subset : Set α), K ∈ S.base.elements → K.1 ≠ ⊥) :
     F ≠ ⊥ := by
@@ -138,14 +138,14 @@ export NoBotBase (ne_bot_of_base_has_no_bot powerset_imp_ne_bot_of_base_has_no_b
 
 namespace PairwiseMeetNoBot
 
-variable {α : Type u} [Filtrator α] [OrderBot α]
+variable {α : Type u} [Filtrator α]
 
 /-- 1⇒2 in Corollary 575 tuple. -/
 lemma one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α := by
   exact Filtrator.Powerset.primary (α := α)
 
 /-- 2⇒3 in Corollary 575 tuple. -/
-theorem ne_bot_of_pairwise_meet [Filtrator.Primary α] {F : α}
+theorem ne_bot_of_pairwise_meet [Filtrator.Primary α] [OrderBot α] {F : α}
     (hbot : (⊥ : α) ∈ subset) (S : GeneralizedFilterBaseOf (α := α) F)
     (hpair :
       ∀ K L : (subset : Set α),
@@ -161,7 +161,7 @@ theorem ne_bot_of_pairwise_meet [Filtrator.Primary α] {F : α}
   exact le_trans hcbot bot_le
 
 /-- 1⇒3 in Corollary 575 tuple. -/
-theorem powerset_imp_ne_bot_of_pairwise_meet [Filtrator.Powerset.{u, v} α] {F : α}
+theorem powerset_imp_ne_bot_of_pairwise_meet [Filtrator.Powerset.{u, v} α] [OrderBot α] {F : α}
     (hbot : (⊥ : α) ∈ subset) (S : GeneralizedFilterBaseOf (α := α) F)
     (hpair :
       ∀ K L : (subset : Set α),
