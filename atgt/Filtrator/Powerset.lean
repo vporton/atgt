@@ -29,7 +29,7 @@ class Powerset (α: Type*) [inst : Filtrator α] : Prop where
 
 variable {α : Type u} {inst : Filtrator α}
 
-theorem Powerset.primary (h : @Powerset.{u, v} α inst) : @Filtrator.Primary.{u, v} α inst := by
+instance Powerset.primary [h : @Powerset.{u, v} α inst] : @Filtrator.Primary.{u, v} α inst := by
   rcases h.is_powerset with ⟨β, hIso⟩
   exact { is_primary := ⟨_, setPartialOrder β, hIso⟩ }
 
