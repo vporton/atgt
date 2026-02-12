@@ -2,7 +2,8 @@ import atgt.Filtrator
 import atgt.Filtrator.Powerset
 import atgt.Poset
 
-def separator_core {α : Type*} [PartialOrder α] {F : Filtrator α} (a : α) := F.subset ∩ separator a
+def separator_core {α : Type*} {F : Filtrator α} (a : α) :=
+  F.subset ∩ @separator α F.toPartialOrder a
 
 def Filtrator.of_subset {α : Type*} [PartialOrder α] (s : Set α) : Filtrator α :=
   { subset := s }
@@ -14,12 +15,12 @@ def Filtrator.star_separable {α : Type*} [PartialOrder α] (F : Filtrator α) :
 def has_separation_subset (α : Type*) [PartialOrder α] : Prop :=
   ∃ s : Set α, Filtrator.star_separable (Filtrator.of_subset s)
 
-theorem star_separable_imp_separable {α : Type*} [PartialOrder α] {F : Filtrator α}
-  (h_star_sep : Filtrator.star_separable F) : IsSeparable α := by
+theorem star_separable_imp_separable {α : Type*} {F : Filtrator α}
+  (h_star_sep : Filtrator.star_separable F) : @IsSeparable α F.toPartialOrder := by
     intro a b h_eq
     apply h_star_sep
     have h_core_eq : separator_core (F := F) a = separator_core (F := F) b := by
-      simp [separator_core, h_eq]
+      simpa [separator_core] using congrArg (fun s => F.subset ∩ s) h_eq
     exact h_core_eq
 
 lemma is_separable_imp_star_sep {α : Type*} [PartialOrder α]
