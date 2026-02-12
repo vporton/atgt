@@ -111,7 +111,7 @@ theorem PointfreeFuncoid.sep_rel {u v : Type _} [X : PartialOrder u] [Y : Partia
     ext y
     simp [separator]
     rw [meet_comm y, meet_comm y]
-    change ¬ f.funcoid_rel x y ↔ ¬ g.funcoid_rel x y
+    change f.funcoid_rel x y ↔ g.funcoid_rel x y
     rw [h_rel]
 
 lemma rel_right_flt{α: Type u}{β: Type v}[X: PartialOrder α][Y: Filtrator β]

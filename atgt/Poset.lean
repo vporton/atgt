@@ -47,7 +47,7 @@ by
   · intro h
     exact ⟨a ⊓ b, inf_le_left, inf_le_right, h⟩
 
-def separator {α : Type u} [PartialOrder α] (a : α) := { x : α | ¬ meet x a }
+def separator {α : Type u} [PartialOrder α] (a : α) := { x : α | meet x a }
 
 prefix:80 "⋆" => separator
 
@@ -55,12 +55,78 @@ def IsSeparable (α : Type u) [PartialOrder α] := ∀ a b : α, separator a = s
 
 def IsStronglySeparable (α : Type u) [PartialOrder α] := ∀ a b : α, separator a ⊆ separator b → a ≤ b
 
-theorem le_imp_separator_superset {α : Type u} [PartialOrder α] {a b : α} (h : a ≤ b) :
-    separator b ⊆ separator a := by
+theorem le_imp_separator_subset {α : Type u} [PartialOrder α] {a b : α} (h : a ≤ b) :
+    separator a ⊆ separator b := by
   intro x hx
-  change ¬ meet x a
-  intro hxa
-  exact hx (meet_mono_right h hxa)
+  change meet x b
+  exact meet_mono_right h hx
+
+namespace SeparableStronglySeparable
+
+theorem stronglySeparable_imp_separable {α : Type u} [PartialOrder α]
+    (h : IsStronglySeparable α) : IsSeparable α := by
+  intro a b h_eq
+  have hab_sub : separator a ⊆ separator b := by
+    simp [h_eq]
+  have hba_sub : separator b ⊆ separator a := by
+    simp [h_eq]
+  have hab : a ≤ b := h a b hab_sub
+  have hba : b ≤ a := h b a hba_sub
+  exact le_antisymm hab hba
+
+end SeparableStronglySeparable
+
+export SeparableStronglySeparable (stronglySeparable_imp_separable)
+
+namespace SemilatticeSeparableStronglySeparable
+
+theorem separable_imp_stronglySeparable {α : Type u} [SemilatticeInf α]
+    (h : IsSeparable α) : IsStronglySeparable α := by
+  intro a b h_sub
+  by_contra h_not_le
+  have h_ne_inf : a ≠ a ⊓ b := by
+    intro h_eq
+    apply h_not_le
+    calc
+      a = a ⊓ b := h_eq
+      _ ≤ b := inf_le_right
+  have h_sep_ne : separator a ≠ separator (a ⊓ b) := by
+    intro h_eq
+    exact h_ne_inf (h a (a ⊓ b) h_eq)
+  have h_inf_sub : separator (a ⊓ b) ⊆ separator a :=
+    le_imp_separator_subset (a := a ⊓ b) (b := a) inf_le_left
+  have h_not_sub : ¬ separator a ⊆ separator (a ⊓ b) := by
+    intro h_sub'
+    exact h_sep_ne (Set.Subset.antisymm h_sub' h_inf_sub)
+  rcases Set.not_subset.mp h_not_sub with ⟨x, hx_sep_a, hx_not_sep_inf⟩
+  let y := x ⊓ a
+  have hy_not_least : ¬ is_least y := by
+    have hx_not_least : ¬ is_least (x ⊓ a) := (meet_as_inf x a).1 hx_sep_a
+    simpa [y] using hx_not_least
+  have hy_sep_a : y ∈ separator a := by
+    refine ⟨y, le_rfl, ?_, hy_not_least⟩
+    simpa [y] using (inf_le_right : x ⊓ a ≤ a)
+  have hy_not_sep_b : y ∉ separator b := by
+    intro hy_sep_b
+    have hyb_not_least : ¬ is_least (y ⊓ b) := (meet_as_inf y b).1 hy_sep_b
+    have hxab_not_least : ¬ is_least (x ⊓ (a ⊓ b)) := by
+      simpa [y, inf_assoc, inf_left_comm, inf_comm] using hyb_not_least
+    have hx_sep_inf : x ∈ separator (a ⊓ b) := (meet_as_inf x (a ⊓ b)).2 hxab_not_least
+    exact hx_not_sep_inf hx_sep_inf
+  exact hy_not_sep_b (h_sub hy_sep_a)
+
+theorem separable_iff_stronglySeparable {α : Type u} [SemilatticeInf α] :
+    IsSeparable α ↔ IsStronglySeparable α := by
+  constructor
+  · intro h_sep
+    exact separable_imp_stronglySeparable h_sep
+  · intro h_strong
+    exact stronglySeparable_imp_separable h_strong
+
+end SemilatticeSeparableStronglySeparable
+
+export SemilatticeSeparableStronglySeparable
+  (separable_imp_stronglySeparable separable_iff_stronglySeparable)
 
 theorem isStronglySeparable_iff_star_orderEmbedding {α : Type u} [PartialOrder α] :
     IsStronglySeparable α ↔
@@ -74,10 +140,7 @@ theorem isStronglySeparable_iff_star_orderEmbedding {α : Type u} [PartialOrder 
         have h_subset : separator a ⊆ separator b := (Set.le_iff_subset.mpr h_sub)
         exact h a b h_subset
       · intro hab
-        have h_sub_ba : separator b ⊆ separator a := le_imp_separator_superset hab
-        have hba : b ≤ a := h b a h_sub_ba
-        have hab_eq : a = b := le_antisymm hab hba
-        simpa [hab_eq]
+        exact Set.le_iff_subset.mpr (le_imp_separator_subset hab)
     let f := OrderEmbedding.ofMapLEIff (fun a => separator a) map_rel
     refine ⟨f, ?_⟩
     rfl
