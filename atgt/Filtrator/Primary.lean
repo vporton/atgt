@@ -1,7 +1,6 @@
 import atgt.Filtrator
 import atgt.PosetFilter
 
-/- TODO: Move the below to `Filtrator.Primary`. -/
 class Filtrator.Filtered (α : Type u) [Filtrator α] : Prop where
   is_filtered : ∀ x y : α, up x ⊆ up y → y ≤ x
 
@@ -163,47 +162,35 @@ noncomputable def to_filters_iso :
         rw [← iso.core_match] at hy
         rcases hy with ⟨F, hF_princ, hF_eq⟩
         rw [← hF_eq]
-        change _ = iso.toRelIso.symm (iso.toRelIso F)
-        rw [RelIso.symm_apply_apply]
         rcases hF_princ with ⟨x, hx⟩
-        use x
+        refine ⟨x, ?_⟩
         rw [hx]
+        simp
       Classical.choose h_ex
     left_inv := fun x => by
       dsimp
       simp [sub_iso_toFun]
-      change Classical.choose _ = x
-      -- Proof that choice picks x
-      let witness := Classical.choose_spec (
-        show ∃ x' : β, PosetFilter.principal (U := p) x' = iso.toRelIso.symm (iso.toRelIso (PosetFilter.principal (U := p) x)) by
-          rw [RelIso.symm_apply_apply]
-          use x
-      )
-      -- witness : principal (choose) = principal x
-      apply le_antisymm
-      . have : PosetFilter.principal (U := p) (Classical.choose _) ≤ PosetFilter.principal (U := p) x := by rw [witness]; exact le_rfl
-        change {z | Classical.choose _ ≤ z} ⊆ {z | x ≤ z} at this
-        exact this le_rfl
-      . have : PosetFilter.principal (U := p) x ≤ PosetFilter.principal (U := p) (Classical.choose _) := by rw [witness]; exact le_rfl
-        change {z | x ≤ z} ⊆ {z | Classical.choose _ ≤ z} at this
-        exact this le_rfl
+      apply (principal_injective (U := p))
+      have witness := Classical.choose_spec
+        (show ∃ x' : β,
+            PosetFilter.principal (U := p) x' =
+              iso.toRelIso.symm (iso.toRelIso (PosetFilter.principal (U := p) x)) from by
+          refine ⟨x, ?_⟩
+          simp)
+      simpa using witness.trans (by simp)
     right_inv := fun ⟨y, hy⟩ => by
       simp [sub_iso_toFun]
-      apply Subtype.ext
-      dsimp
-      let witness := Classical.choose_spec (
-        show ∃ x : β, PosetFilter.principal (U := p) x = iso.toRelIso.symm y by
-          rw [← iso.core_match] at hy
-          rcases hy with ⟨F, hF_princ, hF_eq⟩
-          rw [← hF_eq]; rw [RelIso.symm_apply_apply]
-          rcases hF_princ with ⟨x, hx⟩
-          use x; rw [hx]
-      )
-      -- witness: principal (choose) = iso.symm y
-      apply iso.toRelIso.injective
-      simp
-      rw [witness]
-      rw [RelIso.apply_symm_apply]
+      let h_ex : ∃ x : β, PosetFilter.principal (U := p) x = iso.toRelIso.symm y := by
+        rw [← iso.core_match] at hy
+        rcases hy with ⟨F, hF_princ, hF_eq⟩
+        rw [← hF_eq]
+        rcases hF_princ with ⟨x, hx⟩
+        refine ⟨x, ?_⟩
+        rw [hx]
+        simp
+      have witness := Classical.choose_spec h_ex
+      have hmap := congrArg iso.toRelIso witness
+      simpa using hmap
     map_rel_iff' := fun {x y} => by
       dsimp [sub_iso_toFun]
       simp only [Subtype.mk_le_mk]
@@ -268,17 +255,15 @@ noncomputable def to_filters_iso :
       apply PosetFilterBase.ext_elements
       simp only [Set.image_image]
       convert Set.image_id _
-      ext x
       simp
     right_inv := fun F => by
       apply PosetFilter.ext
       apply PosetFilterBase.ext_elements
       simp only [Set.image_image]
       convert Set.image_id _
-      ext y
       simp
     map_rel_iff' := fun {F G} => by
-      change sub_iso '' F.elements ⊆ sub_iso '' G.elements ↔ F.elements ⊆ G.elements
+      change sub_iso '' G.elements ⊆ sub_iso '' F.elements ↔ G.elements ⊆ F.elements
       apply Set.image_subset_image_iff sub_iso.toEquiv.injective
   }
 
@@ -291,17 +276,54 @@ noncomputable def to_filters_iso :
   let comp := iso.toRelIso.symm.trans filters_iso'
 
   -- We need FiltratorIso.
-  {
+  refine {
       toRelIso := comp
       core_match := by
-         dsimp [comp]
-         rw [RelIso.trans_image]
+         have hcomp :
+             comp.toFun '' subset = filters_iso' '' (iso.toRelIso.symm '' subset) := by
+           ext F
+           constructor
+           . intro hF
+             rcases hF with ⟨x, hx, rfl⟩
+             refine ⟨iso.toRelIso.symm x, ⟨x, hx, rfl⟩, ?_⟩
+             rfl
+           . intro hF
+             rcases hF with ⟨y, hy, rfl⟩
+             rcases hy with ⟨x, hx, rfl⟩
+             refine ⟨x, hx, ?_⟩
+             rfl
+         rw [hcomp]
          have h1 : iso.toRelIso.symm '' subset = Principals (U := p) := by
-           rw [← iso.core_match]
-           rw [Set.image_image]
-           simp only [RelIso.symm_apply_apply, Set.image_id]
+           apply Set.ext
+           intro F
+           constructor
+           . intro hF
+             rcases hF with ⟨y, hy, hEq⟩
+             rw [← iso.core_match] at hy
+             rcases hy with ⟨P, hP, rfl⟩
+             have hPF : P = F := by simpa using hEq
+             exact hPF ▸ hP
+           . intro hF
+             refine ⟨iso.toRelIso F, ?_, ?_⟩
+             . rw [← iso.core_match]
+               exact ⟨F, hF, rfl⟩
+             . simp
 
          rw [h1]
+         have hprincipal (x : β) :
+             filters_iso' (PosetFilter.principal (U := p) x) =
+               PosetFilter.principal (U := Filtrator.suborder (α := α)) (sub_iso x) := by
+           apply PosetFilter.ext
+           apply PosetFilterBase.ext_elements
+           ext y
+           constructor
+           . intro hy
+             rcases hy with ⟨z, hz, rfl⟩
+             exact (sub_iso.map_rel_iff).2 hz
+           . intro hy
+             refine ⟨sub_iso.symm y, ?_, by simp⟩
+             have hy' : sub_iso x ≤ sub_iso (sub_iso.symm y) := by simpa using hy
+             exact (sub_iso.map_rel_iff).1 hy'
          apply Set.ext
          intro F
          constructor
@@ -309,46 +331,14 @@ noncomputable def to_filters_iso :
            rcases hF_in_image with ⟨P, hP_in_principals_p, hF_eq_filters_iso_P⟩
            rcases hP_in_principals_p with ⟨x, rfl⟩
            use sub_iso x
-           apply PosetFilter.ext
-           apply PosetFilterBase.ext_elements
-           simp [hF_eq_filters_iso_P]
-           ext y
-           constructor
-           . intro ⟨z, hxz, hy_eq_sub_iso_z⟩
-             rw [← hy_eq_sub_iso_z]
-             rw [sub_iso.map_rel_iff]
-             exact hxz
-           . intro h_sub_iso_x_le_y
-             use sub_iso.symm y
-             constructor
-             . conv => rhs; rw [← sub_iso.apply_symm_apply y]
-               rw [sub_iso.map_rel_iff]
-               exact h_sub_iso_x_le_y
-             . simp
+           simpa [hF_eq_filters_iso_P] using (hprincipal x).symm
          . intro hF_in_principals_suborder
            rcases hF_in_principals_suborder with ⟨s, rfl⟩
-           use PosetFilter.principal (sub_iso.symm s.1)
+           use PosetFilter.principal (U := p) (sub_iso.symm s)
            constructor
-           . use sub_iso.symm s.1
-             simp
-           . apply PosetFilter.ext
-             apply PosetFilterBase.ext_elements
-             simp
-             ext y
-             constructor
-             . intro h_s_le_y
-               use sub_iso.symm y.1
-               constructor
-               . conv => rhs; rw [← sub_iso.symm_apply_apply s.1]
-                 change sub_iso.symm (sub_iso (sub_iso.symm y.1)) ≤ sub_iso.symm (sub_iso s.1)
-                 rw [← sub_iso.symm.map_rel_iff]
-                 simp; exact h_s_le_y
-               . simp
-             . intro ⟨q, hq, eq⟩
-               rw [← eq]
-               simp at hq
-               rw [sub_iso.map_rel_iff] at hq
-               exact hq
+           . exact ⟨sub_iso.symm s, rfl⟩
+           . have hs := hprincipal (sub_iso.symm s)
+             simpa using hs.trans (by simp)
   }
 
 end Filtrator.Primary
