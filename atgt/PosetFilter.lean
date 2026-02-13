@@ -49,11 +49,11 @@ lemma PosetFilter.ext {α: Type*} {U : PartialOrder α}
 @[simp]
 lemma PosetFilter.mem_carrier_iff_mem_elements {α : Type*} {U : PartialOrder α} (F : PosetFilter U) (x : α) :
     x ∈ F.carrier ↔ x ∈ F.elements := by
-  simpa [F.carrier_eq_elements]
+  simp [F.carrier_eq_elements]
 
 lemma PosetFilter.mem_elements_iff_mem_carrier {α : Type*} {U : PartialOrder α} (F : PosetFilter U) (x : α) :
     x ∈ F.elements ↔ x ∈ F.carrier := by
-  simpa [F.carrier_eq_elements]
+  simp [F.carrier_eq_elements]
 
 def PosetFilter.principal {α: Type*} {U : PartialOrder α} (a : α) : PosetFilter U := by
   letI : PartialOrder α := U
