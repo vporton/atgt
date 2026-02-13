@@ -358,14 +358,6 @@ theorem theorem1617
   -- Once those two bridge inclusions and destination separability are supplied, use
   -- `theorem1617_of_separator_bridge`.
   letI : CompleteBooleanAlgebra (Filtrator.subset (α := β)) := Bdst
-  let boolPO : PartialOrder (Filtrator.subset (α := β)) :=
-    (inferInstance : BooleanAlgebra (Filtrator.subset (α := β))).toPartialOrder
-  have h_strong_core :
-      @IsStronglySeparable (Filtrator.subset (α := β)) boolPO := by
-    simpa [boolPO] using (primary_imp_coreSeparable_of_boolean_core_order (α := β))
-  have _ :
-      @IsSeparable (Filtrator.subset (α := β)) boolPO :=
-    stronglySeparable_imp_separable h_strong_core
   have h_sep_dst : IsSeparable β := by
     sorry
   have h_lower :

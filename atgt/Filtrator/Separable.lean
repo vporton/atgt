@@ -110,19 +110,10 @@ variable [Filtrator α]
 the core type is boolean, so the boolean-core order is strongly separable. -/
 theorem primary_imp_booleanStronglySeparableCore [Filtrator.Primary α]
     [BooleanAlgebra (Filtrator.subset (α := α))] :
-    @IsStronglySeparable (Filtrator.subset (α := α))
-      (inferInstance : BooleanAlgebra (Filtrator.subset (α := α))).toPartialOrder := by
-  exact boolean_imp_stronglySeparable (α := Filtrator.subset (α := α))
-
-/-- Proposition 579 (core form, boolean core): the boolean-core order is strongly separable. -/
-theorem primary_imp_coreSeparable_of_boolean_core_order [Filtrator.Primary α]
-    [BooleanAlgebra (Filtrator.subset (α := α))] :
-    @IsStronglySeparable (Filtrator.subset (α := α))
-      (inferInstance : BooleanAlgebra (Filtrator.subset (α := α))).toPartialOrder :=
-  primary_imp_booleanStronglySeparableCore (α := α)
+    @IsStronglySeparable (Filtrator.supset (α := α)) (Filtrator.suporder (α := α)) := by
+  sorry
 
 end StrongSeparability
 
 export StrongSeparability
-  (primary_imp_booleanStronglySeparableCore
-    primary_imp_coreSeparable_of_boolean_core_order)
+  (primary_imp_booleanStronglySeparableCore)
