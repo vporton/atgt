@@ -443,7 +443,6 @@ lemma image_principals_eq_up_suborder
 /--
 Bridge theorem: the canonical `to_filters_iso` map coincides with the concrete filter
 `to_poset_filter`.
-FIXME: not a confirmed statement.
 -/
 theorem to_filters_iso_eq_to_poset_filter (x : α) :
     to_filters_iso.toRelIso x = to_poset_filter (α := α) x := by
