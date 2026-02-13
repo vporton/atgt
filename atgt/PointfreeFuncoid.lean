@@ -280,6 +280,55 @@ theorem separator_sInf_image_eq_continuationSeparator_of_reverse
     h_reverse
 
 /--
+Theorem 1617 reduced to the separator bridge obligations:
+if the destination side provides separability and both separator inclusions for the `sInf`
+candidate, then the target value equation follows.
+-/
+theorem theorem1617_of_separator_bridge
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    [SemilatticeInf α]
+    (Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β)))
+    (h_src_sep_up : X.separator_up_property)
+    (h_sep_dst : IsSeparable β)
+    (f : PointfreeFuncoid X.suporder Y.suporder)
+    (x : α)
+    (h_lower :
+      ∀ X' : α, X' ∈ Filtrator.up x →
+        (↑(@sInf (Filtrator.subset (α := β))
+          Bdst.toCompleteLattice.toInfSet
+          {f.fwd z | z ∈ Filtrator.up x}) : β) ≤ f.fwd X')
+    (h_reverse :
+      f.continuationSeparator x ⊆
+        separator
+          (↑(@sInf (Filtrator.subset (α := β))
+            Bdst.toCompleteLattice.toInfSet
+            {f.fwd z | z ∈ Filtrator.up x}) : β)) :
+    f.fwd x =
+      (↑(@sInf (Filtrator.subset (α := β))
+        Bdst.toCompleteLattice.toInfSet
+        {f.fwd z | z ∈ Filtrator.up x}) : β) := by
+  have hsep :
+      separator
+        (↑(@sInf (Filtrator.subset (α := β))
+          Bdst.toCompleteLattice.toInfSet
+          {f.fwd z | z ∈ Filtrator.up x}) : β) =
+      f.continuationSeparator x :=
+    separator_sInf_image_eq_continuationSeparator_of_reverse
+      (Bdst := Bdst) (f := f) (x := x) h_lower h_reverse
+  have hsInf_eq_fx :
+      (↑(@sInf (Filtrator.subset (α := β))
+        Bdst.toCompleteLattice.toInfSet
+        {f.fwd z | z ∈ Filtrator.up x}) : β) = f.fwd x :=
+    continuation_value_of_separator
+      (h_sep_up := h_src_sep_up) (h_sep_dst := h_sep_dst) (f := f) (x := x)
+      (z := (↑(@sInf (Filtrator.subset (α := β))
+        Bdst.toCompleteLattice.toInfSet
+        {f.fwd z | z ∈ Filtrator.up x}) : β))
+      hsep
+  exact hsInf_eq_fx.symm
+
+/--
 Theorem 1617 (p. 317), literal value equation form:
 `⟨f⟩ x = sInf (⟨⟨f⟩⟩ (up x))`.
 FIXME:
@@ -301,9 +350,36 @@ theorem theorem1617
         {f.fwd z | z ∈ Filtrator.up x}) := by
   have _ := h_src_binary_meet_closed
   have _ := h_src_up_nonempty
-  have _ := h_src_sep_up
+  have h_src_sep_up' := h_src_sep_up
   -- The proof path is established in helpers above (Proposition 1615 separator form and
   -- separator-based value recovery). The remaining bridge is to identify the separator of
   -- `sInf (f.fwd '' Filtrator.up x)` with `continuationSeparator`, via generalized-filter-base
   -- machinery (Theorem 572 / Proposition 579 route from the PDF proof).
-  sorry
+  -- Once those two bridge inclusions and destination separability are supplied, use
+  -- `theorem1617_of_separator_bridge`.
+  have h_sep_dst : IsSeparable β := by
+    sorry
+  have h_lower :
+      ∀ X' : α, X' ∈ Filtrator.up x →
+        (↑(@sInf (Filtrator.subset (α := β))
+          Bdst.toCompleteLattice.toInfSet
+          {f.fwd z | z ∈ Filtrator.up x}) : β) ≤ f.fwd X' := by
+    sorry
+  have h_reverse :
+      f.continuationSeparator x ⊆
+        separator
+          (↑(@sInf (Filtrator.subset (α := β))
+            Bdst.toCompleteLattice.toInfSet
+            {f.fwd z | z ∈ Filtrator.up x}) : β) := by
+    sorry
+  have hfinal :
+      f.fwd x =
+        (↑(@sInf (Filtrator.subset (α := β))
+          Bdst.toCompleteLattice.toInfSet
+          {f.fwd z | z ∈ Filtrator.up x}) : β) :=
+    theorem1617_of_separator_bridge
+      (Bdst := Bdst)
+      (h_src_sep_up := h_src_sep_up')
+      (h_sep_dst := h_sep_dst)
+      (f := f) (x := x) h_lower h_reverse
+  simpa using hfinal
