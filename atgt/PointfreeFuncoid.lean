@@ -142,6 +142,26 @@ def PointfreeFuncoid.continuationSeparator {α : Type u} {β : Type v}
   { y : β | ∀ X' ∈ Filtrator.up x, f.funcoid_rel X' y }
 
 /--
+Bridge lemma: the continuation separator is exactly the pointwise intersection of separators
+of values `⟨f⟩ X'` over `X' ∈ up x`.
+-/
+theorem continuationSeparator_eq_iInter_separator
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (f : PointfreeFuncoid X.suporder Y.suporder)
+    (x : α) :
+    f.continuationSeparator x =
+      { y : β | ∀ X' ∈ Filtrator.up x, y ∈ separator (f.fwd X') } := by
+  ext y
+  constructor
+  · intro hy X' hX'
+    exact (by
+      simpa [PointfreeFuncoid.funcoid_rel, separator, meet_comm] using hy X' hX')
+  · intro hy X' hX'
+    exact (by
+      simpa [PointfreeFuncoid.funcoid_rel, separator, meet_comm] using hy X' hX')
+
+/--
 Proposition 1615 (source-side form used later): under the source separability-over-up
 hypothesis, membership in the separator of `⟨f⟩ x` is equivalent to satisfying the relation
 for all `X' ∈ up x`.
