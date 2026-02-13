@@ -96,8 +96,7 @@ theorem theorem515 {α : Type u}
       · exact (hord c0 a.1).2 inf_le_left
       · exact (hord c0 b.1).2 inf_le_right
     up_closed := by
-      intro a b ha hab
-      intro s hs
+      intro a b ha hab s hs
       exact le_trans (ha s hs) hab
   }
   rcases h_exists_concrete_up F with ⟨d, hdF⟩
