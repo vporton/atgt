@@ -18,14 +18,16 @@ namespace Filtrator
 universe u v
 
 /- TODO: Rename?  -/
-class Powerset (α: Type*) [inst : Filtrator α] : Prop where
+class Powerset (α: Type*) extends Filtrator α where
   is_powerset : ∃ β: Type*,
-    Nonempty (FiltratorIso (FiltratorOfFilters (inst := setPartialOrder β)) inst)
+    Nonempty (FiltratorIso (FiltratorOfFilters (inst := setPartialOrder β)) toFiltrator)
 
-variable {α : Type u} {inst : Filtrator α}
+variable {α : Type u}
 
-instance Powerset.primary [h : @Powerset.{u, v} α inst] : @Filtrator.Primary.{u, v} α inst := by
-  rcases h.is_powerset with ⟨β, hIso⟩
-  exact { is_primary := ⟨_, setPartialOrder β, hIso⟩ }
+noncomputable instance Powerset.primary [h : Powerset.{u, v} α] : Filtrator.Primary.{u, v} α := by
+  let β := Classical.choose h.is_powerset
+  let hIso : Nonempty (FiltratorIso (FiltratorOfFilters (inst := setPartialOrder β)) h.toFiltrator) :=
+    Classical.choose_spec h.is_powerset
+  exact { toFiltrator := h.toFiltrator, is_primary := ⟨Set β, setPartialOrder β, hIso⟩ }
 
 end Filtrator

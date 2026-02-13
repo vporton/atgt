@@ -5,8 +5,9 @@ instance FiltratorOfFilters {X : Type*} [inst : PartialOrder X] : Filtrator (Pos
   subset := Principals (U := inst)
 
 /- TODO: Rename?  -/
-class Filtrator.Primary (α: Type*) [inst : Filtrator α] : Prop where
-  is_primary : ∃ β: Type*, ∃ p: PartialOrder β, Nonempty (FiltratorIso (FiltratorOfFilters (inst := p)) inst)
+class Filtrator.Primary (α: Type*) extends Filtrator α where
+  is_primary : ∃ β: Type*, ∃ p: PartialOrder β,
+    Nonempty (FiltratorIso (FiltratorOfFilters (inst := p)) toFiltrator)
 
 theorem Filtrator.filtered_of_filters {β : Type u} (p : PartialOrder β) :
   Filtrator.Filtered (PosetFilter p) := by
@@ -45,16 +46,16 @@ theorem Filtrator.Filtered.of_iso {α β : Type*} [i : Filtrator α] [j : Filtra
   have hyx_pre : iso.toRelIso.symm y ≤ iso.toRelIso.symm x := h.is_filtered _ _ h_preimage_up
   exact (iso.toRelIso.symm.map_rel_iff).1 hyx_pre
 
-theorem Filtrator.primary_imp_filtered {α : Type*} [i : Filtrator α] [Filtrator.Primary α] :
+theorem Filtrator.primary_imp_filtered {α : Type*} [Filtrator.Primary α] :
     Filtrator.Filtered α := by
-  rcases Filtrator.Primary.is_primary (self := ‹Filtrator.Primary α›) with ⟨β, p, ⟨iso⟩⟩
+  rcases (‹Filtrator.Primary α›).is_primary with ⟨β, p, ⟨iso⟩⟩
   exact Filtrator.Filtered.of_iso (h := Filtrator.filtered_of_filters p) iso
 
 theorem Filtrator.isomorphicToPrimary_imp_filtered {α : Type*} [i : Filtrator α]
-    (h : ∃ (β : Type*) (j : Filtrator β), Filtrator.Primary β ∧ Nonempty (FiltratorIso j i)) :
+    (h : ∃ (β : Type*) (hprim : Filtrator.Primary β),
+      Nonempty (FiltratorIso (Filtrator.Primary.toFiltrator (self := hprim)) i)) :
     Filtrator.Filtered α := by
-  rcases h with ⟨β, j, hprim, ⟨iso⟩⟩
-  letI : Filtrator β := j
+  rcases h with ⟨β, hprim, ⟨iso⟩⟩
   letI : Filtrator.Primary β := hprim
   exact Filtrator.Filtered.of_iso (h := Filtrator.primary_imp_filtered (α := β)) iso
 
@@ -62,7 +63,7 @@ namespace Filtrator.Primary
 
 open Filtrator
 
-variable {α : Type u} [i : Filtrator α] [Primary α]
+variable {α : Type u} [Primary α]
 
 theorem order_determined (a b : α) : a ≤ b ↔ up b ⊆ up a := by
   let h_filtered := Filtrator.primary_imp_filtered (α := α)
@@ -73,7 +74,7 @@ theorem order_determined (a b : α) : a ≤ b ↔ up b ⊆ up a := by
     exact h_filtered.is_filtered _ _ h_sub
 
 theorem exists_up_in_subset (x : α) : ∃ y : subset, x ≤ y.1 := by
-  have ⟨β, p, ⟨iso⟩⟩ := Primary.is_primary (self := ‹Primary α›)
+  have ⟨β, p, ⟨iso⟩⟩ := (‹Primary α›).is_primary
   -- iso : FiltratorIso (FiltratorOfFilters p) i
   let iso_inv := iso.symm
   let F := iso_inv x
@@ -95,7 +96,7 @@ theorem exists_up_in_subset (x : α) : ∃ y : subset, x ≤ y.1 := by
 
 theorem directed_up_in_subset (x : α) (a b : subset) (ha : x ≤ a.1) (hb : x ≤ b.1) :
     ∃ c : subset, x ≤ c.1 ∧ c.1 ≤ a.1 ∧ c.1 ≤ b.1 := by
-  have ⟨β, p, ⟨iso⟩⟩ := Primary.is_primary (self := ‹Primary α›)
+  have ⟨β, p, ⟨iso⟩⟩ := (‹Primary α›).is_primary
   let iso_inv := iso.symm
   -- Using iso.symm directly to avoid let-unfolding issues in rw
   have ha' : iso.symm x ≤ iso.symm a.1 := iso.symm.map_rel_iff.mpr ha
@@ -173,8 +174,9 @@ def up_is_filter (x : α) :
 
 /-- The canonical map from α to filters on its suborder. -/
 noncomputable def to_filters_iso :
-    FiltratorIso i (FiltratorOfFilters (inst := Filtrator.suborder (α := α))) := by
-  let h_prim := Primary.is_primary (self := ‹Primary α›)
+    FiltratorIso (Filtrator.Primary.toFiltrator (self := ‹Primary α›))
+      (FiltratorOfFilters (inst := Filtrator.suborder (α := α))) := by
+  let h_prim := (‹Primary α›).is_primary
   let β := Classical.choose h_prim
   let h_prim_beta := Classical.choose_spec h_prim
   let p := Classical.choose h_prim_beta
@@ -381,21 +383,20 @@ theorem exists_filter_for_up (F : PosetFilter (Filtrator.suborder (α := α))) :
   use (to_filters_iso.toRelIso).symm F
   exact (to_filters_iso.toRelIso).apply_symm_apply F
 
-omit [Primary α] in
 /-- For an isomorphism from filters on `β`, the induced principal map sends the
 elements of `iso.symm x` exactly to `up_suborder x`. -/
 lemma image_principals_eq_up_suborder
-    {β : Type*} (p : PartialOrder β)
+    [i : Filtrator α] {β : Type*} (p : PartialOrder β)
     (iso : FiltratorIso (FiltratorOfFilters (inst := p)) i)
     (x : α) :
-    (let sub_iso_toFun : β → subset :=
+    (let sub_iso_toFun : β → @Filtrator.subset α i :=
       fun z => ⟨iso.toRelIso (PosetFilter.principal (U := p) z), by
         rw [← iso.core_match]
         exact ⟨PosetFilter.principal (U := p) z, ⟨z, rfl⟩, rfl⟩⟩
     sub_iso_toFun '' (iso.toRelIso.symm x).elements) =
-      Filtrator.up_suborder (x := x) := by
+      @Filtrator.up_suborder α i x := by
   classical
-  let sub_iso_toFun : β → subset :=
+  let sub_iso_toFun : β → @Filtrator.subset α i :=
     fun z => ⟨iso.toRelIso (PosetFilter.principal (U := p) z), by
       rw [← iso.core_match]
       exact ⟨PosetFilter.principal (U := p) z, ⟨z, rfl⟩, rfl⟩⟩
@@ -410,7 +411,7 @@ lemma image_principals_eq_up_suborder
       (iso.toRelIso.map_rel_iff).2 hz_le
     simpa using hz_map
   · intro hy
-    have hcore_symm : iso.toRelIso.symm '' subset = Principals (U := p) := by
+    have hcore_symm : iso.toRelIso.symm '' (@Filtrator.subset α i) = Principals (U := p) := by
       apply Set.ext
       intro F
       constructor
@@ -424,7 +425,7 @@ lemma image_principals_eq_up_suborder
         rw [← iso.core_match]
         exact ⟨F, hF, rfl⟩
     have hy_princ : iso.toRelIso.symm y.1 ∈ Principals (U := p) := by
-      have : iso.toRelIso.symm y.1 ∈ iso.toRelIso.symm '' subset := by
+      have : iso.toRelIso.symm y.1 ∈ iso.toRelIso.symm '' (@Filtrator.subset α i) := by
         exact ⟨y.1, y.2, rfl⟩
       simpa [hcore_symm] using this
     rcases hy_princ with ⟨z, hz_eq⟩
@@ -448,7 +449,7 @@ Bridge theorem: the canonical `to_filters_iso` map coincides with the concrete f
 theorem to_filters_iso_eq_to_poset_filter (x : α) :
     to_filters_iso.toRelIso x = to_poset_filter (α := α) x := by
   classical
-  let h_prim := Primary.is_primary (self := ‹Primary α›)
+  let h_prim := (‹Primary α›).is_primary
   let β := Classical.choose h_prim
   let h_prim_beta := Classical.choose_spec h_prim
   let p := Classical.choose h_prim_beta
