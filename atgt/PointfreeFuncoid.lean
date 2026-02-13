@@ -362,7 +362,7 @@ theorem theorem1617
     (inferInstance : BooleanAlgebra (Filtrator.subset (α := β))).toPartialOrder
   have h_strong_core :
       @IsStronglySeparable (Filtrator.subset (α := β)) boolPO := by
-    simpa [boolPO] using (primary_imp_booleanStronglySeparableCore_subtype (α := β))
+    simpa [boolPO] using (primary_imp_coreSeparable_of_boolean_core_order (α := β))
   have _ :
       @IsSeparable (Filtrator.subset (α := β)) boolPO :=
     stronglySeparable_imp_separable h_strong_core

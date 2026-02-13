@@ -108,73 +108,21 @@ variable [Filtrator α]
 
 /-- Proposition 579 core step with the correct assumption locus:
 the core type is boolean, so the boolean-core order is strongly separable. -/
-theorem primary_imp_booleanStronglySeparableCore_subtype [Filtrator.Primary α]
+theorem primary_imp_booleanStronglySeparableCore [Filtrator.Primary α]
     [BooleanAlgebra (Filtrator.subset (α := α))] :
     @IsStronglySeparable (Filtrator.subset (α := α))
       (inferInstance : BooleanAlgebra (Filtrator.subset (α := α))).toPartialOrder := by
   exact boolean_imp_stronglySeparable (α := Filtrator.subset (α := α))
 
-/-- Proposition 579: the ambient order on `α` is strongly separable when `α` is boolean. -/
-theorem primary_imp_booleanStronglySeparableCore [Filtrator.Primary α]
-    [BooleanAlgebra α] :
-    @IsStronglySeparable α (inferInstance : BooleanAlgebra α).toPartialOrder := by
-  exact boolean_imp_stronglySeparable (α := α)
-
-/-- Proposition 579 (core form): if the boolean-core order matches `Filtrator.suborder`,
-the core suborder is separable. -/
+/-- Proposition 579 (core form, boolean core): the boolean-core order is strongly separable. -/
 theorem primary_imp_coreSeparable_of_boolean_core_order [Filtrator.Primary α]
-    [BooleanAlgebra (Filtrator.subset (α := α))]
-    (hcoreord :
-      ∀ a b : Filtrator.subset (α := α),
-        a ≤ b ↔
-          @LE.le (Filtrator.subset (α := α))
-            (inferInstance : BooleanAlgebra (Filtrator.subset (α := α))).toPartialOrder.toLE a b) :
-    @IsSeparable (Filtrator.subset (α := α)) (Filtrator.suborder (α := α)) := by
-  let boolPO : PartialOrder (Filtrator.subset (α := α)) :=
-    (inferInstance : BooleanAlgebra (Filtrator.subset (α := α))).toPartialOrder
-  have h_sep_bool : @IsSeparable (Filtrator.subset (α := α)) boolPO := by
-    exact stronglySeparable_imp_separable
-      (primary_imp_booleanStronglySeparableCore_subtype (α := α))
-  have h_isLeast :
-      ∀ c : Filtrator.subset (α := α),
-        @is_least (Filtrator.subset (α := α)) (Filtrator.suborder (α := α)) c ↔
-          @is_least (Filtrator.subset (α := α)) boolPO c := by
-    intro c
-    constructor
-    · intro hc x
-      exact (hcoreord c x).1 (hc x)
-    · intro hc x
-      exact (hcoreord c x).2 (hc x)
-  have h_meet :
-      ∀ a b : Filtrator.subset (α := α),
-        @meet (Filtrator.subset (α := α)) (Filtrator.suborder (α := α)) a b ↔
-          @meet (Filtrator.subset (α := α)) boolPO a b := by
-    intro a b
-    constructor
-    · intro h
-      rcases h with ⟨c, hca, hcb, hc_notleast⟩
-      refine ⟨c, (hcoreord c a).1 hca, (hcoreord c b).1 hcb, ?_⟩
-      intro hc_least_bool
-      exact hc_notleast ((h_isLeast c).2 hc_least_bool)
-    · intro h
-      rcases h with ⟨c, hca, hcb, hc_notleast⟩
-      refine ⟨c, (hcoreord c a).2 hca, (hcoreord c b).2 hcb, ?_⟩
-      intro hc_least_sub
-      exact hc_notleast ((h_isLeast c).1 hc_least_sub)
-  intro a b h_eq
-  have h_eq_bool :
-      @separator (Filtrator.subset (α := α)) boolPO a =
-        @separator (Filtrator.subset (α := α)) boolPO b := by
-    ext x
-    have hx : x ∈ @separator (Filtrator.subset (α := α)) (Filtrator.suborder (α := α)) a ↔
-        x ∈ @separator (Filtrator.subset (α := α)) (Filtrator.suborder (α := α)) b := by
-      simpa using congrArg (fun s => x ∈ s) h_eq
-    simpa [separator, h_meet x a, h_meet x b] using hx
-  exact h_sep_bool a b h_eq_bool
+    [BooleanAlgebra (Filtrator.subset (α := α))] :
+    @IsStronglySeparable (Filtrator.subset (α := α))
+      (inferInstance : BooleanAlgebra (Filtrator.subset (α := α))).toPartialOrder :=
+  primary_imp_booleanStronglySeparableCore (α := α)
 
 end StrongSeparability
 
 export StrongSeparability
   (primary_imp_booleanStronglySeparableCore
-    primary_imp_booleanStronglySeparableCore_subtype
     primary_imp_coreSeparable_of_boolean_core_order)
