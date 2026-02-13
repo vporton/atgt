@@ -62,12 +62,32 @@ lemma one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α :
   exact Filtrator.Powerset.primary (α := α)
 
 /-- 2⇒3 in Corollary 518 tuple. -/
-def two_imp_three [SemilatticeInf α] [OrderTop α] [Filtrator.Primary α] :
+noncomputable def two_imp_three [SemilatticeInf α] [OrderTop α] [Filtrator.Primary α] :
     CompleteLattice α := by
-  sorry
+  classical
+  let sInfFun : Set α → α := fun S =>
+    if hS : S.Nonempty then
+      Classical.choose (theorem516 (α := α) S hS)
+    else
+      ⊤
+  letI : InfSet α := ⟨sInfFun⟩
+  refine completeLatticeOfInf α ?_
+  intro S
+  by_cases hS : S.Nonempty
+  · have hsInf :
+      sInf S = Classical.choose (theorem516 (α := α) S hS) := by
+      change sInfFun S = Classical.choose (theorem516 (α := α) S hS)
+      simp [sInfFun, hS]
+    exact hsInf ▸ (Classical.choose_spec (theorem516 (α := α) S hS)).1
+  · have hSEmpty : S = ∅ := Set.not_nonempty_iff_eq_empty.mp hS
+    subst hSEmpty
+    have hsInfEmpty : sInf (∅ : Set α) = (⊤ : α) := by
+      change sInfFun (∅ : Set α) = (⊤ : α)
+      simp [sInfFun]
+    exact hsInfEmpty ▸ (isGLB_empty : IsGLB (∅ : Set α) (⊤ : α))
 
 /-- 1⇒3 in Corollary 518 tuple. -/
-def one_imp_three [SemilatticeInf α] [OrderTop α] [Filtrator.Powerset.{u, v} α] :
+noncomputable def one_imp_three [SemilatticeInf α] [OrderTop α] [Filtrator.Powerset.{u, v} α] :
     CompleteLattice α := by
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
   exact two_imp_three (α := α)
