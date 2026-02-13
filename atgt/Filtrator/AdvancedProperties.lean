@@ -13,12 +13,12 @@ universe u v
 
 /--
 Corollary-517 condition (3), rendered in the current formal vocabulary:
-for every nonempty family `S`, its infimum exists and the upper set of this infimum is the
+for every nonempty family `S`, its supremum exists and the upper set of this supremum is the
 intersection of upper sets of elements of `S`.
 -/
 def NonemptyInfUpInter (α : Type u) [Filtrator α] : Prop :=
   ∀ S : Set α, S.Nonempty →
-    ∃ d : α, IsGLB S d ∧ Filtrator.up d = {x : α | ∀ s ∈ S, x ∈ Filtrator.up s}
+    ∃ d : α, IsLUB S d ∧ Filtrator.up d = {x : α | ∀ s ∈ S, x ∈ Filtrator.up s}
 
 /--
 Lemma 512 (p. 85), in the form used for filters:
@@ -150,8 +150,90 @@ used by Corollaries 517/518.
 -/
 theorem theorem516 {α : Type u}
     [Filtrator α] [SemilatticeInf α] [OrderTop α] [Filtrator.Primary α] :
+    (∀ a b : α, a ≤ b ↔ @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) →
     NonemptyInfUpInter α := by
-  sorry
+  intro hord S hS
+  have hTopSub : (⊤ : α) ∈ subset := by
+    rcases Filtrator.Primary.exists_up_in_subset (α := α) (⊤ : α) with ⟨y, hy⟩
+    exact (top_unique hy) ▸ y.2
+  let T : Set (subset : Set α) := {y | ∀ s ∈ S, s ≤ y.1}
+  have hT_nonempty : Set.Nonempty T := by
+    refine ⟨⟨⊤, hTopSub⟩, ?_⟩
+    intro s hs
+    exact le_top
+  let F : PosetFilter (Filtrator.suborder (α := α)) := {
+    elements := T
+    non_empty := hT_nonempty
+    cap_elements := by
+      intro a b ha hb
+      let x0 : α := a.1 ⊓ b.1
+      have hx0a : x0 ≤ a.1 := by
+        exact (hord x0 a.1).2 (by simpa [x0] using (inf_le_left : a.1 ⊓ b.1 ≤ a.1))
+      have hx0b : x0 ≤ b.1 := by
+        exact (hord x0 b.1).2 (by simpa [x0] using (inf_le_right : a.1 ⊓ b.1 ≤ b.1))
+      rcases Filtrator.Primary.directed_up_in_subset (α := α) x0 a b hx0a hx0b with
+        ⟨c, hcx0, hca, hcb⟩
+      refine ⟨c, ?_, hca, hcb⟩
+      intro s hs
+      have hsx0' :
+          @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE s x0 := by
+        have hsa' :
+            @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE s a.1 :=
+          (hord s a.1).1 (ha s hs)
+        have hsb' :
+            @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE s b.1 :=
+          (hord s b.1).1 (hb s hs)
+        simpa [x0] using (le_inf hsa' hsb')
+      have hsx0 : s ≤ x0 := (hord s x0).2 hsx0'
+      exact le_trans hsx0 hcx0
+    up_closed := by
+      intro a b ha hab s hs
+      exact le_trans (ha s hs) hab
+  }
+  rcases Filtrator.Primary.exists_to_poset_filter_eq (α := α) F with ⟨d, hdF⟩
+  have hd_char : ∀ x : α, x ∈ subset → (d ≤ x ↔ ∀ s ∈ S, s ≤ x) := by
+    intro x hxsub
+    constructor
+    · intro hdx
+      have hx_to : (⟨x, hxsub⟩ : subset) ∈ (Filtrator.Primary.to_poset_filter (α := α) d).elements := by
+        simpa [Filtrator.Primary.to_poset_filter, Filtrator.up_suborder] using hdx
+      have hx_F : (⟨x, hxsub⟩ : subset) ∈ F.elements := by simpa [hdF] using hx_to
+      simpa [F, T] using hx_F
+    · intro hxall
+      have hx_F : (⟨x, hxsub⟩ : subset) ∈ F.elements := by
+        simpa [F, T] using hxall
+      have hx_to : (⟨x, hxsub⟩ : subset) ∈ (Filtrator.Primary.to_poset_filter (α := α) d).elements := by
+        simpa [hdF] using hx_F
+      simpa [Filtrator.Primary.to_poset_filter, Filtrator.up_suborder] using hx_to
+  refine ⟨d, ?_, ?_⟩
+  · refine ⟨?_, ?_⟩
+    · intro s hs
+      have h_up_sub : Filtrator.up d ⊆ Filtrator.up s := by
+        intro x hx
+        refine ⟨hx.1, ?_⟩
+        exact (hd_char x hx.1).1 hx.2 s hs
+      exact (Filtrator.Primary.order_determined (α := α) s d).2 h_up_sub
+    · intro z hz
+      have hz' : ∀ s ∈ S, s ≤ z := hz
+      have h_up_sub : Filtrator.up z ⊆ Filtrator.up d := by
+        intro x hx
+        have hxall : ∀ s ∈ S, s ≤ x := by
+          intro s hs
+          exact le_trans (hz' s hs) hx.2
+        exact ⟨hx.1, (hd_char x hx.1).2 hxall⟩
+      exact (Filtrator.Primary.order_determined (α := α) d z).2 h_up_sub
+  · ext x
+    constructor
+    · intro hx
+      intro s hs
+      exact ⟨hx.1, (hd_char x hx.1).1 hx.2 s hs⟩
+    · intro hx
+      rcases hS with ⟨s0, hs0⟩
+      have hxsub : x ∈ subset := (hx s0 hs0).1
+      have hxall : ∀ s ∈ S, s ≤ x := by
+        intro s hs
+        exact (hx s hs).2
+      exact ⟨hxsub, (hd_char x hxsub).2 hxall⟩
 
 namespace PrimaryMeetTopInfimumTuple
 
@@ -162,14 +244,18 @@ lemma one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α :
   exact Filtrator.Powerset.primary (α := α)
 
 /-- 2⇒3 in Corollary 517 tuple. -/
-theorem two_imp_three [SemilatticeInf α] [OrderTop α] [Filtrator.Primary α] : NonemptyInfUpInter α := by
-  exact theorem516 (α := α)
+theorem two_imp_three [SemilatticeInf α] [OrderTop α] [Filtrator.Primary α]
+    (hord : ∀ a b : α, a ≤ b ↔ @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) :
+    NonemptyInfUpInter α := by
+  exact theorem516 (α := α) hord
 
 /-- 1⇒3 in Corollary 517 tuple. -/
 theorem one_imp_three [SemilatticeInf α] [OrderTop α] [Filtrator.Powerset.{u, v} α] :
+    (∀ a b : α, a ≤ b ↔ @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) →
     NonemptyInfUpInter α := by
+  intro hord
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
-  exact two_imp_three (α := α)
+  exact two_imp_three (α := α) hord
 
 end PrimaryMeetTopInfimumTuple
 
@@ -186,35 +272,41 @@ lemma one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α :
   exact Filtrator.Powerset.primary (α := α)
 
 /-- 2⇒3 in Corollary 518 tuple. -/
-noncomputable def two_imp_three [SemilatticeInf α] [OrderTop α] [Filtrator.Primary α] :
+noncomputable def two_imp_three
+    [SemilatticeInf α] [OrderTop α] [OrderBot α] [Filtrator.Primary α] :
+    (∀ a b : α, a ≤ b ↔ @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) →
     CompleteLattice α := by
+  intro hord
   classical
-  let sInfFun : Set α → α := fun S =>
+  let sSupFun : Set α → α := fun S =>
     if hS : S.Nonempty then
-      Classical.choose (theorem516 (α := α) S hS)
+      Classical.choose (theorem516 (α := α) hord S hS)
     else
-      ⊤
-  letI : InfSet α := ⟨sInfFun⟩
-  refine completeLatticeOfInf α ?_
+      ⊥
+  letI : SupSet α := ⟨sSupFun⟩
+  refine completeLatticeOfSup α ?_
   intro S
   by_cases hS : S.Nonempty
-  · have hsInf :
-      sInf S = Classical.choose (theorem516 (α := α) S hS) := by
-      change sInfFun S = Classical.choose (theorem516 (α := α) S hS)
-      simp [sInfFun, hS]
-    exact hsInf ▸ (Classical.choose_spec (theorem516 (α := α) S hS)).1
+  · have hsSup :
+      sSup S = Classical.choose (theorem516 (α := α) hord S hS) := by
+      change sSupFun S = Classical.choose (theorem516 (α := α) hord S hS)
+      simp [sSupFun, hS]
+    exact hsSup ▸ (Classical.choose_spec (theorem516 (α := α) hord S hS)).1
   · have hSEmpty : S = ∅ := Set.not_nonempty_iff_eq_empty.mp hS
     subst hSEmpty
-    have hsInfEmpty : sInf (∅ : Set α) = (⊤ : α) := by
-      change sInfFun (∅ : Set α) = (⊤ : α)
-      simp [sInfFun]
-    exact hsInfEmpty ▸ (isGLB_empty : IsGLB (∅ : Set α) (⊤ : α))
+    have hsSupEmpty : sSup (∅ : Set α) = (⊥ : α) := by
+      change sSupFun (∅ : Set α) = (⊥ : α)
+      simp [sSupFun]
+    exact hsSupEmpty ▸ (isLUB_empty : IsLUB (∅ : Set α) (⊥ : α))
 
 /-- 1⇒3 in Corollary 518 tuple. -/
-noncomputable def one_imp_three [SemilatticeInf α] [OrderTop α] [Filtrator.Powerset.{u, v} α] :
+noncomputable def one_imp_three
+    [SemilatticeInf α] [OrderTop α] [OrderBot α] [Filtrator.Powerset.{u, v} α] :
+    (∀ a b : α, a ≤ b ↔ @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) →
     CompleteLattice α := by
+  intro hord
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
-  exact two_imp_three (α := α)
+  exact two_imp_three (α := α) hord
 
 end PrimaryMeetTopCompleteLatticeTuple
 
