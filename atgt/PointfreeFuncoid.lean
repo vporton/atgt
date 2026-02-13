@@ -203,6 +203,83 @@ theorem continuation_value_of_separator
     _ = separator (f.fwd x) := (proposition1615_source (h_sep_up := h_sep_up) (f := f) (x := x)).symm
 
 /--
+Forward bridge toward Theorem 1617: the separator of the `sInf` candidate is contained in
+the continuation separator. This is the monotonic direction (`sInf ≤ each member`).
+-/
+theorem separator_subset_continuationSeparator_of_lower_bound
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (f : PointfreeFuncoid X.suporder Y.suporder)
+    (x : α)
+    (z : β)
+    (h_lower : ∀ X' : α, X' ∈ Filtrator.up x → z ≤ f.fwd X') :
+    separator z ⊆ f.continuationSeparator x := by
+  intro y hy X' hX'
+  have hmeet : meet y z := by
+    simpa [separator] using hy
+  have hmeet' : meet y (f.fwd X') := meet_mono_right (h_lower X' hX') hmeet
+  simpa [PointfreeFuncoid.funcoid_rel, meet_comm] using hmeet'
+
+/--
+Forward bridge toward Theorem 1617 for the explicit `sInf` candidate, assuming the expected
+lower-bound property in the ambient order.
+-/
+theorem separator_sInf_image_subset_continuationSeparator
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β)))
+    (f : PointfreeFuncoid X.suporder Y.suporder)
+    (x : α) :
+    (h_lower :
+      ∀ X' : α, X' ∈ Filtrator.up x →
+        (↑(@sInf (Filtrator.subset (α := β))
+          Bdst.toCompleteLattice.toInfSet
+          {f.fwd z | z ∈ Filtrator.up x}) : β) ≤ f.fwd X') →
+    separator
+      (↑(@sInf (Filtrator.subset (α := β))
+        Bdst.toCompleteLattice.toInfSet
+        {f.fwd z | z ∈ Filtrator.up x}) : β) ⊆
+      f.continuationSeparator x := by
+  intro h_lower
+  exact separator_subset_continuationSeparator_of_lower_bound
+    (f := f) (x := x)
+    (z := (↑(@sInf (Filtrator.subset (α := β))
+      Bdst.toCompleteLattice.toInfSet
+      {f.fwd z | z ∈ Filtrator.up x}) : β))
+    h_lower
+
+/--
+Second bridge in equality form once the reverse inclusion is provided.
+The reverse direction is the generalized-filter-base step from the book proof.
+-/
+theorem separator_sInf_image_eq_continuationSeparator_of_reverse
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β)))
+    (f : PointfreeFuncoid X.suporder Y.suporder)
+    (x : α)
+    (h_lower :
+      ∀ X' : α, X' ∈ Filtrator.up x →
+        (↑(@sInf (Filtrator.subset (α := β))
+          Bdst.toCompleteLattice.toInfSet
+          {f.fwd z | z ∈ Filtrator.up x}) : β) ≤ f.fwd X')
+    (h_reverse :
+      f.continuationSeparator x ⊆
+        separator
+          (↑(@sInf (Filtrator.subset (α := β))
+            Bdst.toCompleteLattice.toInfSet
+            {f.fwd z | z ∈ Filtrator.up x}) : β)) :
+    separator
+      (↑(@sInf (Filtrator.subset (α := β))
+        Bdst.toCompleteLattice.toInfSet
+        {f.fwd z | z ∈ Filtrator.up x}) : β) =
+      f.continuationSeparator x := by
+  exact Set.Subset.antisymm
+    (separator_sInf_image_subset_continuationSeparator
+      (Bdst := Bdst) (f := f) (x := x) h_lower)
+    h_reverse
+
+/--
 Theorem 1617 (p. 317), literal value equation form:
 `⟨f⟩ x = sInf (⟨⟨f⟩⟩ (up x))`.
 FIXME:
