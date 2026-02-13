@@ -10,3 +10,5 @@ Name the namespace accordingly the statement semantic name, not like Tuple572 or
 
 In uploaded images or LaTeX fragments accept unusual set notation like
 $\left\{\frac{x\in A}{P(x)}\right\}$.
+
+"Filtrator over a boolean lattice" means filtrator whose _core_ is a boolean lattice.
