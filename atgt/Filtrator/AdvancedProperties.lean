@@ -9,8 +9,6 @@ This file adds Theorem 516 and the implication tuples Corollary 517 / Corollary 
 (from volume-1, pp. 85-86), in the current development vocabulary.
 -/
 
-namespace Filtrator.Primary
-
 universe u v
 
 /--
@@ -57,23 +55,23 @@ namespace PrimaryMeetTopCompleteLatticeTuple
 
 variable {α : Type u} [Filtrator α]
 
+/- TODO: Rename below. -/
+
 /-- 1⇒2 in Corollary 518 tuple. -/
 lemma one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α := by
   exact Filtrator.Powerset.primary (α := α)
 
 /-- 2⇒3 in Corollary 518 tuple. -/
-theorem two_imp_three [SemilatticeInf α] [OrderTop α] [Filtrator.Primary α] :
-    Nonempty (CompleteLattice α) := by
+def two_imp_three [SemilatticeInf α] [OrderTop α] [Filtrator.Primary α] :
+    CompleteLattice α := by
   sorry
 
 /-- 1⇒3 in Corollary 518 tuple. -/
-theorem one_imp_three [SemilatticeInf α] [OrderTop α] [Filtrator.Powerset.{u, v} α] :
-    Nonempty (CompleteLattice α) := by
+def one_imp_three [SemilatticeInf α] [OrderTop α] [Filtrator.Powerset.{u, v} α] :
+    CompleteLattice α := by
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
   exact two_imp_three (α := α)
 
 end PrimaryMeetTopCompleteLatticeTuple
 
 export PrimaryMeetTopCompleteLatticeTuple (two_imp_three one_imp_three)
-
-end Filtrator.Primary

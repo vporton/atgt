@@ -3,6 +3,7 @@ import Mathlib.Order.CompleteBooleanAlgebra
 import atgt.Poset
 import atgt.Filtrator
 import atgt.Filtrator.Separable
+import atgt.Filtrator.AdvancedProperties
 
 universe u v u2 v2
 
@@ -184,19 +185,23 @@ theorem continuation_value_of_separator
 /--
 Theorem 1617 (p. 317), literal value equation form:
 `⟨f⟩ x = sInf (⟨⟨f⟩⟩ (up x))`.
+FIXME:
 -/
 theorem theorem1617
     {α : Type u} {β : Type v}
     [X : Filtrator α] [Y : Filtrator β]
     [SemilatticeInf α]
     [Filtrator.Primary β]
-    (Bdst : CompleteBooleanAlgebra β)
+    (Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β)))
     (h_src_binary_meet_closed : Filtrator.binary_meet_closed (α := α))
     (h_src_sep_up : X.separator_up_property)
     (h_src_up_nonempty : ∀ x : α, Set.Nonempty (Filtrator.up x))
     (f : PointfreeFuncoid X.suporder Y.suporder)
     (x : α) :
-    f.fwd x = @sInf β Bdst.toCompleteLattice.toInfSet (f.fwd '' Filtrator.up x) := by
+    f.fwd x =
+      (@sInf (Filtrator.subset (α := β))
+        Bdst.toCompleteLattice.toInfSet
+        {z : (Filtrator.subset (α := β)) | z.1 ∈ f.fwd '' Filtrator.up x}).1 := by
   have _ := h_src_binary_meet_closed
   have _ := h_src_up_nonempty
   have _ := h_src_sep_up
