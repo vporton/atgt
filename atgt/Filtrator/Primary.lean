@@ -63,7 +63,10 @@ namespace Filtrator.Primary
 
 open Filtrator
 
-variable {α : Type u} [Primary α]
+variable {α : Type u}
+
+section primary_core
+variable [Primary α]
 
 theorem order_determined (a b : α) : a ≤ b ↔ up b ⊆ up a := by
   let h_filtered := Filtrator.primary_imp_filtered (α := α)
@@ -383,6 +386,8 @@ theorem exists_filter_for_up (F : PosetFilter (Filtrator.suborder (α := α))) :
   use (to_filters_iso.toRelIso).symm F
   exact (to_filters_iso.toRelIso).apply_symm_apply F
 
+end primary_core
+
 /-- For an isomorphism from filters on `β`, the induced principal map sends the
 elements of `iso.symm x` exactly to `up_suborder x`. -/
 lemma image_principals_eq_up_suborder
@@ -442,6 +447,9 @@ lemma image_principals_eq_up_suborder
     apply Subtype.ext
     simpa [sub_iso_toFun] using hz_map
 
+section primary_other
+variable [Primary α]
+
 /--
 Bridge theorem: the canonical `to_filters_iso` map coincides with the concrete filter
 `to_poset_filter`.
@@ -473,5 +481,6 @@ theorem exists_to_poset_filter_eq (F : PosetFilter (Filtrator.suborder (α := α
       symm
       exact to_filters_iso_eq_to_poset_filter (α := α) x
     _ = F := hx
+end primary_other
 
 end Filtrator.Primary
