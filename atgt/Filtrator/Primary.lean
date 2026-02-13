@@ -381,4 +381,27 @@ theorem exists_filter_for_up (F : PosetFilter (Filtrator.suborder (α := α))) :
   use (to_filters_iso.toRelIso).symm F
   exact (to_filters_iso.toRelIso).apply_symm_apply F
 
+/--
+Bridge theorem: the canonical `to_filters_iso` map coincides with the concrete filter
+`to_poset_filter`.
+FIXME: not a confirmed statement.
+-/
+theorem to_filters_iso_eq_to_poset_filter (x : α) :
+    to_filters_iso.toRelIso x = to_poset_filter (α := α) x := by
+  sorry
+
+/--
+Every filter on the core suborder is the upper set filter of some element.
+This is the concrete form used by Section 5.8 proofs.
+-/
+theorem exists_to_poset_filter_eq (F : PosetFilter (Filtrator.suborder (α := α))) :
+    ∃ x : α, to_poset_filter (α := α) x = F := by
+  rcases exists_filter_for_up (α := α) F with ⟨x, hx⟩
+  refine ⟨x, ?_⟩
+  calc
+    to_poset_filter (α := α) x = to_filters_iso.toRelIso x := by
+      symm
+      exact to_filters_iso_eq_to_poset_filter (α := α) x
+    _ = F := hx
+
 end Filtrator.Primary

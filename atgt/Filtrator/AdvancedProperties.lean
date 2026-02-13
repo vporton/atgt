@@ -60,10 +60,16 @@ theorem theorem515 {α : Type u}
   have h_bin_closed_iff :=
     Filtrator.binary_meet_closed_iff_up_filters
       (α := α) (h_nonempty := h_nonempty) (hord := hord)
+  have h_exists_concrete_up :
+      ∀ F : PosetFilter (Filtrator.suborder (α := α)),
+        ∃ d : α, Filtrator.Primary.to_poset_filter (α := α) d = F := by
+    intro F
+    exact Filtrator.Primary.exists_to_poset_filter_eq (α := α) F
   -- The rest follows the PDF proof idea, using the above supplied hypotheses.
   have _ := hS
   have _ := hBdd
   have _ := h_bin_closed_iff
+  have _ := h_exists_concrete_up
   sorry
 
 /--
