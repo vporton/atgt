@@ -94,7 +94,10 @@ theorem exists_up_in_subset (x : α) : ∃ y : subset, x ≤ y.1 := by
     -- PosetFilter order: G ≤ H ↔ H ⊆ G
     -- F ≤ principal b ↔ principal b ⊆ F ↔ b ∈ F
     intro z hz
-    apply F.up_closed hb hz
+    have hb' : b ∈ F.carrier := by simpa using hb
+    have hz' : b ≤ z := by simpa using hz
+    have : z ∈ F.carrier := F.upper' hz' hb'
+    simpa using this
   exact iso.symm.map_rel_iff.mp hp
 
 theorem directed_up_in_subset (x : α) (a b : subset) (ha : x ≤ a.1) (hb : x ≤ b.1) :
@@ -147,7 +150,11 @@ theorem directed_up_in_subset (x : α) (a b : subset) (ha : x ≤ a.1) (hb : x �
   constructor
   . apply iso.symm.map_rel_iff.mp
     change iso.invFun x ≤ iso.invFun (iso.toFun _); rw [iso.left_inv]
-    intro z hz; apply (iso.symm x).up_closed hpc hz
+    intro z hz
+    have hpc' : pc ∈ (iso.symm x).carrier := by simpa using hpc
+    have hz' : pc ≤ z := by simpa using hz
+    have : z ∈ (iso.symm x).carrier := (iso.symm x).upper' hz' hpc'
+    simpa using this
   . constructor
     . change iso.toFun (PosetFilter.principal pc) ≤ a.1; apply iso.symm.map_rel_iff.mp
       rw [hpa]
@@ -167,8 +174,10 @@ def to_poset_filter (x : α) : PosetFilter (Filtrator.suborder (α := α)) :=
       exact hy
     cap_elements := fun {a b} ha hb => by
       exact directed_up_in_subset x a b ha hb
-    up_closed := fun {a b} ha hab => by
-      exact le_trans ha hab }
+    carrier := Filtrator.up_suborder (x := x)
+    upper' := fun {a b} hab ha => by
+      exact le_trans ha hab
+    carrier_eq_elements := rfl }
 
 def up_is_filter (x : α) :
     PosetFilter (Filtrator.suborder (α := α)) :=
@@ -259,15 +268,20 @@ noncomputable def to_filters_iso :
         refine ⟨⟨x3, hx3, rfl⟩, ?_, ?_⟩
         . rw [← eq1]; rw [sub_iso.map_rel_iff]; exact le1
         . rw [← eq2]; rw [sub_iso.map_rel_iff]; exact le2
-      up_closed := fun {y1 y2} ⟨x1, hx1, eq1⟩ le => by
+      carrier := sub_iso '' F.elements
+      upper' := fun {y1 y2} le ⟨x1, hx1, eq1⟩ => by
         use sub_iso.symm y2
         constructor
-        . apply F.up_closed hx1
-          rw [← eq1] at le
-          conv at le => rhs; rw [← sub_iso.apply_symm_apply y2]
-          rw [sub_iso.map_rel_iff] at le
-          exact le
+        . have hx1' : x1 ∈ F.carrier := by simpa using hx1
+          have hrel : x1 ≤ sub_iso.symm y2 := by
+            rw [← eq1] at le
+            conv at le => rhs; rw [← sub_iso.apply_symm_apply y2]
+            rw [sub_iso.map_rel_iff] at le
+            exact le
+          have hmem : sub_iso.symm y2 ∈ F.carrier := F.upper' hrel hx1'
+          simpa using hmem
         . simp
+      carrier_eq_elements := rfl
     }
     invFun := fun F => {
       elements := sub_iso.symm '' F.elements
@@ -279,15 +293,20 @@ noncomputable def to_filters_iso :
         refine ⟨⟨y3, hy3, rfl⟩, ?_, ?_⟩
         . rw [← eq1]; rw [sub_iso.symm.map_rel_iff]; exact le1
         . rw [← eq2]; rw [sub_iso.symm.map_rel_iff]; exact le2
-      up_closed := fun {x1 x2} ⟨y1, hy1, eq1⟩ le => by
+      carrier := sub_iso.symm '' F.elements
+      upper' := fun {x1 x2} le ⟨y1, hy1, eq1⟩ => by
         use sub_iso x2
         constructor
-        . apply F.up_closed hy1
-          rw [← eq1] at le
-          conv at le => rhs; rw [← sub_iso.symm_apply_apply x2]
-          rw [sub_iso.symm.map_rel_iff] at le
-          exact le
+        . have hy1' : y1 ∈ F.carrier := by simpa using hy1
+          have hrel : y1 ≤ sub_iso x2 := by
+            rw [← eq1] at le
+            conv at le => rhs; rw [← sub_iso.symm_apply_apply x2]
+            rw [sub_iso.symm.map_rel_iff] at le
+            exact le
+          have hmem : sub_iso x2 ∈ F.carrier := F.upper' hrel hy1'
+          simpa using hmem
         . simp
+      carrier_eq_elements := rfl
     }
     left_inv := fun F => by
       apply PosetFilter.ext

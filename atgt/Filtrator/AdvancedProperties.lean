@@ -95,9 +95,11 @@ theorem theorem515 {α : Type u}
         exact (hord s c0).2 hsc'
       · exact (hord c0 a.1).2 inf_le_left
       · exact (hord c0 b.1).2 inf_le_right
-    up_closed := by
-      intro a b ha hab s hs
+    carrier := T
+    upper' := by
+      intro a b hab ha s hs
       exact le_trans (ha s hs) hab
+    carrier_eq_elements := rfl
   }
   rcases h_exists_concrete_up F with ⟨d, hdF⟩
   have hd_char : ∀ x : α, x ∈ subset → (d ≤ x ↔ ∀ s ∈ S, s ≤ x) := by
@@ -196,9 +198,11 @@ theorem theorem516 {α : Type u}
         simpa [x0] using (le_inf hsa' hsb')
       have hsx0 : s ≤ x0 := (hord s x0).2 hsx0'
       exact le_trans hsx0 hcx0
-    up_closed := by
-      intro a b ha hab s hs
+    carrier := T
+    upper' := by
+      intro a b hab ha s hs
       exact le_trans (ha s hs) hab
+    carrier_eq_elements := rfl
   }
   rcases Filtrator.Primary.exists_to_poset_filter_eq (α := α) F with ⟨d, hdF⟩
   have hd_char : ∀ x : α, x ∈ subset → (d ≤ x ↔ ∀ s ∈ S, s ≤ x) := by
