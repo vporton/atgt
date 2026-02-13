@@ -381,6 +381,7 @@ theorem exists_filter_for_up (F : PosetFilter (Filtrator.suborder (α := α))) :
   use (to_filters_iso.toRelIso).symm F
   exact (to_filters_iso.toRelIso).apply_symm_apply F
 
+omit [Primary α] in
 /-- For an isomorphism from filters on `β`, the induced principal map sends the
 elements of `iso.symm x` exactly to `up_suborder x`. -/
 lemma image_principals_eq_up_suborder
