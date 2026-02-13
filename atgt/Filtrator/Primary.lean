@@ -381,6 +381,65 @@ theorem exists_filter_for_up (F : PosetFilter (Filtrator.suborder (α := α))) :
   use (to_filters_iso.toRelIso).symm F
   exact (to_filters_iso.toRelIso).apply_symm_apply F
 
+/-- For an isomorphism from filters on `β`, the induced principal map sends the
+elements of `iso.symm x` exactly to `up_suborder x`. -/
+lemma image_principals_eq_up_suborder
+    {β : Type*} (p : PartialOrder β)
+    (iso : FiltratorIso (FiltratorOfFilters (inst := p)) i)
+    (x : α) :
+    (let sub_iso_toFun : β → subset :=
+      fun z => ⟨iso.toRelIso (PosetFilter.principal (U := p) z), by
+        rw [← iso.core_match]
+        exact ⟨PosetFilter.principal (U := p) z, ⟨z, rfl⟩, rfl⟩⟩
+    sub_iso_toFun '' (iso.toRelIso.symm x).elements) =
+      Filtrator.up_suborder (x := x) := by
+  classical
+  let sub_iso_toFun : β → subset :=
+    fun z => ⟨iso.toRelIso (PosetFilter.principal (U := p) z), by
+      rw [← iso.core_match]
+      exact ⟨PosetFilter.principal (U := p) z, ⟨z, rfl⟩, rfl⟩⟩
+  ext y
+  constructor
+  · intro hy
+    rcases hy with ⟨z, hz, rfl⟩
+    change x ≤ iso.toRelIso (PosetFilter.principal (U := p) z)
+    have hz_le : iso.toRelIso.symm x ≤ PosetFilter.principal (U := p) z := by
+      exact (le_principal_iff_subset (U := p) _ z).2 hz
+    have hz_map : iso.toRelIso (iso.toRelIso.symm x) ≤ iso.toRelIso (PosetFilter.principal (U := p) z) :=
+      (iso.toRelIso.map_rel_iff).2 hz_le
+    simpa using hz_map
+  · intro hy
+    have hcore_symm : iso.toRelIso.symm '' subset = Principals (U := p) := by
+      apply Set.ext
+      intro F
+      constructor
+      · intro hF
+        rcases hF with ⟨u, hu, rfl⟩
+        rw [← iso.core_match] at hu
+        rcases hu with ⟨G, hG, rfl⟩
+        simpa using hG
+      · intro hF
+        refine ⟨iso.toRelIso F, ?_, by simp⟩
+        rw [← iso.core_match]
+        exact ⟨F, hF, rfl⟩
+    have hy_princ : iso.toRelIso.symm y.1 ∈ Principals (U := p) := by
+      have : iso.toRelIso.symm y.1 ∈ iso.toRelIso.symm '' subset := by
+        exact ⟨y.1, y.2, rfl⟩
+      simpa [hcore_symm] using this
+    rcases hy_princ with ⟨z, hz_eq⟩
+    have hz_mem : z ∈ (iso.toRelIso.symm x).elements := by
+      have hy_symm : iso.toRelIso.symm x ≤ iso.toRelIso.symm y.1 :=
+        (iso.toRelIso.symm.map_rel_iff).2 hy
+      have hz_le : iso.toRelIso.symm x ≤ PosetFilter.principal (U := p) z := by
+        simpa [hz_eq] using hy_symm
+      exact (le_principal_iff_subset (U := p) _ z).1 hz_le
+    have hz_map : iso.toRelIso (PosetFilter.principal (U := p) z) = y.1 := by
+      have := congrArg iso.toRelIso hz_eq
+      simpa using this
+    refine ⟨z, hz_mem, ?_⟩
+    apply Subtype.ext
+    simpa [sub_iso_toFun] using hz_map
+
 /--
 Bridge theorem: the canonical `to_filters_iso` map coincides with the concrete filter
 `to_poset_filter`.
@@ -388,7 +447,17 @@ FIXME: not a confirmed statement.
 -/
 theorem to_filters_iso_eq_to_poset_filter (x : α) :
     to_filters_iso.toRelIso x = to_poset_filter (α := α) x := by
-  sorry
+  classical
+  let h_prim := Primary.is_primary (self := ‹Primary α›)
+  let β := Classical.choose h_prim
+  let h_prim_beta := Classical.choose_spec h_prim
+  let p := Classical.choose h_prim_beta
+  let iso_nonempty := Classical.choose_spec h_prim_beta
+  let iso := Classical.choice iso_nonempty
+  apply PosetFilter.ext
+  apply PosetFilterBase.ext_elements
+  simpa [to_filters_iso, to_poset_filter, h_prim, β, h_prim_beta, p, iso_nonempty, iso] using
+    (image_principals_eq_up_suborder (p := p) (iso := iso) (x := x))
 
 /--
 Every filter on the core suborder is the upper set filter of some element.
