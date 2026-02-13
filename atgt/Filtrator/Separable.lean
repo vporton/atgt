@@ -1,6 +1,7 @@
 import atgt.Filtrator
 import atgt.Filtrator.Powerset
 import atgt.Poset
+import Mathlib.Order.CompleteBooleanAlgebra
 
 def separator_core {α : Type*} {F : Filtrator α} (a : α) :=
   F.subset ∩ @separator α F.toPartialOrder a
@@ -97,6 +98,11 @@ theorem boolean_imp_stronglySeparable [BooleanAlgebra α] : BooleanStronglySepar
       exact (bot_le : (⊥ : α) ≤ y)
     exact hx_inf_b_not_least (hx_inf_b_eq_bot ▸ hleast_bot)
   exact hx_not_sep_b (h_sub hx_sep_a)
+
+/-- Any complete Boolean algebra is separable (in its own order). -/
+theorem completeBoolean_imp_separable (B : CompleteBooleanAlgebra α) : IsSeparable α := by
+  letI : CompleteBooleanAlgebra α := B
+  exact stronglySeparable_imp_separable (boolean_imp_stronglySeparable (α := α))
 
 variable [Filtrator α]
 

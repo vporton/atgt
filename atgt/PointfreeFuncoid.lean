@@ -357,8 +357,12 @@ theorem theorem1617
   -- machinery (Theorem 572 / Proposition 579 route from the PDF proof).
   -- Once those two bridge inclusions and destination separability are supplied, use
   -- `theorem1617_of_separator_bridge`.
+  have _ :
+      @IsSeparable (Filtrator.subset (α := β))
+        Bdst.toCompleteSemilatticeInf.toPartialOrder :=
+    StrongSeparability.completeBoolean_imp_separable
+      (α := Filtrator.subset (α := β)) Bdst
   have h_sep_dst : IsSeparable β := by
-    have _ := Bdst
     sorry
   have h_lower :
       ∀ X' : α, X' ∈ Filtrator.up x →
