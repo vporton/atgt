@@ -358,6 +358,7 @@ theorem theorem1617
   -- Once those two bridge inclusions and destination separability are supplied, use
   -- `theorem1617_of_separator_bridge`.
   have h_sep_dst : IsSeparable β := by
+    have _ := Bdst
     sorry
   have h_lower :
       ∀ X' : α, X' ∈ Filtrator.up x →

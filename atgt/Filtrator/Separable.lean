@@ -115,6 +115,65 @@ theorem one_imp_three [Filtrator.Powerset.{u, v} α] [BooleanAlgebra α] :
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
   exact two_imp_three (α := α)
 
+/-- 2⇒4 in Proposition 579 tuple: separability in the filtrator order, under order coherence. -/
+theorem two_imp_four [Filtrator.Primary α] [BooleanAlgebra α]
+    (hord :
+      ∀ a b : α,
+        a ≤ b ↔
+          @LE.le α (inferInstance : BooleanAlgebra α).toPartialOrder.toLE a b) :
+    IsSeparable α := by
+  let boolPO : PartialOrder α := (inferInstance : BooleanAlgebra α).toPartialOrder
+  have h_sep_bool : @IsSeparable α (inferInstance : BooleanAlgebra α).toPartialOrder := by
+    have h_strong_bool : @IsStronglySeparable α boolPO := by
+      simpa [boolPO, BooleanStronglySeparable] using (two_imp_three (α := α))
+    exact stronglySeparable_imp_separable h_strong_bool
+  have h_isLeast :
+      ∀ c : α,
+        @is_least α (inferInstance : Filtrator α).toPartialOrder c ↔
+          @is_least α (inferInstance : BooleanAlgebra α).toPartialOrder c := by
+    intro c
+    constructor
+    · intro hc x
+      exact (hord c x).1 (hc x)
+    · intro hc x
+      exact (hord c x).2 (hc x)
+  have h_meet :
+      ∀ a b : α,
+        @meet α (inferInstance : Filtrator α).toPartialOrder a b ↔
+          @meet α (inferInstance : BooleanAlgebra α).toPartialOrder a b := by
+    intro a b
+    constructor
+    · intro h
+      rcases h with ⟨c, hca, hcb, hc_notleast⟩
+      refine ⟨c, (hord c a).1 hca, (hord c b).1 hcb, ?_⟩
+      intro hc_least_bool
+      exact hc_notleast ((h_isLeast c).2 hc_least_bool)
+    · intro h
+      rcases h with ⟨c, hca, hcb, hc_notleast⟩
+      refine ⟨c, (hord c a).2 hca, (hord c b).2 hcb, ?_⟩
+      intro hc_least_filt
+      exact hc_notleast ((h_isLeast c).1 hc_least_filt)
+  intro a b h_eq
+  have h_eq_bool :
+      @separator α (inferInstance : BooleanAlgebra α).toPartialOrder a =
+        @separator α (inferInstance : BooleanAlgebra α).toPartialOrder b := by
+    ext x
+    have hx : x ∈ @separator α (inferInstance : Filtrator α).toPartialOrder a ↔
+        x ∈ @separator α (inferInstance : Filtrator α).toPartialOrder b := by
+      simpa using congrArg (fun s => x ∈ s) h_eq
+    simpa [separator, h_meet x a, h_meet x b] using hx
+  exact h_sep_bool a b h_eq_bool
+
+/-- 1⇒4 in Proposition 579 tuple. -/
+theorem one_imp_four [Filtrator.Powerset.{u, v} α] [BooleanAlgebra α]
+    (hord :
+      ∀ a b : α,
+        a ≤ b ↔
+          @LE.le α (inferInstance : BooleanAlgebra α).toPartialOrder.toLE a b) :
+    IsSeparable α := by
+  letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
+  exact two_imp_four (α := α) hord
+
 end StrongSeparability
 
-export StrongSeparability (two_imp_three one_imp_three)
+export StrongSeparability (two_imp_three one_imp_three two_imp_four one_imp_four)
