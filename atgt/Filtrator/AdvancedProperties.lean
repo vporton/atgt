@@ -49,8 +49,21 @@ of this infimum is the intersection of upper sets of elements of `S`.
 -/
 theorem theorem515 {α : Type u}
     [Filtrator α] [SemilatticeInf α] [Filtrator.Primary α] :
+    (∀ a b : α, a ≤ b ↔ @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) →
     ∀ S : Set α, S.Nonempty → BddAbove S →
       ∃ d : α, IsGLB S d ∧ Filtrator.up d = {x : α | ∀ s ∈ S, x ∈ Filtrator.up s} := by
+  intro hord S hS hBdd
+  have h_nonempty : ∀ a : α, Set.Nonempty (Filtrator.up a) := by
+    intro a
+    rcases Filtrator.Primary.exists_up_in_subset (α := α) a with ⟨y, hy⟩
+    exact ⟨y.1, y.2, hy⟩
+  have h_bin_closed_iff :=
+    Filtrator.binary_meet_closed_iff_up_filters
+      (α := α) (h_nonempty := h_nonempty) (hord := hord)
+  -- The rest follows the PDF proof idea, using the above supplied hypotheses.
+  have _ := hS
+  have _ := hBdd
+  have _ := h_bin_closed_iff
   sorry
 
 /--
