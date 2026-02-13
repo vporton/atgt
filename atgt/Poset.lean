@@ -5,7 +5,7 @@ import Mathlib.Order.Hom.Basic
 
 universe u v u2 v2
 
-instance {u} : Coe (SemilatticeInf u) (PartialOrder u) where
+instance {α: Type*} : Coe (SemilatticeInf α) (PartialOrder α) where
     coe s := s.toPartialOrder
 
 /- TODO: Should be in `Ordset`, instead. -/

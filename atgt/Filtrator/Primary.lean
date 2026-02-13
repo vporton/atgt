@@ -1,7 +1,7 @@
 import atgt.Filtrator
 import atgt.PosetFilter
 
-instance FiltratorOfFilters {X : Type*} [inst : PartialOrder X] : Filtrator (PosetFilter inst) where
+instance FiltratorOfFilters {u : Type*} [inst : PartialOrder u] : Filtrator (PosetFilter inst) where
   subset := Principals (U := inst)
 
 /- TODO: Rename?  -/

@@ -47,16 +47,16 @@ lemma PosetFilter.ext {α: Type*} {U : PartialOrder α}
       rfl
 
 @[simp]
-lemma PosetFilter.mem_carrier_iff_mem_elements {u} {U : PartialOrder u} (F : PosetFilter U) (x : u) :
+lemma PosetFilter.mem_carrier_iff_mem_elements {α : Type*} {U : PartialOrder α} (F : PosetFilter U) (x : α) :
     x ∈ F.carrier ↔ x ∈ F.elements := by
   simpa [F.carrier_eq_elements]
 
-lemma PosetFilter.mem_elements_iff_mem_carrier {u} {U : PartialOrder u} (F : PosetFilter U) (x : u) :
+lemma PosetFilter.mem_elements_iff_mem_carrier {α : Type*} {U : PartialOrder α} (F : PosetFilter U) (x : α) :
     x ∈ F.elements ↔ x ∈ F.carrier := by
   simpa [F.carrier_eq_elements]
 
-def PosetFilter.principal {u} {U : PartialOrder u} (a : u) : PosetFilter U := by
-  letI : PartialOrder u := U
+def PosetFilter.principal {α: Type*} {U : PartialOrder α} (a : α) : PosetFilter U := by
+  letI : PartialOrder α := U
   refine
     { elements := { x | a ≤ x }
       non_empty := ⟨a, le_rfl⟩
@@ -69,11 +69,11 @@ def PosetFilter.principal {u} {U : PartialOrder u} (a : u) : PosetFilter U := by
   · intro x y hxy hx
     exact le_trans hx hxy
 
-def Principals {U : PartialOrder u} : Set (PosetFilter U) := { PosetFilter.principal a | a : u }
+def Principals {α: Type*}{U : PartialOrder α} : Set (PosetFilter U) := { PosetFilter.principal a | a : α }
 
-def close_filter_base {U : PartialOrder u}
+def close_filter_base{α: Type*} {U : PartialOrder α}
   (B : PosetFilterBase U) : PosetFilter U := by
-  letI : PartialOrder u := U
+  letI : PartialOrder α := U
   refine
     { elements := { y | ∃ x ∈ B.elements, x ≤ y }
       non_empty := ?_
@@ -93,10 +93,10 @@ def close_filter_base {U : PartialOrder u}
     rcases hxy with ⟨z, hz, hzx⟩
     exact ⟨z, hz, le_trans hzx hx⟩
 
-instance (U : PartialOrder u) : LE (PosetFilter U) :=
+instance {α: Type*}(U : PartialOrder α) : LE (PosetFilter U) :=
   ⟨fun F G => G.elements ⊆ F.elements⟩
 
-instance (U : PartialOrder u) : PartialOrder (PosetFilter U) where
+instance {α: Type*}(U : PartialOrder α) : PartialOrder (PosetFilter U) where
   le F G := G.elements ⊆ F.elements
 
   le_refl F := by
@@ -111,8 +111,8 @@ instance (U : PartialOrder u) : PartialOrder (PosetFilter U) where
     apply PosetFilterBase.ext_elements
     exact Set.Subset.antisymm hGF hFG
 
-lemma le_principal_iff_subset {U : PartialOrder u} (F : PosetFilter U) (x : u) : F ≤ PosetFilter.principal x ↔ x ∈ F.elements := by
-  letI : PartialOrder u := U
+lemma le_principal_iff_subset {α: Type*}{U : PartialOrder α} (F : PosetFilter U) (x : α) : F ≤ PosetFilter.principal x ↔ x ∈ F.elements := by
+  letI : PartialOrder α := U
   constructor
   . intro h
     change (PosetFilter.principal x).elements ⊆ F.elements at h
@@ -126,11 +126,11 @@ lemma le_principal_iff_subset {U : PartialOrder u} (F : PosetFilter U) (x : u) :
     have hy' : y ∈ F.carrier := F.upper' hy hx
     simpa [F.carrier_eq_elements] using hy'
 
-lemma principals_le_iff {U : PartialOrder u} (x y : u) : PosetFilter.principal x ≤ PosetFilter.principal (U := U) y ↔ x ≤ y := by
+lemma principals_le_iff {α: Type*}{U : PartialOrder α} (x y : α) : PosetFilter.principal x ≤ PosetFilter.principal (U := U) y ↔ x ≤ y := by
   rw [le_principal_iff_subset]
   rfl
 
-lemma principal_injective {U : PartialOrder u} : Function.Injective (PosetFilter.principal (U := U)) := by
+lemma principal_injective {α: Type*}{U : PartialOrder α} : Function.Injective (PosetFilter.principal (U := U)) := by
   intro x y h
   apply le_antisymm
   · rw [← principals_le_iff]
