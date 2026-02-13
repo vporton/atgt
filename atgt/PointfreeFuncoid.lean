@@ -191,7 +191,7 @@ theorem theorem1617
     {α : Type u} {β : Type v}
     [X : Filtrator α] [Y : Filtrator β]
     [SemilatticeInf α]
-    [Filtrator.Primary β]
+    [F: Filtrator.Primary β]
     (Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β)))
     (h_src_binary_meet_closed : Filtrator.binary_meet_closed (α := α))
     (h_src_sep_up : X.separator_up_property)
@@ -201,7 +201,7 @@ theorem theorem1617
     f.fwd x =
       (@sInf (Filtrator.subset (α := β))
         Bdst.toCompleteLattice.toInfSet
-        {z : (Filtrator.subset (α := β)) | z.1 ∈ f.fwd '' Filtrator.up x}).1 := by
+        {f.fwd z | z ∈ Filtrator.up x}) := by
   have _ := h_src_binary_meet_closed
   have _ := h_src_up_nonempty
   have _ := h_src_sep_up
