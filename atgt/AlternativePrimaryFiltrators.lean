@@ -3,6 +3,7 @@ import Mathlib.Order.Lattice
 import Mathlib.Order.CompleteLattice.Basic
 import Mathlib.Order.CompleteBooleanAlgebra
 import Mathlib.Order.Hom.Set
+import Mathlib.Order.Defs.Unbundled
 import atgt.Poset
 
 universe u
@@ -10,12 +11,6 @@ universe u
 namespace AlternativePrimaryFiltrators
 
 variable {α : Type u}
-
-def IsUpperSet [Preorder α] (F : Set α) : Prop :=
-  ∀ ⦃a b : α⦄, a ∈ F → a ≤ b → b ∈ F
-
-def IsLowerSet [Preorder α] (F : Set α) : Prop :=
-  ∀ ⦃a b : α⦄, a ∈ F → b ≤ a → b ∈ F
 
 def IsFilterSet [Preorder α] (F : Set α) : Prop :=
   Set.Nonempty F ∧
@@ -46,30 +41,30 @@ lemma exists_not_mem_of_ne_univ {F : Set α} (hne : F ≠ Set.univ) : ∃ x : α
     exact h ⟨x, hx⟩
 
 theorem filter_upperSet [Preorder α] {F : Set α} (h : IsFilterSet F) : IsUpperSet F := by
-  intro a b ha hab
+  intro a b hle ha
   rcases h.1 with ⟨x, hx⟩
   rcases (h.2 a x).1 ⟨ha, hx⟩ with ⟨z, hz, hza, hzx⟩
-  have hw : ∃ w : α, w ∈ F ∧ w ≤ b ∧ w ≤ x := ⟨z, hz, le_trans hza hab, hzx⟩
+  have hw : ∃ w : α, w ∈ F ∧ w ≤ b ∧ w ≤ x := ⟨z, hz, le_trans hza hle, hzx⟩
   exact ((h.2 b x).2 hw).1
 
 theorem ideal_lowerSet [Preorder α] {F : Set α} (h : IsIdealSet F) : IsLowerSet F := by
-  intro a b ha hba
+  intro a b hba ha
   rcases h.1 with ⟨x, hx⟩
   rcases (h.2 a x).1 ⟨ha, hx⟩ with ⟨z, hz, haz, hxz⟩
   have hw : ∃ w : α, w ∈ F ∧ b ≤ w ∧ x ≤ w := ⟨z, hz, le_trans hba haz, hxz⟩
   exact ((h.2 b x).2 hw).1
 
 theorem freeStar_upperSet [Preorder α] {F : Set α} (h : IsFreeStar F) : IsUpperSet F := by
-  intro a b ha hab
+  intro a b hle ha
   by_contra hb
   rcases exists_not_mem_of_ne_univ (hne := h.1) with ⟨x, hx⟩
   rcases (h.2 x b).1 ⟨hx, hb⟩ with ⟨z, hz, hxz, hbz⟩
-  have haz : a ≤ z := le_trans hab hbz
+  have haz : a ≤ z := le_trans hle hbz
   have hw : ∃ w : α, w ∈ F ∧ a ≤ w ∧ x ≤ w := ⟨z, hz, haz, hxz⟩
   exact ((h.2 a x).2 hw).1 ha
 
 theorem mixer_lowerSet [Preorder α] {F : Set α} (h : IsMixer F) : IsLowerSet F := by
-  intro a b ha hba
+  intro a b hba ha
   by_contra hb
   rcases exists_not_mem_of_ne_univ (hne := h.1) with ⟨x, hx⟩
   rcases (h.2 x b).1 ⟨hx, hb⟩ with ⟨z, hz, hzx, hzb⟩
@@ -86,20 +81,20 @@ theorem filter_inf_mem_iff [SemilatticeInf α] (h : IsFilterSet F) (a b : α) :
   have hupper : IsUpperSet F := filter_upperSet h
   constructor
   · intro hab
-    exact ⟨hupper hab inf_le_left, hupper hab inf_le_right⟩
+    exact ⟨hupper inf_le_left hab, hupper inf_le_right hab⟩
   · intro hab
     rcases (h.2 a b).1 hab with ⟨z, hz, hza, hzb⟩
-    exact hupper hz (le_inf hza hzb)
+    exact hupper (le_inf hza hzb) hz
 
 theorem ideal_sup_mem_iff [SemilatticeSup α] (h : IsIdealSet F) (a b : α) :
     a ⊔ b ∈ F ↔ a ∈ F ∧ b ∈ F := by
   have hlower : IsLowerSet F := ideal_lowerSet h
   constructor
   · intro hab
-    exact ⟨hlower hab le_sup_left, hlower hab le_sup_right⟩
+    exact ⟨hlower (le_sup_left) hab, hlower (le_sup_right) hab⟩
   · intro hab
     rcases (h.2 a b).1 hab with ⟨z, hz, haz, hbz⟩
-    exact hlower hz (sup_le haz hbz)
+    exact hlower (sup_le haz hbz) hz
 
 theorem freeStar_sup_not_mem_iff [SemilatticeSup α] (h : IsFreeStar F) (a b : α) :
     a ⊔ b ∉ F ↔ a ∉ F ∧ b ∉ F := by
@@ -345,7 +340,7 @@ theorem principalUpper_iff_exists_least_mem [Preorder α] {F : Set α}
     · intro hp
       exact hmin p hp
     · intro hp
-      exact hF hz hp
+      exact hF hp hz
 
 theorem principalLower_iff_exists_greatest_mem [Preorder α] {F : Set α}
     (hF : IsLowerSet F) :
@@ -364,7 +359,7 @@ theorem principalLower_iff_exists_greatest_mem [Preorder α] {F : Set α}
     · intro hp
       exact hmax p hp
     · intro hp
-      exact hF hz hp
+      exact hF hp hz
 
 theorem principalFreeStar_iff_exists_least_mem [Preorder α] {S : Set α}
     (hS : IsFreeStar S) :
@@ -413,8 +408,10 @@ theorem distributiveLattice_isStarrish (α : Type u) [DistribLattice α] :
     IsStarrish α := by
   intro a
   refine ⟨?_, ?_⟩
-  · intro x y hx hxy
-    exact meet_mono_left hxy hx
+  · intro x y hxy hx
+    have hx_meet : meet x a := by
+      simpa [separator] using hx
+    exact meet_mono_left hxy hx_meet
   · intro x y hxy
     have hxy_notleast : ¬ is_least ((x ⊔ y) ⊓ a) := (meet_as_inf (x ⊔ y) a).1 hxy
     have hxy_or : ¬ is_least (x ⊓ a) ∨ ¬ is_least (y ⊓ a) := by
@@ -438,8 +435,8 @@ theorem atoms_sup_eq_union [SemilatticeSup α]
     exact hsup_imp_or a b hc
   · intro hc
     cases hc with
-    | inl ha => exact hupper ha (show a ≤ a ⊔ b from le_sup_left)
-    | inr hb => exact hupper hb (show b ≤ a ⊔ b from le_sup_right)
+    | inl ha => exact hupper (le_sup_left : a ≤ a ⊔ b) ha
+    | inr hb => exact hupper (le_sup_right : b ≤ a ⊔ b) hb
 
 theorem completelyStarrish_imp_starrish [CompleteLattice α]
     (h : IsCompletelyStarrish α) : IsStarrish α := by
