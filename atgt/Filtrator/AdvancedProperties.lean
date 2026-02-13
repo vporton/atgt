@@ -168,9 +168,9 @@ theorem theorem516 {α : Type u}
       intro a b ha hb
       let x0 : α := a.1 ⊓ b.1
       have hx0a : x0 ≤ a.1 := by
-        exact (hord x0 a.1).2 (by simpa [x0] using (inf_le_left : a.1 ⊓ b.1 ≤ a.1))
+        exact (hord x0 a.1).2 (by simp [x0, inf_le_left])
       have hx0b : x0 ≤ b.1 := by
-        exact (hord x0 b.1).2 (by simpa [x0] using (inf_le_right : a.1 ⊓ b.1 ≤ b.1))
+        exact (hord x0 b.1).2 (by simp [x0, inf_le_right])
       rcases Filtrator.Primary.directed_up_in_subset (α := α) x0 a b hx0a hx0b with
         ⟨c, hcx0, hca, hcb⟩
       refine ⟨c, ?_, hca, hcb⟩
@@ -224,8 +224,7 @@ theorem theorem516 {α : Type u}
       exact (Filtrator.Primary.order_determined (α := α) d z).2 h_up_sub
   · ext x
     constructor
-    · intro hx
-      intro s hs
+    · intro hx s hs
       exact ⟨hx.1, (hd_char x hx.1).1 hx.2 s hs⟩
     · intro hx
       rcases hS with ⟨s0, hs0⟩
