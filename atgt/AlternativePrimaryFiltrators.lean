@@ -42,8 +42,21 @@ class FreeStar [PartialOrder α] where
 
 def posetFilter_to_filterSet [P: PartialOrder α] (F : PosetFilter P) : FilterSet (α := α) := {
   elements := F.elements
-  non_side := sorry
-  main := sorry
+  non_side := F.non_empty
+  main := by
+    intro a b
+    constructor
+    · intro hab
+      rcases F.cap_elements hab.1 hab.2 with ⟨z, hz, hza, hzb⟩
+      exact ⟨z, hz, hza, hzb⟩
+    · intro h
+      rcases h with ⟨z, hz, hza, hzb⟩
+      have hz_carrier : z ∈ F.carrier := by
+        simpa [F.carrier_eq_elements] using hz
+      have ha_carrier : a ∈ F.carrier := F.upper' hza hz_carrier
+      have hb_carrier : b ∈ F.carrier := F.upper' hzb hz_carrier
+      exact ⟨by simpa [F.carrier_eq_elements] using ha_carrier,
+        by simpa [F.carrier_eq_elements] using hb_carrier⟩
 }
 
 lemma exists_not_mem_of_ne_univ {F : Set α} (hne : F ≠ Set.univ) : ∃ x : α, x ∉ F := by
