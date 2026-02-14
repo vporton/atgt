@@ -821,108 +821,12 @@ export SpecialDiagrams
 
 namespace PrincipalConstructions
 
-def principalIdeal [PartialOrder α] (a : α) : Set α := Set.Iic a
-
-def principalUpper [PartialOrder α] (a : α) : Set α := Set.Ici a
-
-def principalLower [PartialOrder α] (a : α) : Set α := Set.Iic a
-
-def IsPrincipalIdeal [PartialOrder α] (F : Set α) : Prop := ∃ a : α, F = principalIdeal a
-
-def IsPrincipalUpperSet [PartialOrder α] (F : Set α) : Prop := ∃ a : α, F = principalUpper a
-
-def IsPrincipalLowerSet [PartialOrder α] (F : Set α) : Prop := ∃ a : α, F = principalLower a
-
-def IsPrincipalFreeStar [PartialOrder α] (S : Set α) : Prop := IsFreeStar S ∧ IsPrincipalUpperSet S
-
-def IsPrincipalMixer [PartialOrder α] (S : Set α) : Prop := IsMixer S ∧ IsPrincipalLowerSet S
-
-class FreeStarFiltrator [PartialOrder α] extends Filtrator (FreeStar (α := α)) where
-  subset := {F : FreeStar (α := α) | IsPrincipalUpperSet F.elements}
-
-theorem mem_principalIdeal_iff [PartialOrder α] {a x : α} :
-    x ∈ principalIdeal a ↔ x ≤ a := Iff.rfl
-
-theorem principalIdeal_generated [PartialOrder α] (a : α) :
-    principalIdeal a = {x : α | x ≤ a} := rfl
-
-theorem ideal_principal_iff_generated [PartialOrder α] {F : Set α} :
-    IsPrincipalIdeal F ↔ ∃ a : α, F = {x : α | x ≤ a} := by
-  constructor
-  · intro h
-    rcases h with ⟨a, rfl⟩
-    exact ⟨a, rfl⟩
-  · intro h
-    rcases h with ⟨a, ha⟩
-    exact ⟨a, ha⟩
-
-theorem principalUpper_iff_exists_least_mem [PartialOrder α] {F : Set α}
-    (hF : IsUpperSet F) :
-    IsPrincipalUpperSet F ↔ ∃ z : α, z ∈ F ∧ ∀ p : α, p ∈ F → z ≤ p := by
-  constructor
-  · intro h
-    rcases h with ⟨z, rfl⟩
-    refine ⟨z, le_rfl, ?_⟩
-    intro p hp
-    exact hp
-  · intro h
-    rcases h with ⟨z, hz, hmin⟩
-    refine ⟨z, ?_⟩
-    ext p
-    constructor
-    · intro hp
-      exact hmin p hp
-    · intro hp
-      exact hF hp hz
-
-theorem principalLower_iff_exists_greatest_mem [PartialOrder α] {F : Set α}
-    (hF : IsLowerSet F) :
-    IsPrincipalLowerSet F ↔ ∃ z : α, z ∈ F ∧ ∀ p : α, p ∈ F → p ≤ z := by
-  constructor
-  · intro h
-    rcases h with ⟨z, rfl⟩
-    refine ⟨z, le_rfl, ?_⟩
-    intro p hp
-    exact hp
-  · intro h
-    rcases h with ⟨z, hz, hmax⟩
-    refine ⟨z, ?_⟩
-    ext p
-    constructor
-    · intro hp
-      exact hmax p hp
-    · intro hp
-      exact hF hp hz
-
-theorem principalFreeStar_iff_exists_least_mem [PartialOrder α] {S : Set α}
-    (hS : IsFreeStar S) :
-    IsPrincipalFreeStar S ↔ ∃ z : α, z ∈ S ∧ ∀ p : α, p ∈ S → z ≤ p := by
-  constructor
-  · intro h
-    exact (principalUpper_iff_exists_least_mem (hF := freeStar_upperSet hS)).1 h.2
-  · intro h
-    refine ⟨hS, ?_⟩
-    exact (principalUpper_iff_exists_least_mem (hF := freeStar_upperSet hS)).2 h
-
-theorem principalMixer_iff_exists_greatest_mem [PartialOrder α] {S : Set α}
-    (hS : IsMixer S) :
-    IsPrincipalMixer S ↔ ∃ z : α, z ∈ S ∧ ∀ p : α, p ∈ S → p ≤ z := by
-  constructor
-  · intro h
-    exact (principalLower_iff_exists_greatest_mem (hF := mixer_lowerSet hS)).1 h.2
-  · intro h
-    refine ⟨hS, ?_⟩
-    exact (principalLower_iff_exists_greatest_mem (hF := mixer_lowerSet hS)).2 h
+-- class FreeStarFiltrator [PartialOrder α] extends Filtrator (FreeStar (α := α)) where
+--   subset := {F : FreeStar (α := α) | IsPrincipalUpperSet F.elements}
 
 end PrincipalConstructions
 
-export PrincipalConstructions
-  (principalIdeal principalUpper principalLower
-    IsPrincipalIdeal IsPrincipalUpperSet IsPrincipalLowerSet IsPrincipalFreeStar IsPrincipalMixer
-    FreeStarFiltrator
-    mem_principalIdeal_iff principalIdeal_generated ideal_principal_iff_generated
-    principalUpper_iff_exists_least_mem principalLower_iff_exists_greatest_mem
-    principalFreeStar_iff_exists_least_mem principalMixer_iff_exists_greatest_mem)
+-- export PrincipalConstructions (FreeStarFiltrator)
 
 namespace StarrishPosets
 
