@@ -442,7 +442,7 @@ def separatorCoreFreeStar [BooleanAlgebra α] (a : α) : FreeStar (α := α) whe
       exact ⟨(not_mem_separatorCoreSet_iff_le_compl (x := x) (a := a)).2 hx_le,
         (not_mem_separatorCoreSet_iff_le_compl (x := y) (a := a)).2 hy_le⟩
 
-def separatorCoreSetFreeStars [BooleanAlgebra α] : Type u :=
+abbrev separatorCoreSetFreeStars [BooleanAlgebra α] : Type u :=
   {S : Set α // ∃ a : α, S = separatorCoreSet (α := α) a}
 
 def separatorCoreToSetFreeStars [BooleanAlgebra α] (a : α) : separatorCoreSetFreeStars (α := α) :=
@@ -462,7 +462,41 @@ theorem separatorCoreToSetFreeStars_bijective [BooleanAlgebra α] :
     refine ⟨a, ?_⟩
     exact Subtype.ext ha.symm
 
-def separatorCoreFreeStarRange [BooleanAlgebra α] : Type u :=
+theorem separatorCoreToSetFreeStars_map_rel_iff [BooleanAlgebra α] (a b : α) :
+    separatorCoreToSetFreeStars (α := α) a ≤ separatorCoreToSetFreeStars (α := α) b ↔ a ≤ b := by
+  constructor
+  · intro h
+    have hsub : separator a ⊆ separator b := by
+      intro x hx
+      have h' :
+          separatorCoreSet (α := α) a ⊆ separatorCoreSet (α := α) b :=
+        Set.le_iff_subset.mp h
+      have hx' : x ∈ separatorCoreSet (α := α) a := by
+        simpa [separatorCoreSet, separator_core, Filtrator.of_subset, Set.univ_inter] using hx
+      have hy' : x ∈ separatorCoreSet (α := α) b := h' hx'
+      simpa [separatorCoreSet, separator_core, Filtrator.of_subset, Set.univ_inter] using hy'
+    exact StrongSeparability.boolean_imp_stronglySeparable (α := α) a b hsub
+  · intro hab
+    change
+      separatorCoreSet (α := α) a ⊆ separatorCoreSet (α := α) b
+    intro x hx
+    have hx_sep : x ∈ separator a := by
+      simpa [separatorCoreSet, separator_core, Filtrator.of_subset, Set.univ_inter] using hx
+    have hx_sep' : x ∈ separator b := le_imp_separator_subset (a := a) (b := b) hab hx_sep
+    simpa [separatorCoreSet, separator_core, Filtrator.of_subset, Set.univ_inter] using hx_sep'
+
+noncomputable def separatorCoreToSetFreeStars_orderIso [BooleanAlgebra α] :
+    α ≃o separatorCoreSetFreeStars (α := α) where
+  toEquiv :=
+    { toFun := separatorCoreToSetFreeStars (α := α)
+      invFun := Function.invFun (separatorCoreToSetFreeStars (α := α))
+      left_inv := Function.leftInverse_invFun (separatorCoreToSetFreeStars_bijective (α := α)).1
+      right_inv := Function.rightInverse_invFun (separatorCoreToSetFreeStars_bijective (α := α)).2 }
+  map_rel_iff' := by
+    intro a b
+    exact separatorCoreToSetFreeStars_map_rel_iff (α := α) a b
+
+abbrev separatorCoreFreeStarRange [BooleanAlgebra α] : Type u :=
   {S : FreeStar (α := α) // ∃ a : α, separatorCoreFreeStar (α := α) a = S}
 
 def separatorCoreToFreeStarRange [BooleanAlgebra α] (a : α) :
@@ -489,14 +523,49 @@ theorem separatorCoreToFreeStarRange_bijective [BooleanAlgebra α] :
     refine ⟨a, ?_⟩
     exact Subtype.ext ha
 
+theorem separatorCoreToFreeStarRange_map_rel_iff [BooleanAlgebra α] (a b : α) :
+    separatorCoreToFreeStarRange (α := α) a ≤ separatorCoreToFreeStarRange (α := α) b ↔ a ≤ b := by
+  constructor
+  · intro h
+    have hsub :
+        separatorCoreSet (α := α) a ⊆ separatorCoreSet (α := α) b := by
+      intro x hx
+      exact h hx
+    have hsep : separator a ⊆ separator b := by
+      intro x hx
+      have hx' : x ∈ separatorCoreSet (α := α) a := by
+        simpa [separatorCoreSet, separator_core, Filtrator.of_subset, Set.univ_inter] using hx
+      have hy' : x ∈ separatorCoreSet (α := α) b := hsub hx'
+      simpa [separatorCoreSet, separator_core, Filtrator.of_subset, Set.univ_inter] using hy'
+    exact StrongSeparability.boolean_imp_stronglySeparable (α := α) a b hsep
+  · intro hab
+    change
+      (separatorCoreFreeStar (α := α) a).elements ⊆ (separatorCoreFreeStar (α := α) b).elements
+    intro x hx
+    have hx_sep : x ∈ separator a := by
+      simpa [separatorCoreFreeStar, separatorCoreSet, separator_core, Filtrator.of_subset, Set.univ_inter] using hx
+    have hx_sep' : x ∈ separator b := le_imp_separator_subset (a := a) (b := b) hab hx_sep
+    simpa [separatorCoreFreeStar, separatorCoreSet, separator_core, Filtrator.of_subset, Set.univ_inter] using hx_sep'
+
+noncomputable def separatorCoreToFreeStarRange_orderIso [BooleanAlgebra α] :
+    α ≃o separatorCoreFreeStarRange (α := α) where
+  toEquiv :=
+    { toFun := separatorCoreToFreeStarRange (α := α)
+      invFun := Function.invFun (separatorCoreToFreeStarRange (α := α))
+      left_inv := Function.leftInverse_invFun (separatorCoreToFreeStarRange_bijective (α := α)).1
+      right_inv := Function.rightInverse_invFun (separatorCoreToFreeStarRange_bijective (α := α)).2 }
+  map_rel_iff' := by
+    intro a b
+    exact separatorCoreToFreeStarRange_map_rel_iff (α := α) a b
+
 end SeparatorCoreFreeStars
 
 export SeparatorCoreFreeStars
   (separatorCoreSet separatorCoreFreeStar
     separatorCoreSetFreeStars separatorCoreToSetFreeStars
-    separatorCoreToSetFreeStars_bijective
+    separatorCoreToSetFreeStars_bijective separatorCoreToSetFreeStars_orderIso
     separatorCoreFreeStarRange separatorCoreToFreeStarRange
-    separatorCoreToFreeStarRange_bijective)
+    separatorCoreToFreeStarRange_bijective separatorCoreToFreeStarRange_orderIso)
 
 lemma exists_not_mem_of_ne_univ {F : Set α} (hne : F ≠ Set.univ) : ∃ x : α, x ∉ F := by
   classical
