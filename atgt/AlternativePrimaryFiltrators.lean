@@ -211,6 +211,21 @@ theorem posetFilter_to_filterSet_left_inv [P : PartialOrder α] (F : FilterSet (
   ext x
   rfl
 
+theorem posetFilter_to_filterSet_bijective [P : PartialOrder α] :
+    Function.Bijective (posetFilter_to_filterSet : PosetFilter P → FilterSet (α := α)) := by
+  constructor
+  · intro F G h
+    have h' : filterSet_to_posetFilter (posetFilter_to_filterSet F) =
+        filterSet_to_posetFilter (posetFilter_to_filterSet G) :=
+      congrArg filterSet_to_posetFilter h
+    calc
+      F = filterSet_to_posetFilter (posetFilter_to_filterSet F) := (filterSet_to_posetFilter_left_inv F).symm
+      _ = filterSet_to_posetFilter (posetFilter_to_filterSet G) := h'
+      _ = G := filterSet_to_posetFilter_left_inv G
+  · intro G
+    use filterSet_to_posetFilter G
+    simp [posetFilter_to_filterSet_left_inv]
+
 theorem freeStar_to_filterSet_left_inv [P : BooleanAlgebra α] (F : FreeStar (α := α)) :
     filterSet_to_freeStar (freeStar_to_filterSet F) = F := by
   ext x
@@ -220,6 +235,21 @@ theorem filterSet_to_freeStar_left_inv [P : BooleanAlgebra α] (F : FilterSet (�
     freeStar_to_filterSet (filterSet_to_freeStar F) = F := by
   ext x
   simp [filterSet_to_freeStar, freeStar_to_filterSet, compl_image_compl_image]
+
+theorem freeStar_to_filterSet_bijective [P : BooleanAlgebra α] :
+    Function.Bijective (freeStar_to_filterSet : FreeStar (α := α) → FilterSet (α := α)) := by
+  constructor
+  · intro F G h
+    have h' : filterSet_to_freeStar (freeStar_to_filterSet F) =
+        filterSet_to_freeStar (freeStar_to_filterSet G) :=
+      congrArg filterSet_to_freeStar h
+    calc
+      F = filterSet_to_freeStar (freeStar_to_filterSet F) := (freeStar_to_filterSet_left_inv F).symm
+      _ = filterSet_to_freeStar (freeStar_to_filterSet G) := h'
+      _ = G := freeStar_to_filterSet_left_inv G
+  · intro G
+    use filterSet_to_freeStar G
+    simp [filterSet_to_freeStar_left_inv]
 
 lemma exists_not_mem_of_ne_univ {F : Set α} (hne : F ≠ Set.univ) : ∃ x : α, x ∉ F := by
   classical
