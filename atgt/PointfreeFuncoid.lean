@@ -3,6 +3,7 @@ import Mathlib.Order.CompleteBooleanAlgebra
 import atgt.Poset
 import atgt.Filtrator
 import atgt.Filtrator.Separable
+import atgt.Filtrator.SeparablePrimary
 import atgt.Filtrator.AdvancedProperties
 
 universe u v u2 v2
@@ -359,7 +360,9 @@ theorem theorem1617
   -- `theorem1617_of_separator_bridge`.
   letI : CompleteBooleanAlgebra (Filtrator.subset (α := β)) := Bdst
   have h_sep_dst : IsSeparable β := by
-    sorry
+    have h_strong_dst : IsStronglySeparable β :=
+      StrongSeparability.primary_imp_booleanStronglySeparableCore (α := β)
+    exact stronglySeparable_imp_separable h_strong_dst
   have h_lower :
       ∀ X' : α, X' ∈ Filtrator.up x →
         (↑(@sInf (Filtrator.subset (α := β))
