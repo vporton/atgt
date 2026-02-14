@@ -6,6 +6,7 @@ import Mathlib.Order.Hom.Set
 import Mathlib.Order.Defs.Unbundled
 import atgt.Poset
 import atgt.PosetFilter
+import atgt.Filtrator.Separable
 
 universe u
 
@@ -312,6 +313,190 @@ def freeStarOrderIsoFilterSet [P : BooleanAlgebra α] :
     · intro h
       have hmono := freeStar_to_filterSet_monotone (α := α)
       simpa [filterSet_to_freeStar_left_inv] using hmono h
+
+namespace PosetFilterFreeStarBijection
+
+/-- Canonical map from poset filters to free stars on a Boolean algebra. -/
+def posetFilter_to_freeStar [P : BooleanAlgebra α] :
+    PosetFilter (U := (inferInstance : PartialOrder α)) → FreeStar (α := α) :=
+  fun F => filterSet_to_freeStar (posetFilter_to_filterSet F)
+
+/-- Inverse map from free stars back to poset filters. -/
+def freeStar_to_posetFilter [P : BooleanAlgebra α] :
+    FreeStar (α := α) → PosetFilter (U := (inferInstance : PartialOrder α)) :=
+  fun S => filterSet_to_posetFilter (freeStar_to_filterSet S)
+
+theorem posetFilter_to_freeStar_left_inv [P : BooleanAlgebra α]
+    (F : PosetFilter (U := (inferInstance : PartialOrder α))) :
+    freeStar_to_posetFilter (posetFilter_to_freeStar F) = F := by
+  unfold freeStar_to_posetFilter posetFilter_to_freeStar
+  calc
+    filterSet_to_posetFilter
+        (freeStar_to_filterSet
+          (filterSet_to_freeStar (posetFilter_to_filterSet F)))
+      = filterSet_to_posetFilter (posetFilter_to_filterSet F) := by
+          simp [filterSet_to_freeStar_left_inv]
+    _ = F := filterSet_to_posetFilter_left_inv F
+
+theorem posetFilter_to_freeStar_right_inv [P : BooleanAlgebra α] (S : FreeStar (α := α)) :
+    posetFilter_to_freeStar (freeStar_to_posetFilter S) = S := by
+  unfold freeStar_to_posetFilter posetFilter_to_freeStar
+  calc
+    filterSet_to_freeStar
+        (posetFilter_to_filterSet
+          (filterSet_to_posetFilter (freeStar_to_filterSet S)))
+      = filterSet_to_freeStar (freeStar_to_filterSet S) := by
+          simp [posetFilter_to_filterSet_left_inv]
+    _ = S := freeStar_to_filterSet_left_inv S
+
+theorem posetFilter_to_freeStar_bijective [P : BooleanAlgebra α] :
+    Function.Bijective
+      (posetFilter_to_freeStar :
+        PosetFilter (U := (inferInstance : PartialOrder α)) → FreeStar (α := α)) := by
+  constructor
+  · intro F G h
+    have h' :
+        freeStar_to_posetFilter (posetFilter_to_freeStar F) =
+          freeStar_to_posetFilter (posetFilter_to_freeStar G) :=
+      congrArg freeStar_to_posetFilter h
+    simpa [posetFilter_to_freeStar_left_inv] using h'
+  · intro S
+    refine ⟨freeStar_to_posetFilter S, ?_⟩
+    exact posetFilter_to_freeStar_right_inv S
+
+end PosetFilterFreeStarBijection
+
+export PosetFilterFreeStarBijection
+  (posetFilter_to_freeStar freeStar_to_posetFilter
+    posetFilter_to_freeStar_left_inv posetFilter_to_freeStar_right_inv
+    posetFilter_to_freeStar_bijective)
+
+namespace SeparatorCoreFreeStars
+
+def separatorCoreSet [BooleanAlgebra α] (a : α) : Set α :=
+  separator_core (F := Filtrator.of_subset (Set.univ : Set α)) a
+
+lemma isLeast_iff_eq_bot [BooleanAlgebra α] (x : α) :
+    is_least x ↔ x = ⊥ := by
+  constructor
+  · intro hx
+    exact le_antisymm (hx ⊥) bot_le
+  · intro hx
+    intro y
+    simpa [hx] using (bot_le : (⊥ : α) ≤ y)
+
+lemma mem_separator_iff_inf_ne_bot [BooleanAlgebra α] (x a : α) :
+    x ∈ separator a ↔ x ⊓ a ≠ ⊥ := by
+  constructor
+  · intro hx
+    have hnot : ¬ is_least (x ⊓ a) := (meet_as_inf x a).1 hx
+    intro hbot
+    exact hnot ((isLeast_iff_eq_bot (x := x ⊓ a)).2 hbot)
+  · intro hne
+    refine (meet_as_inf x a).2 ?_
+    intro hleast
+    exact hne ((isLeast_iff_eq_bot (x := x ⊓ a)).1 hleast)
+
+lemma not_mem_separator_iff_le_compl [BooleanAlgebra α] (x a : α) :
+    x ∉ separator a ↔ x ≤ aᶜ := by
+  rw [mem_separator_iff_inf_ne_bot]
+  constructor
+  · intro hx
+    have hinf : x ⊓ a = ⊥ := by
+      by_contra hne
+      exact hx hne
+    have hdisj : Disjoint x a := disjoint_iff.mpr hinf
+    exact (le_compl_iff_disjoint_right).2 hdisj
+  · intro hx
+    have hdisj : Disjoint x a := (le_compl_iff_disjoint_right).1 hx
+    have hinf : x ⊓ a = ⊥ := disjoint_iff.mp hdisj
+    intro hne
+    exact hne hinf
+
+lemma not_mem_separatorCoreSet_iff_le_compl [BooleanAlgebra α] (x a : α) :
+    x ∉ separatorCoreSet (α := α) a ↔ x ≤ aᶜ := by
+  simpa [separatorCoreSet, separator_core, Filtrator.of_subset, Set.univ_inter] using
+    (not_mem_separator_iff_le_compl (x := x) (a := a))
+
+def separatorCoreFreeStar [BooleanAlgebra α] (a : α) : FreeStar (α := α) where
+  elements := separatorCoreSet (α := α) a
+  non_side := by
+    intro h_univ
+    have hbot_mem : (⊥ : α) ∈ separatorCoreSet (α := α) a := by simpa [h_univ]
+    have hbot_not_mem : (⊥ : α) ∉ separatorCoreSet (α := α) a := by
+      exact (not_mem_separatorCoreSet_iff_le_compl (x := (⊥ : α)) (a := a)).2 bot_le
+    exact hbot_not_mem hbot_mem
+  main := by
+    intro x y
+    constructor
+    · intro hxy
+      have hx_le : x ≤ aᶜ := (not_mem_separatorCoreSet_iff_le_compl (x := x) (a := a)).1 hxy.1
+      have hy_le : y ≤ aᶜ := (not_mem_separatorCoreSet_iff_le_compl (x := y) (a := a)).1 hxy.2
+      refine ⟨x ⊔ y, ?_, le_sup_left, le_sup_right⟩
+      exact (not_mem_separatorCoreSet_iff_le_compl (x := x ⊔ y) (a := a)).2 (sup_le hx_le hy_le)
+    · intro h
+      rcases h with ⟨z, hz, hxz, hyz⟩
+      have hz_le : z ≤ aᶜ := (not_mem_separatorCoreSet_iff_le_compl (x := z) (a := a)).1 hz
+      have hx_le : x ≤ aᶜ := le_trans hxz hz_le
+      have hy_le : y ≤ aᶜ := le_trans hyz hz_le
+      exact ⟨(not_mem_separatorCoreSet_iff_le_compl (x := x) (a := a)).2 hx_le,
+        (not_mem_separatorCoreSet_iff_le_compl (x := y) (a := a)).2 hy_le⟩
+
+def separatorCoreSetFreeStars [BooleanAlgebra α] : Type u :=
+  {S : Set α // ∃ a : α, S = separatorCoreSet (α := α) a}
+
+def separatorCoreToSetFreeStars [BooleanAlgebra α] (a : α) : separatorCoreSetFreeStars (α := α) :=
+  ⟨separatorCoreSet (α := α) a, ⟨a, rfl⟩⟩
+
+theorem separatorCoreToSetFreeStars_bijective [BooleanAlgebra α] :
+    Function.Bijective (separatorCoreToSetFreeStars (α := α)) := by
+  constructor
+  · intro a b h
+    have hset : separatorCoreSet (α := α) a = separatorCoreSet (α := α) b := congrArg Subtype.val h
+    have hsep : separator a = separator b := by
+      simpa [separatorCoreSet, separator_core, Filtrator.of_subset, Set.univ_inter] using hset
+    have hstrong : IsStronglySeparable α := StrongSeparability.boolean_imp_stronglySeparable (α := α)
+    exact stronglySeparable_imp_separable hstrong a b hsep
+  · intro S
+    rcases S.2 with ⟨a, ha⟩
+    refine ⟨a, ?_⟩
+    exact Subtype.ext ha.symm
+
+def separatorCoreFreeStarRange [BooleanAlgebra α] : Type u :=
+  {S : FreeStar (α := α) // ∃ a : α, separatorCoreFreeStar (α := α) a = S}
+
+def separatorCoreToFreeStarRange [BooleanAlgebra α] (a : α) :
+    separatorCoreFreeStarRange (α := α) :=
+  ⟨separatorCoreFreeStar (α := α) a, ⟨a, rfl⟩⟩
+
+theorem separatorCoreToFreeStarRange_bijective [BooleanAlgebra α] :
+    Function.Bijective (separatorCoreToFreeStarRange (α := α)) := by
+  constructor
+  · intro a b h
+    have hset :
+        separatorCoreSet (α := α) a = separatorCoreSet (α := α) b := by
+      have h' :
+          (separatorCoreFreeStar (α := α) a).elements =
+            (separatorCoreFreeStar (α := α) b).elements :=
+        congrArg (fun S => S.1.elements) h
+      simpa [separatorCoreFreeStar] using h'
+    have hsep : separator a = separator b := by
+      simpa [separatorCoreSet, separator_core, Filtrator.of_subset, Set.univ_inter] using hset
+    have hstrong : IsStronglySeparable α := StrongSeparability.boolean_imp_stronglySeparable (α := α)
+    exact stronglySeparable_imp_separable hstrong a b hsep
+  · intro S
+    rcases S.2 with ⟨a, ha⟩
+    refine ⟨a, ?_⟩
+    exact Subtype.ext ha
+
+end SeparatorCoreFreeStars
+
+export SeparatorCoreFreeStars
+  (separatorCoreSet separatorCoreFreeStar
+    separatorCoreSetFreeStars separatorCoreToSetFreeStars
+    separatorCoreToSetFreeStars_bijective
+    separatorCoreFreeStarRange separatorCoreToFreeStarRange
+    separatorCoreToFreeStarRange_bijective)
 
 lemma exists_not_mem_of_ne_univ {F : Set α} (hne : F ≠ Set.univ) : ∃ x : α, x ∉ F := by
   classical
