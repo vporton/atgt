@@ -59,6 +59,12 @@ def posetFilter_to_filterSet [P: PartialOrder α] (F : PosetFilter P) : FilterSe
         by simpa [F.carrier_eq_elements] using hb_carrier⟩
 }
 
+def filterSet_to_freeStar [P: BooleanAlgebra α] (F : FilterSet (α := α)): FreeStar (α := α) := {
+  elements := ((·ᶜ) '' F.elements)ᶜ
+  non_side := sorry
+  main := sorry
+}
+
 lemma exists_not_mem_of_ne_univ {F : Set α} (hne : F ≠ Set.univ) : ∃ x : α, x ∉ F := by
   classical
   by_contra h
