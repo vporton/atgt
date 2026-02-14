@@ -38,7 +38,7 @@ class FilterSet [PartialOrder α] where
 class FreeStar [PartialOrder α] where
   elements: Set α
   non_side: elements ≠ Set.univ
-  main: ∀ a b : α, (a ∉ elements ∧ b ∉ elements) ↔ ∃ z : α, z ∈ elements ∧ a ≤ z ∧ b ≤ z
+  main: ∀ a b : α, (a ∉ elements ∧ b ∉ elements) ↔ ∃ z : α, z ∉ elements ∧ a ≤ z ∧ b ≤ z
 
 def posetFilter_to_filterSet [P: PartialOrder α] (F : PosetFilter P) : FilterSet (α := α) := {
   elements := F.elements
@@ -59,20 +59,47 @@ def posetFilter_to_filterSet [P: PartialOrder α] (F : PosetFilter P) : FilterSe
         by simpa [F.carrier_eq_elements] using hb_carrier⟩
 }
 
-def filterSet_to_freeStar [P: BooleanAlgebra α] (F : FilterSet (α := α))
-    (hmain : ∀ a b : α,
-      (a ∉ ((·ᶜ) '' F.elements)ᶜ ∧ b ∉ ((·ᶜ) '' F.elements)ᶜ) ↔
-        ∃ z : α, z ∈ ((·ᶜ) '' F.elements)ᶜ ∧ a ≤ z ∧ b ≤ z) :
-    FreeStar (α := α) := {
+def filterSet_to_freeStar [P: BooleanAlgebra α] (F : FilterSet (α := α)) : FreeStar (α := α) := {
   elements := ((·ᶜ) '' F.elements)ᶜ
   non_side := by
     intro h_univ
     rcases F.non_side with ⟨x, hx⟩
-    have hx_not : xᶜ ∉ ((·ᶜ) '' F.elements)ᶜ := by
-      simp [hx]
-    exact hx_not (by simp [h_univ])
+    have hx_mem : xᶜ ∈ (·ᶜ) '' F.elements := ⟨x, hx, rfl⟩
+    have hx_not : xᶜ ∉ ((·ᶜ) '' F.elements)ᶜ := by simp [hx_mem]
+    have hx_univ : xᶜ ∈ ((·ᶜ) '' F.elements)ᶜ := by simp [h_univ]
+    exact hx_not hx_univ
   main := by
-    exact hmain
+    intro a b
+    let G := (·ᶜ) '' F.elements
+    have mem_equiv (x : α) : x ∈ G ↔ xᶜ ∈ F.elements := by
+      constructor
+      · intro ⟨y, hy, hyx⟩
+        have hy_eq : y = xᶜ := by
+          have h := congrArg compl hyx
+          simp [compl_compl] at h
+          exact h
+        simpa [hy_eq] using hy
+      · intro hx
+        use xᶜ
+        constructor
+        · exact hx
+        · simp
+    have left : (a ∉ Gᶜ ∧ b ∉ Gᶜ) ↔ (aᶜ ∈ F.elements ∧ bᶜ ∈ F.elements) := by
+      simp [Set.mem_compl_iff, mem_equiv a, mem_equiv b]
+    have right : (∃ z, z ∉ Gᶜ ∧ a ≤ z ∧ b ≤ z) ↔ ∃ y, y ∈ F.elements ∧ y ≤ aᶜ ∧ y ≤ bᶜ := by
+      constructor
+      · intro ⟨z, hz, hza, hzb⟩
+        have hzG : z ∈ G := by simpa [Set.mem_compl_iff] using hz
+        have hy : zᶜ ∈ F.elements := (mem_equiv z).1 hzG
+        have hza_le : zᶜ ≤ aᶜ := compl_le_compl hza
+        have hzb_le : zᶜ ≤ bᶜ := compl_le_compl hzb
+        exact ⟨zᶜ, hy, hza_le, hzb_le⟩
+      · intro ⟨y, hy, hya, hyb⟩
+        have hyc : yᶜ ∈ G := (mem_equiv (yᶜ)).2 (by simpa using hy)
+        have hya_le : a ≤ yᶜ := by simpa using compl_le_compl hya
+        have hyb_le : b ≤ yᶜ := by simpa using compl_le_compl hyb
+        exact ⟨yᶜ, by simpa [Set.mem_compl_iff] using hyc, hya_le, hyb_le⟩
+    exact (left.trans (F.main aᶜ bᶜ)).trans right.symm
 }
 
 lemma exists_not_mem_of_ne_univ {F : Set α} (hne : F ≠ Set.univ) : ∃ x : α, x ∉ F := by
