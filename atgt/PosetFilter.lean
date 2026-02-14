@@ -20,6 +20,11 @@ lemma PosetFilterBase.ext_elements{α: Type*} {U : PartialOrder α}
 structure PosetFilter{α: Type*}(U: PartialOrder α) extends PosetFilterBase U, UpperSet α where
   carrier_eq_elements : carrier = elements
 
+structure PosetFilter2{α: Type*}(U: PartialOrder α) where
+  elements: Set α
+  non_empty: Set.Nonempty elements
+  cap_elements {x y: α} : x ∈ elements ∧ y ∈ elements ↔ ∃ z ∈ elements, (z ≤ x ∧ z ≤ y)
+
 @[ext]
 lemma PosetFilter.ext {α: Type*} {U : PartialOrder α}
   (F G : PosetFilter U)
