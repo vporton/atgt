@@ -40,6 +40,22 @@ class FreeStar [PartialOrder α] where
   non_side: elements ≠ Set.univ
   main: ∀ a b : α, (a ∉ elements ∧ b ∉ elements) ↔ ∃ z : α, z ∉ elements ∧ a ≤ z ∧ b ≤ z
 
+@[ext]
+lemma FilterSet.ext [PartialOrder α] (F G : FilterSet (α := α))
+    (h : F.elements = G.elements) : F = G := by
+  cases F
+  cases G
+  cases h
+  rfl
+
+@[ext]
+lemma FreeStar.ext [PartialOrder α] (F G : FreeStar (α := α))
+    (h : F.elements = G.elements) : F = G := by
+  cases F
+  cases G
+  cases h
+  rfl
+
 def posetFilter_to_filterSet [P: PartialOrder α] (F : PosetFilter P) : FilterSet (α := α) := {
   elements := F.elements
   non_side := F.non_empty
@@ -58,6 +74,87 @@ def posetFilter_to_filterSet [P: PartialOrder α] (F : PosetFilter P) : FilterSe
       exact ⟨by simpa [F.carrier_eq_elements] using ha_carrier,
         by simpa [F.carrier_eq_elements] using hb_carrier⟩
 }
+
+def filterSet_to_posetFilter [P: PartialOrder α] (F : FilterSet (α := α)) : PosetFilter P := {
+  elements := F.elements
+  non_empty := F.non_side
+  cap_elements := by
+    intro x y hx hy
+    exact (F.main x y).1 ⟨hx, hy⟩
+  carrier := F.elements
+  upper' := by
+    intro x y hxy hx
+    rcases F.non_side with ⟨w, hw⟩
+    rcases (F.main x w).1 ⟨hx, hw⟩ with ⟨z, hz, hzx, hzw⟩
+    have hzy : z ≤ y := le_trans hzx hxy
+    exact ((F.main y w).2 ⟨z, hz, hzy, hzw⟩).1
+  carrier_eq_elements := rfl
+}
+
+def freeStar_to_filterSet [P: BooleanAlgebra α] (F : FreeStar (α := α)) : FilterSet (α := α) := {
+  elements := (·ᶜ) '' F.elementsᶜ
+  non_side := by
+    classical
+    have hex : ∃ x : α, x ∉ F.elements := by
+      by_contra h
+      apply F.non_side
+      ext x
+      constructor
+      · intro _
+        trivial
+      · intro _
+        by_contra hx
+        exact h ⟨x, hx⟩
+    rcases hex with ⟨x, hx⟩
+    exact ⟨xᶜ, ⟨x, by simpa [Set.mem_compl_iff] using hx, by simp⟩⟩
+  main := by
+    intro a b
+    let G := F.elementsᶜ
+    have mem_equiv (x : α) : x ∈ (·ᶜ) '' G ↔ xᶜ ∉ F.elements := by
+      constructor
+      · intro ⟨y, hy, hyx⟩
+        have hy_eq : y = xᶜ := by
+          have h := congrArg compl hyx
+          simp [compl_compl] at h
+          exact h
+        have hy_not : y ∉ F.elements := by simpa [G] using hy
+        simpa [hy_eq] using hy_not
+      · intro hx
+        refine ⟨xᶜ, ?_, by simp⟩
+        simpa [G] using hx
+    have left : (a ∈ (·ᶜ) '' G ∧ b ∈ (·ᶜ) '' G) ↔ (aᶜ ∉ F.elements ∧ bᶜ ∉ F.elements) := by
+      constructor
+      · intro hab
+        exact ⟨(mem_equiv a).1 hab.1, (mem_equiv b).1 hab.2⟩
+      · intro hab
+        exact ⟨(mem_equiv a).2 hab.1, (mem_equiv b).2 hab.2⟩
+    have right : (∃ z, z ∈ (·ᶜ) '' G ∧ z ≤ a ∧ z ≤ b) ↔
+        ∃ y, y ∉ F.elements ∧ aᶜ ≤ y ∧ bᶜ ≤ y := by
+      constructor
+      · intro ⟨z, hz, hza, hzb⟩
+        have hz_not : zᶜ ∉ F.elements := (mem_equiv z).1 hz
+        have hya : aᶜ ≤ zᶜ := compl_le_compl hza
+        have hyb : bᶜ ≤ zᶜ := compl_le_compl hzb
+        exact ⟨zᶜ, hz_not, hya, hyb⟩
+      · intro ⟨y, hy, hay, hby⟩
+        have hy_mem : yᶜ ∈ (·ᶜ) '' G := (mem_equiv (yᶜ)).2 (by simpa using hy)
+        have hza : yᶜ ≤ a := by simpa using compl_le_compl hay
+        have hzb : yᶜ ≤ b := by simpa using compl_le_compl hby
+        exact ⟨yᶜ, hy_mem, hza, hzb⟩
+    exact (left.trans (F.main aᶜ bᶜ)).trans right.symm
+}
+
+lemma compl_image_compl_image [BooleanAlgebra α] (s : Set α) :
+    (fun x : α => xᶜ) '' ((fun x : α => xᶜ) '' s) = s := by
+  calc
+    (fun x : α => xᶜ) '' ((fun x : α => xᶜ) '' s)
+        = ((fun x : α => xᶜ) ∘ (fun x : α => xᶜ)) '' s := by
+            simpa using (Set.image_image (fun x : α => xᶜ) (fun x : α => xᶜ) s)
+    _ = (fun x : α => x) '' s := by
+      congr
+      funext x
+      simp
+    _ = s := by simp
 
 def filterSet_to_freeStar [P: BooleanAlgebra α] (F : FilterSet (α := α)) : FreeStar (α := α) := {
   elements := ((·ᶜ) '' F.elements)ᶜ
@@ -101,6 +198,27 @@ def filterSet_to_freeStar [P: BooleanAlgebra α] (F : FilterSet (α := α)) : Fr
         exact ⟨yᶜ, by simpa [Set.mem_compl_iff] using hyc, hya_le, hyb_le⟩
     exact (left.trans (F.main aᶜ bᶜ)).trans right.symm
 }
+
+theorem filterSet_to_posetFilter_left_inv [P : PartialOrder α] (F : PosetFilter P) :
+    filterSet_to_posetFilter (posetFilter_to_filterSet F) = F := by
+  apply PosetFilter.ext
+  apply PosetFilterBase.ext_elements
+  rfl
+
+theorem posetFilter_to_filterSet_left_inv [P : PartialOrder α] (F : FilterSet (α := α)) :
+    posetFilter_to_filterSet (filterSet_to_posetFilter F) = F := by
+  ext x
+  rfl
+
+theorem freeStar_to_filterSet_left_inv [P : BooleanAlgebra α] (F : FreeStar (α := α)) :
+    filterSet_to_freeStar (freeStar_to_filterSet F) = F := by
+  ext x
+  simp [filterSet_to_freeStar, freeStar_to_filterSet, compl_image_compl_image]
+
+theorem filterSet_to_freeStar_left_inv [P : BooleanAlgebra α] (F : FilterSet (α := α)) :
+    freeStar_to_filterSet (filterSet_to_freeStar F) = F := by
+  ext x
+  simp [filterSet_to_freeStar, freeStar_to_filterSet, compl_image_compl_image]
 
 lemma exists_not_mem_of_ne_univ {F : Set α} (hne : F ≠ Set.univ) : ∃ x : α, x ∉ F := by
   classical
