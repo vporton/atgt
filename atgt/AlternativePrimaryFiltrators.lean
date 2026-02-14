@@ -381,9 +381,9 @@ lemma isLeast_iff_eq_bot [BooleanAlgebra α] (x : α) :
   constructor
   · intro hx
     exact le_antisymm (hx ⊥) bot_le
-  · intro hx
-    intro y
-    simpa [hx] using (bot_le : (⊥ : α) ≤ y)
+  · intro hx y
+    rw [hx]
+    exact bot_le
 
 lemma mem_separator_iff_inf_ne_bot [BooleanAlgebra α] (x a : α) :
     x ∈ separator a ↔ x ⊓ a ≠ ⊥ := by
@@ -422,7 +422,7 @@ def separatorCoreFreeStar [BooleanAlgebra α] (a : α) : FreeStar (α := α) whe
   elements := separatorCoreSet (α := α) a
   non_side := by
     intro h_univ
-    have hbot_mem : (⊥ : α) ∈ separatorCoreSet (α := α) a := by simpa [h_univ]
+    have hbot_mem : (⊥ : α) ∈ separatorCoreSet (α := α) a := by simp [h_univ]
     have hbot_not_mem : (⊥ : α) ∉ separatorCoreSet (α := α) a := by
       exact (not_mem_separatorCoreSet_iff_le_compl (x := (⊥ : α)) (a := a)).2 bot_le
     exact hbot_not_mem hbot_mem
