@@ -5,6 +5,7 @@ import Mathlib.Order.CompleteBooleanAlgebra
 import Mathlib.Order.Hom.Set
 import Mathlib.Order.Defs.Unbundled
 import atgt.Poset
+import atgt.PosetFilter
 
 universe u
 
@@ -12,21 +13,38 @@ namespace AlternativePrimaryFiltrators
 
 variable {α : Type u}
 
-def IsFilterSet [Preorder α] (F : Set α) : Prop :=
+def IsFilterSet [PartialOrder α] (F : Set α) : Prop :=
   Set.Nonempty F ∧
     ∀ a b : α, (a ∈ F ∧ b ∈ F) ↔ ∃ z : α, z ∈ F ∧ z ≤ a ∧ z ≤ b
 
-def IsIdealSet [Preorder α] (F : Set α) : Prop :=
+def IsIdealSet [PartialOrder α] (F : Set α) : Prop :=
   Set.Nonempty F ∧
     ∀ a b : α, (a ∈ F ∧ b ∈ F) ↔ ∃ z : α, z ∈ F ∧ a ≤ z ∧ b ≤ z
 
-def IsFreeStar [Preorder α] (F : Set α) : Prop :=
+def IsFreeStar [PartialOrder α] (F : Set α) : Prop :=
   F ≠ Set.univ ∧
     ∀ a b : α, (a ∉ F ∧ b ∉ F) ↔ ∃ z : α, z ∈ F ∧ a ≤ z ∧ b ≤ z
 
-def IsMixer [Preorder α] (F : Set α) : Prop :=
+def IsMixer [PartialOrder α] (F : Set α) : Prop :=
   F ≠ Set.univ ∧
     ∀ a b : α, (a ∉ F ∧ b ∉ F) ↔ ∃ z : α, z ∈ F ∧ z ≤ a ∧ z ≤ b
+
+-- This duplicates `PosetFilter`, but introduced here for uniformity.
+class FilterSet [PartialOrder α] where
+  elements: Set α
+  non_side: Set.Nonempty elements
+  main: ∀ a b : α, (a ∈ elements ∧ b ∈ elements) ↔ ∃ z : α, z ∈ elements ∧ z ≤ a ∧ z ≤ b
+
+class FreeStar [PartialOrder α] where
+  elements: Set α
+  non_side: elements ≠ Set.univ
+  main: ∀ a b : α, (a ∉ elements ∧ b ∉ elements) ↔ ∃ z : α, z ∈ elements ∧ a ≤ z ∧ b ≤ z
+
+def posetFilter_to_filterSet [P: PartialOrder α] (F : PosetFilter P) : FilterSet (α := α) := {
+  elements := F.elements
+  non_side := sorry
+  main := sorry
+}
 
 lemma exists_not_mem_of_ne_univ {F : Set α} (hne : F ≠ Set.univ) : ∃ x : α, x ∉ F := by
   classical
@@ -40,21 +58,21 @@ lemma exists_not_mem_of_ne_univ {F : Set α} (hne : F ≠ Set.univ) : ∃ x : α
     by_contra hx
     exact h ⟨x, hx⟩
 
-theorem filter_upperSet [Preorder α] {F : Set α} (h : IsFilterSet F) : IsUpperSet F := by
+theorem filter_upperSet [PartialOrder α] {F : Set α} (h : IsFilterSet F) : IsUpperSet F := by
   intro a b hle ha
   rcases h.1 with ⟨x, hx⟩
   rcases (h.2 a x).1 ⟨ha, hx⟩ with ⟨z, hz, hza, hzx⟩
   have hw : ∃ w : α, w ∈ F ∧ w ≤ b ∧ w ≤ x := ⟨z, hz, le_trans hza hle, hzx⟩
   exact ((h.2 b x).2 hw).1
 
-theorem ideal_lowerSet [Preorder α] {F : Set α} (h : IsIdealSet F) : IsLowerSet F := by
+theorem ideal_lowerSet [PartialOrder α] {F : Set α} (h : IsIdealSet F) : IsLowerSet F := by
   intro a b hba ha
   rcases h.1 with ⟨x, hx⟩
   rcases (h.2 a x).1 ⟨ha, hx⟩ with ⟨z, hz, haz, hxz⟩
   have hw : ∃ w : α, w ∈ F ∧ b ≤ w ∧ x ≤ w := ⟨z, hz, le_trans hba haz, hxz⟩
   exact ((h.2 b x).2 hw).1
 
-theorem freeStar_upperSet [Preorder α] {F : Set α} (h : IsFreeStar F) : IsUpperSet F := by
+theorem freeStar_upperSet [PartialOrder α] {F : Set α} (h : IsFreeStar F) : IsUpperSet F := by
   intro a b hle ha
   by_contra hb
   rcases exists_not_mem_of_ne_univ (hne := h.1) with ⟨x, hx⟩
@@ -63,7 +81,7 @@ theorem freeStar_upperSet [Preorder α] {F : Set α} (h : IsFreeStar F) : IsUppe
   have hw : ∃ w : α, w ∈ F ∧ a ≤ w ∧ x ≤ w := ⟨z, hz, haz, hxz⟩
   exact ((h.2 a x).2 hw).1 ha
 
-theorem mixer_lowerSet [Preorder α] {F : Set α} (h : IsMixer F) : IsLowerSet F := by
+theorem mixer_lowerSet [PartialOrder α] {F : Set α} (h : IsMixer F) : IsLowerSet F := by
   intro a b hba ha
   by_contra hb
   rcases exists_not_mem_of_ne_univ (hne := h.1) with ⟨x, hx⟩
@@ -282,38 +300,38 @@ export SpecialDiagrams
 
 namespace PrincipalConstructions
 
-def principalIdeal [Preorder α] (a : α) : Set α := Set.Iic a
+def principalIdeal [PartialOrder α] (a : α) : Set α := Set.Iic a
 
-def principalUpper [Preorder α] (a : α) : Set α := Set.Ici a
+def principalUpper [PartialOrder α] (a : α) : Set α := Set.Ici a
 
-def principalLower [Preorder α] (a : α) : Set α := Set.Iic a
+def principalLower [PartialOrder α] (a : α) : Set α := Set.Iic a
 
-def IsPrincipalIdeal [Preorder α] (F : Set α) : Prop := ∃ a : α, F = principalIdeal a
+def IsPrincipalIdeal [PartialOrder α] (F : Set α) : Prop := ∃ a : α, F = principalIdeal a
 
-def IsPrincipalUpperSet [Preorder α] (F : Set α) : Prop := ∃ a : α, F = principalUpper a
+def IsPrincipalUpperSet [PartialOrder α] (F : Set α) : Prop := ∃ a : α, F = principalUpper a
 
-def IsPrincipalLowerSet [Preorder α] (F : Set α) : Prop := ∃ a : α, F = principalLower a
+def IsPrincipalLowerSet [PartialOrder α] (F : Set α) : Prop := ∃ a : α, F = principalLower a
 
-def IsPrincipalFreeStar [Preorder α] (S : Set α) : Prop := IsFreeStar S ∧ IsPrincipalUpperSet S
+def IsPrincipalFreeStar [PartialOrder α] (S : Set α) : Prop := IsFreeStar S ∧ IsPrincipalUpperSet S
 
-def IsPrincipalMixer [Preorder α] (S : Set α) : Prop := IsMixer S ∧ IsPrincipalLowerSet S
+def IsPrincipalMixer [PartialOrder α] (S : Set α) : Prop := IsMixer S ∧ IsPrincipalLowerSet S
 
-def idealFiltrator [Preorder α] : Set (Set α) × Set (Set α) :=
+def idealFiltrator [PartialOrder α] : Set (Set α) × Set (Set α) :=
   ({F : Set α | IsIdealSet F}, {F : Set α | IsPrincipalIdeal F})
 
-def freeStarFiltrator [Preorder α] : Set (Set α) × Set (Set α) :=
+def freeStarFiltrator [PartialOrder α] : Set (Set α) × Set (Set α) :=
   ({F : Set α | IsFreeStar F}, {F : Set α | IsPrincipalFreeStar F})
 
-def mixerFiltrator [Preorder α] : Set (Set α) × Set (Set α) :=
+def mixerFiltrator [PartialOrder α] : Set (Set α) × Set (Set α) :=
   ({F : Set α | IsMixer F}, {F : Set α | IsPrincipalMixer F})
 
-theorem mem_principalIdeal_iff [Preorder α] {a x : α} :
+theorem mem_principalIdeal_iff [PartialOrder α] {a x : α} :
     x ∈ principalIdeal a ↔ x ≤ a := Iff.rfl
 
-theorem principalIdeal_generated [Preorder α] (a : α) :
+theorem principalIdeal_generated [PartialOrder α] (a : α) :
     principalIdeal a = {x : α | x ≤ a} := rfl
 
-theorem ideal_principal_iff_generated [Preorder α] {F : Set α} :
+theorem ideal_principal_iff_generated [PartialOrder α] {F : Set α} :
     IsPrincipalIdeal F ↔ ∃ a : α, F = {x : α | x ≤ a} := by
   constructor
   · intro h
@@ -323,7 +341,7 @@ theorem ideal_principal_iff_generated [Preorder α] {F : Set α} :
     rcases h with ⟨a, ha⟩
     exact ⟨a, ha⟩
 
-theorem principalUpper_iff_exists_least_mem [Preorder α] {F : Set α}
+theorem principalUpper_iff_exists_least_mem [PartialOrder α] {F : Set α}
     (hF : IsUpperSet F) :
     IsPrincipalUpperSet F ↔ ∃ z : α, z ∈ F ∧ ∀ p : α, p ∈ F → z ≤ p := by
   constructor
@@ -342,7 +360,7 @@ theorem principalUpper_iff_exists_least_mem [Preorder α] {F : Set α}
     · intro hp
       exact hF hp hz
 
-theorem principalLower_iff_exists_greatest_mem [Preorder α] {F : Set α}
+theorem principalLower_iff_exists_greatest_mem [PartialOrder α] {F : Set α}
     (hF : IsLowerSet F) :
     IsPrincipalLowerSet F ↔ ∃ z : α, z ∈ F ∧ ∀ p : α, p ∈ F → p ≤ z := by
   constructor
@@ -361,7 +379,7 @@ theorem principalLower_iff_exists_greatest_mem [Preorder α] {F : Set α}
     · intro hp
       exact hF hp hz
 
-theorem principalFreeStar_iff_exists_least_mem [Preorder α] {S : Set α}
+theorem principalFreeStar_iff_exists_least_mem [PartialOrder α] {S : Set α}
     (hS : IsFreeStar S) :
     IsPrincipalFreeStar S ↔ ∃ z : α, z ∈ S ∧ ∀ p : α, p ∈ S → z ≤ p := by
   constructor
@@ -371,7 +389,7 @@ theorem principalFreeStar_iff_exists_least_mem [Preorder α] {S : Set α}
     refine ⟨hS, ?_⟩
     exact (principalUpper_iff_exists_least_mem (hF := freeStar_upperSet hS)).2 h
 
-theorem principalMixer_iff_exists_greatest_mem [Preorder α] {S : Set α}
+theorem principalMixer_iff_exists_greatest_mem [PartialOrder α] {S : Set α}
     (hS : IsMixer S) :
     IsPrincipalMixer S ↔ ∃ z : α, z ∈ S ∧ ∀ p : α, p ∈ S → p ≤ z := by
   constructor
