@@ -59,10 +59,20 @@ def posetFilter_to_filterSet [P: PartialOrder α] (F : PosetFilter P) : FilterSe
         by simpa [F.carrier_eq_elements] using hb_carrier⟩
 }
 
-def filterSet_to_freeStar [P: BooleanAlgebra α] (F : FilterSet (α := α)): FreeStar (α := α) := {
+def filterSet_to_freeStar [P: BooleanAlgebra α] (F : FilterSet (α := α))
+    (hmain : ∀ a b : α,
+      (a ∉ ((·ᶜ) '' F.elements)ᶜ ∧ b ∉ ((·ᶜ) '' F.elements)ᶜ) ↔
+        ∃ z : α, z ∈ ((·ᶜ) '' F.elements)ᶜ ∧ a ≤ z ∧ b ≤ z) :
+    FreeStar (α := α) := {
   elements := ((·ᶜ) '' F.elements)ᶜ
-  non_side := sorry
-  main := sorry
+  non_side := by
+    intro h_univ
+    rcases F.non_side with ⟨x, hx⟩
+    have hx_not : xᶜ ∉ ((·ᶜ) '' F.elements)ᶜ := by
+      simp [hx]
+    exact hx_not (by simp [h_univ])
+  main := by
+    exact hmain
 }
 
 lemma exists_not_mem_of_ne_univ {F : Set α} (hne : F ≠ Set.univ) : ∃ x : α, x ∉ F := by
