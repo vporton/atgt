@@ -837,14 +837,8 @@ def IsPrincipalFreeStar [PartialOrder α] (S : Set α) : Prop := IsFreeStar S �
 
 def IsPrincipalMixer [PartialOrder α] (S : Set α) : Prop := IsMixer S ∧ IsPrincipalLowerSet S
 
-def idealFiltrator [PartialOrder α] : Set (Set α) × Set (Set α) :=
-  ({F : Set α | IsIdealSet F}, {F : Set α | IsPrincipalIdeal F})
-
-def freeStarFiltrator [PartialOrder α] : Set (Set α) × Set (Set α) :=
-  ({F : Set α | IsFreeStar F}, {F : Set α | IsPrincipalFreeStar F})
-
-def mixerFiltrator [PartialOrder α] : Set (Set α) × Set (Set α) :=
-  ({F : Set α | IsMixer F}, {F : Set α | IsPrincipalMixer F})
+class FreeStarFiltrator [PartialOrder α] extends Filtrator (FreeStar (α := α)) where
+  subset := {F : FreeStar (α := α) | IsPrincipalUpperSet F.elements}
 
 theorem mem_principalIdeal_iff [PartialOrder α] {a x : α} :
     x ∈ principalIdeal a ↔ x ≤ a := Iff.rfl
@@ -925,7 +919,7 @@ end PrincipalConstructions
 export PrincipalConstructions
   (principalIdeal principalUpper principalLower
     IsPrincipalIdeal IsPrincipalUpperSet IsPrincipalLowerSet IsPrincipalFreeStar IsPrincipalMixer
-    idealFiltrator freeStarFiltrator mixerFiltrator
+    FreeStarFiltrator
     mem_principalIdeal_iff principalIdeal_generated ideal_principal_iff_generated
     principalUpper_iff_exists_least_mem principalLower_iff_exists_greatest_mem
     principalFreeStar_iff_exists_least_mem principalMixer_iff_exists_greatest_mem)
