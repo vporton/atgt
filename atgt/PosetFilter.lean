@@ -20,11 +20,6 @@ lemma PosetFilterBase.ext_elements{α: Type*} {U : PartialOrder α}
 structure PosetFilter{α: Type*}(U: PartialOrder α) extends PosetFilterBase U, UpperSet α where
   carrier_eq_elements : carrier = elements
 
-structure PosetFilter2{α: Type*}(U: PartialOrder α) where
-  elements: Set α
-  non_empty: Set.Nonempty elements
-  cap_elements {x y: α} : x ∈ elements ∧ y ∈ elements ↔ ∃ z ∈ elements, (z ≤ x ∧ z ≤ y)
-
 @[ext]
 lemma PosetFilter.ext {α: Type*} {U : PartialOrder α}
   (F G : PosetFilter U)
@@ -50,6 +45,17 @@ lemma PosetFilter.ext {α: Type*} {U : PartialOrder α}
             rfl
       cases hUp
       rfl
+
+structure PosetFilter.ThroughEquiv{α: Type*}(U: PartialOrder α) where
+  elements: Set α
+  non_empty: Set.Nonempty elements
+  cap_elements {x y: α} : x ∈ elements ∧ y ∈ elements ↔ ∃ z ∈ elements, (z ≤ x ∧ z ≤ y)
+
+@[ext]
+lemma PosetFilter.ThroughEquiv.ext {α: Type*} {U : PartialOrder α}
+  (F G : PosetFilter U)
+  (h : F.elements = G.elements) : F = G := by
+  sorry
 
 @[simp]
 lemma PosetFilter.mem_carrier_iff_mem_elements {α : Type*} {U : PartialOrder α} (F : PosetFilter U) (x : α) :
