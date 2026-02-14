@@ -91,6 +91,7 @@ def filterSet_to_posetFilter [P: PartialOrder α] (F : FilterSet (α := α)) : P
   carrier_eq_elements := rfl
 }
 
+-- TODO: This and below can be shortened by proving conversions with ideals first.
 def freeStar_to_filterSet [P: BooleanAlgebra α] (F : FreeStar (α := α)) : FilterSet (α := α) := {
   elements := (·ᶜ) '' F.elementsᶜ
   non_side := by
