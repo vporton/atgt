@@ -52,6 +52,15 @@ structure PosetFilter.ThroughEquiv{α: Type*}(U: PartialOrder α) where
   cap_elements {x y: α} : x ∈ elements ∧ y ∈ elements ↔ ∃ z ∈ elements, (z ≤ x ∧ z ≤ y)
 
 @[ext]
+lemma PosetFilter.ThroughEquiv.ext_elements {α: Type*} {U : PartialOrder α}
+  (F G : PosetFilter.ThroughEquiv U)
+  (h : F.elements = G.elements) : F = G := by
+  cases F
+  cases G
+  cases h
+  rfl
+
+@[ext]
 lemma PosetFilter.ThroughEquiv.ext {α: Type*} {U : PartialOrder α}
   (F G : PosetFilter U)
   (h : F.elements = G.elements) : F = G := by
@@ -62,6 +71,82 @@ lemma PosetFilter.ThroughEquiv.ext {α: Type*} {U : PartialOrder α}
       _ = G.elements := h
       _ = G.toPosetFilterBase.elements := rfl
   exact PosetFilter.ext F G hbase
+
+def PosetFilter.toThroughEquiv {α : Type*} {U : PartialOrder α} (F : PosetFilter U) :
+    PosetFilter.ThroughEquiv U where
+  elements := F.elements
+  non_empty := F.non_empty
+  cap_elements := by
+    intro x y
+    constructor
+    · intro hxy
+      exact F.cap_elements hxy.1 hxy.2
+    · intro hxy
+      rcases hxy with ⟨z, hz, hzx, hzy⟩
+      constructor
+      · have hz' : z ∈ F.carrier := by
+          simpa [F.carrier_eq_elements] using hz
+        have hx' : x ∈ F.carrier := F.upper' hzx hz'
+        simpa [F.carrier_eq_elements] using hx'
+      · have hz' : z ∈ F.carrier := by
+          simpa [F.carrier_eq_elements] using hz
+        have hy' : y ∈ F.carrier := F.upper' hzy hz'
+        simpa [F.carrier_eq_elements] using hy'
+
+def PosetFilter.ThroughEquiv.toPosetFilter {α : Type*} {U : PartialOrder α}
+    (F : PosetFilter.ThroughEquiv U) : PosetFilter U where
+  elements := F.elements
+  non_empty := F.non_empty
+  cap_elements := by
+    intro x y hx hy
+    exact (F.cap_elements).1 ⟨hx, hy⟩
+  carrier := F.elements
+  upper' := by
+    intro x y hxy hx
+    have hxy_mem : x ∈ F.elements ∧ y ∈ F.elements :=
+      (F.cap_elements).2 ⟨x, hx, le_rfl, hxy⟩
+    exact hxy_mem.2
+  carrier_eq_elements := rfl
+
+@[simp]
+lemma PosetFilter.ThroughEquiv.toPosetFilter_toThroughEquiv {α : Type*} {U : PartialOrder α}
+    (F : PosetFilter U) :
+    PosetFilter.ThroughEquiv.toPosetFilter (PosetFilter.toThroughEquiv F) = F := by
+  apply PosetFilter.ThroughEquiv.ext
+  rfl
+
+@[simp]
+lemma PosetFilter.toThroughEquiv_toPosetFilter {α : Type*} {U : PartialOrder α}
+    (F : PosetFilter.ThroughEquiv U) :
+    PosetFilter.toThroughEquiv (PosetFilter.ThroughEquiv.toPosetFilter F) = F := by
+  apply PosetFilter.ThroughEquiv.ext_elements
+  rfl
+
+lemma PosetFilter.toThroughEquiv_leftInverse {α : Type*} {U : PartialOrder α} :
+    Function.LeftInverse
+      (PosetFilter.ThroughEquiv.toPosetFilter (U := U))
+      (PosetFilter.toThroughEquiv (U := U)) := by
+  intro F
+  exact PosetFilter.ThroughEquiv.toPosetFilter_toThroughEquiv (U := U) F
+
+lemma PosetFilter.toThroughEquiv_rightInverse {α : Type*} {U : PartialOrder α} :
+    Function.RightInverse
+      (PosetFilter.ThroughEquiv.toPosetFilter (U := U))
+      (PosetFilter.toThroughEquiv (U := U)) := by
+  intro F
+  exact PosetFilter.toThroughEquiv_toPosetFilter (U := U) F
+
+lemma PosetFilter.toThroughEquiv_bijective {α : Type*} {U : PartialOrder α} :
+    Function.Bijective (PosetFilter.toThroughEquiv (U := U)) := by
+  refine ⟨?_, ?_⟩
+  · exact (PosetFilter.toThroughEquiv_leftInverse (U := U)).injective
+  · exact (PosetFilter.toThroughEquiv_rightInverse (U := U)).surjective
+
+lemma PosetFilter.ThroughEquiv.toPosetFilter_bijective {α : Type*} {U : PartialOrder α} :
+    Function.Bijective (PosetFilter.ThroughEquiv.toPosetFilter (U := U)) := by
+  refine ⟨?_, ?_⟩
+  · exact (PosetFilter.toThroughEquiv_rightInverse (U := U)).injective
+  · exact (PosetFilter.toThroughEquiv_leftInverse (U := U)).surjective
 
 @[simp]
 lemma PosetFilter.mem_carrier_iff_mem_elements {α : Type*} {U : PartialOrder α} (F : PosetFilter U) (x : α) :
