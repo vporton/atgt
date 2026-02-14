@@ -56,6 +56,36 @@ lemma FreeStar.ext [PartialOrder α] (F G : FreeStar (α := α))
   cases h
   rfl
 
+instance [PartialOrder α] : LE (FilterSet (α := α)) where
+  le F G := G.elements ⊆ F.elements
+
+instance [PartialOrder α] : PartialOrder (FilterSet (α := α)) where
+  le := (· ≤ ·)
+  le_refl F := by
+    intro x hx
+    exact hx
+  le_trans F G H hFG hGH := by
+    intro x hxH
+    exact hFG (hGH hxH)
+  le_antisymm F G hFG hGF := by
+    apply FilterSet.ext
+    exact Set.Subset.antisymm hGF hFG
+
+instance [PartialOrder α] : LE (FreeStar (α := α)) where
+  le F G := F.elements ⊆ G.elements
+
+instance [PartialOrder α] : PartialOrder (FreeStar (α := α)) where
+  le := (· ≤ ·)
+  le_refl F := by
+    intro x hx
+    exact hx
+  le_trans F G H hFG hGH := by
+    intro x hxF
+    exact hGH (hFG hxF)
+  le_antisymm F G hFG hGF := by
+    apply FreeStar.ext
+    exact Set.Subset.antisymm hFG hGF
+
 def posetFilter_to_filterSet [P: PartialOrder α] (F : PosetFilter P) : FilterSet (α := α) := {
   elements := F.elements
   non_side := F.non_empty
@@ -250,6 +280,38 @@ theorem freeStar_to_filterSet_bijective [P : BooleanAlgebra α] :
   · intro G
     use filterSet_to_freeStar G
     simp [filterSet_to_freeStar_left_inv]
+
+theorem freeStar_to_filterSet_monotone [P : BooleanAlgebra α] :
+    Monotone (freeStar_to_filterSet : FreeStar (α := α) → FilterSet (α := α)) := by
+  intro F G hFG x hx
+  rcases hx with ⟨y, hy, hyx⟩
+  refine ⟨y, ?_, hyx⟩
+  intro hyF
+  exact hy (hFG hyF)
+
+theorem filterSet_to_freeStar_monotone [P : BooleanAlgebra α] :
+    Monotone (filterSet_to_freeStar : FilterSet (α := α) → FreeStar (α := α)) := by
+  intro F G hFG x hxF hxG
+  apply hxF
+  rcases hxG with ⟨y, hyG, hyx⟩
+  refine ⟨y, hFG hyG, hyx⟩
+
+def freeStarOrderIsoFilterSet [P : BooleanAlgebra α] :
+    FreeStar (α := α) ≃o FilterSet (α := α) where
+  toEquiv :=
+    { toFun := freeStar_to_filterSet
+      invFun := filterSet_to_freeStar
+      left_inv := freeStar_to_filterSet_left_inv
+      right_inv := filterSet_to_freeStar_left_inv }
+  map_rel_iff' := by
+    intro F G
+    constructor
+    · intro h
+      have hmono := filterSet_to_freeStar_monotone (α := α)
+      simpa [freeStar_to_filterSet_left_inv] using hmono h
+    · intro h
+      have hmono := freeStar_to_filterSet_monotone (α := α)
+      simpa [filterSet_to_freeStar_left_inv] using hmono h
 
 lemma exists_not_mem_of_ne_univ {F : Set α} (hne : F ≠ Set.univ) : ∃ x : α, x ∉ F := by
   classical
