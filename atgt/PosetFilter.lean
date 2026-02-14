@@ -55,7 +55,13 @@ structure PosetFilter.ThroughEquiv{α: Type*}(U: PartialOrder α) where
 lemma PosetFilter.ThroughEquiv.ext {α: Type*} {U : PartialOrder α}
   (F G : PosetFilter U)
   (h : F.elements = G.elements) : F = G := by
-  sorry
+  have hbase : F.toPosetFilterBase = G.toPosetFilterBase := by
+    apply PosetFilterBase.ext_elements
+    calc
+      F.toPosetFilterBase.elements = F.elements := rfl
+      _ = G.elements := h
+      _ = G.toPosetFilterBase.elements := rfl
+  exact PosetFilter.ext F G hbase
 
 @[simp]
 lemma PosetFilter.mem_carrier_iff_mem_elements {α : Type*} {U : PartialOrder α} (F : PosetFilter U) (x : α) :
