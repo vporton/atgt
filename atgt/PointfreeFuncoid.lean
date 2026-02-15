@@ -462,13 +462,11 @@ theorem theorem1618_pf_cont_r_unique
   exact propext ((hf x y).trans (hg x y).symm)
 
 /--
-Theorem 1618 (`\label{pf-cont}`), formalized in the current development style.
+Theorem 1618 (`\label{pf-cont}`), item `\ref{pf-cont-f}` in the current development style.
 
-This theorem gives the uniqueness packages for both continuations:
-`\ref{pf-cont-f}` and `\ref{pf-cont-r}`. Existence is represented as an input hypothesis,
-and the theorem upgrades it to `∃!`.
+Existence is represented as an input hypothesis, and the theorem upgrades it to `∃!`.
 -/
-theorem theorem1618_pf_cont
+theorem theorem1618_pf_cont_f
     {α : Type u} {β : Type v}
     [X : Filtrator α] [Y : Filtrator β]
     [SemilatticeSup α] [OrderBot α]
@@ -477,6 +475,33 @@ theorem theorem1618_pf_cont
     (A : α → β)
     (hA_bot : A ⊥ = ⊥)
     (hA_sup : ∀ I J : α, A (I ⊔ J) = A I ⊔ A J)
+    (h_sep_src : IsSeparable α) :
+    (∃ f : PointfreeFuncoid X.suporder Y.suporder,
+      PointfreeFuncoid.fwdContinuationFromCore
+        (Bdst := Bdst) (A := A) (X := X) (Y := Y) f) →
+    ∃! f : PointfreeFuncoid X.suporder Y.suporder,
+      PointfreeFuncoid.fwdContinuationFromCore
+        (Bdst := Bdst) (A := A) (X := X) (Y := Y) f := by
+  have _ := hA_bot
+  have _ := hA_sup
+  intro h_exists
+  rcases h_exists with ⟨f, hf⟩
+  refine ⟨f, hf, ?_⟩
+  intro g hg
+  exact (theorem1618_pf_cont_f_unique
+    (h_sep_src := h_sep_src) (Bdst := Bdst) (A := A)
+    (f := f) (g := g) hf hg).symm
+
+/--
+Theorem 1618 (`\label{pf-cont}`), item `\ref{pf-cont-r}` in the current development style.
+
+Existence is represented as an input hypothesis, and the theorem upgrades it to `∃!`.
+-/
+theorem theorem1618_pf_cont_r
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    [SemilatticeSup α] [OrderBot α]
+    [SemilatticeSup β] [OrderBot β]
     (δ : α → β → Prop)
     (hδ_bot_left : ∀ I' : β, ¬ δ ⊥ I')
     (hδ_sup_left : ∀ I J : α, ∀ K' : β, δ (I ⊔ J) K' ↔ δ I K' ∨ δ J K')
@@ -484,36 +509,20 @@ theorem theorem1618_pf_cont
     (hδ_sup_right : ∀ K : α, ∀ I' J' : β, δ K (I' ⊔ J') ↔ δ K I' ∨ δ K J')
     (h_sep_src : IsSeparable α)
     (h_sep_dst : IsSeparable β) :
-    ((∃ f : PointfreeFuncoid X.suporder Y.suporder,
-        PointfreeFuncoid.fwdContinuationFromCore
-          (Bdst := Bdst) (A := A) (X := X) (Y := Y) f) →
-      ∃! f : PointfreeFuncoid X.suporder Y.suporder,
-        PointfreeFuncoid.fwdContinuationFromCore
-          (Bdst := Bdst) (A := A) (X := X) (Y := Y) f) ∧
-    ((∃ f : PointfreeFuncoid X.suporder Y.suporder,
-        PointfreeFuncoid.relContinuationFromCore
-          (δ := δ) (X := X) (Y := Y) f) →
-      ∃! f : PointfreeFuncoid X.suporder Y.suporder,
-        PointfreeFuncoid.relContinuationFromCore
-          (δ := δ) (X := X) (Y := Y) f) := by
-  have _ := hA_bot
-  have _ := hA_sup
+    (∃ f : PointfreeFuncoid X.suporder Y.suporder,
+      PointfreeFuncoid.relContinuationFromCore
+        (δ := δ) (X := X) (Y := Y) f) →
+    ∃! f : PointfreeFuncoid X.suporder Y.suporder,
+      PointfreeFuncoid.relContinuationFromCore
+        (δ := δ) (X := X) (Y := Y) f := by
   have _ := hδ_bot_left
   have _ := hδ_sup_left
   have _ := hδ_bot_right
   have _ := hδ_sup_right
-  constructor
-  · intro h_exists
-    rcases h_exists with ⟨f, hf⟩
-    refine ⟨f, hf, ?_⟩
-    intro g hg
-    exact (theorem1618_pf_cont_f_unique
-      (h_sep_src := h_sep_src) (Bdst := Bdst) (A := A)
-      (f := f) (g := g) hf hg).symm
-  · intro h_exists
-    rcases h_exists with ⟨f, hf⟩
-    refine ⟨f, hf, ?_⟩
-    intro g hg
-    exact (theorem1618_pf_cont_r_unique
-      (h_sep_src := h_sep_src) (h_sep_dst := h_sep_dst) (δ := δ)
-      (f := f) (g := g) hf hg).symm
+  intro h_exists
+  rcases h_exists with ⟨f, hf⟩
+  refine ⟨f, hf, ?_⟩
+  intro g hg
+  exact (theorem1618_pf_cont_r_unique
+    (h_sep_src := h_sep_src) (h_sep_dst := h_sep_dst) (δ := δ)
+    (f := f) (g := g) hf hg).symm
