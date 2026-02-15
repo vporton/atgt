@@ -748,11 +748,169 @@ theorem freeStar_filtrator_strongly_star_separable_of_bridge
     hsub ha_coreS
   exact (hbridge a T).1 ha_coreT
 
+lemma freeStar_to_filterSet_mem_separator_iff
+    (X S : FreeStar (α := α)) :
+    X ∈ separator S ↔
+      freeStar_to_filterSet X ∈ separator (freeStar_to_filterSet S) := by
+  constructor
+  · intro h
+    rcases h with ⟨C, hCX, hCS, hnotleastC⟩
+    refine ⟨freeStar_to_filterSet C, ?_, ?_, ?_⟩
+    · exact (freeStarOrderIsoFilterSet (α := α)).map_rel_iff.2 hCX
+    · exact (freeStarOrderIsoFilterSet (α := α)).map_rel_iff.2 hCS
+    · intro hleastFC
+      apply hnotleastC
+      intro D
+      have hCD : freeStar_to_filterSet C ≤ freeStar_to_filterSet D := hleastFC (freeStar_to_filterSet D)
+      exact (freeStarOrderIsoFilterSet (α := α)).map_rel_iff.1 hCD
+  · intro h
+    rcases h with ⟨D, hDX, hDS, hnotleastD⟩
+    refine ⟨filterSet_to_freeStar D, ?_, ?_, ?_⟩
+    · have hDX' :
+        freeStar_to_filterSet (filterSet_to_freeStar D) ≤ freeStar_to_filterSet X := by
+        simpa [filterSet_to_freeStar_left_inv] using hDX
+      exact (freeStarOrderIsoFilterSet (α := α)).map_rel_iff.1 hDX'
+    · have hDS' :
+        freeStar_to_filterSet (filterSet_to_freeStar D) ≤ freeStar_to_filterSet S := by
+        simpa [filterSet_to_freeStar_left_inv] using hDS
+      exact (freeStarOrderIsoFilterSet (α := α)).map_rel_iff.1 hDS'
+    · intro hleastC
+      apply hnotleastD
+      intro E
+      have hCE : filterSet_to_freeStar D ≤ filterSet_to_freeStar E := hleastC (filterSet_to_freeStar E)
+      have hCE' :
+          freeStar_to_filterSet (filterSet_to_freeStar D) ≤
+            freeStar_to_filterSet (filterSet_to_freeStar E) :=
+        (freeStarOrderIsoFilterSet (α := α)).map_rel_iff.2 hCE
+      simpa [filterSet_to_freeStar_left_inv] using hCE'
+
+lemma filterSet_principal_mem_separator_iff_not_compl_mem
+    (a : α) (F : FilterSet (U := (inferInstance : PartialOrder α))) :
+    filterSet_principal α a ∈ separator F ↔ aᶜ ∉ F.elements := by
+  constructor
+  · intro hsep
+    change meet (filterSet_principal α a) F at hsep
+    intro hacF
+    rcases hsep with ⟨C, hCP, hCF, hnotleast⟩
+    have haP : a ∈ (filterSet_principal α a).elements := by
+      simp [filterSet_principal, PosetFilter.toThroughEquiv, PosetFilter.principal]
+    have haC : a ∈ C.elements := hCP haP
+    have hacC : aᶜ ∈ C.elements := hCF hacF
+    rcases (C.cap_elements (x := a) (y := aᶜ)).1 ⟨haC, hacC⟩ with ⟨z, hzC, hza, hzac⟩
+    have hz_bot : z = (⊥ : α) := by
+      apply le_antisymm
+      · have hz_le : z ≤ a ⊓ aᶜ := le_inf hza hzac
+        simpa using hz_le
+      · exact bot_le
+    have hupperC : IsUpperSet C.elements := filter_upperSet C
+    have hbotC : (⊥ : α) ∈ C.elements := hz_bot ▸ hzC
+    have hleastC : is_least C := by
+      intro D
+      change D.elements ⊆ C.elements
+      intro x hxD
+      exact hupperC bot_le hbotC
+    exact hnotleast hleastC
+  · intro hac_not
+    change meet (filterSet_principal α a) F
+    let Fp : PosetFilter (U := (inferInstance : PartialOrder α)) :=
+      PosetFilter.ThroughEquiv.toPosetFilter F
+    let B : PosetFilterBase (U := (inferInstance : PartialOrder α)) :=
+      meet_filter_base a Fp.toPosetFilterBase
+    let Cpf : PosetFilter (U := (inferInstance : PartialOrder α)) :=
+      close_filter_base B
+    let C : FilterSet (U := (inferInstance : PartialOrder α)) :=
+      PosetFilter.toThroughEquiv Cpf
+    have hC_mem_Fp (x : α) :
+        x ∈ C.elements ↔ ∃ s ∈ Fp.elements, a ⊓ s ≤ x := by
+      simp [C, Cpf, B, meet_filter_base, FilterBaseMeet.meet_filter_base_set,
+        close_filter_base, PosetFilter.toThroughEquiv]
+    have hC_mem (x : α) :
+        x ∈ C.elements ↔ ∃ s ∈ F.elements, a ⊓ s ≤ x := by
+      simpa [Fp] using hC_mem_Fp x
+    have hC_le_P : C ≤ filterSet_principal α a := by
+      intro x hxP
+      rcases F.non_empty with ⟨s, hs⟩
+      exact (hC_mem x).2 ⟨s, hs, le_trans inf_le_left hxP⟩
+    have hC_le_F : C ≤ F := by
+      intro x hxF
+      exact (hC_mem x).2 ⟨x, hxF, inf_le_right⟩
+    have hC_not_least : ¬ is_least C := by
+      intro hleastC
+      have hC_le_bot : C ≤ filterSet_principal α (⊥ : α) := hleastC _
+      have hacC : aᶜ ∈ C.elements := by
+        apply hC_le_bot
+        simp [filterSet_principal, PosetFilter.toThroughEquiv, PosetFilter.principal]
+      rcases (hC_mem (aᶜ)).1 hacC with ⟨s, hsF, hs_le⟩
+      have hs_inf_bot : a ⊓ s = (⊥ : α) := by
+        apply le_antisymm
+        · have hs_le_inf : a ⊓ s ≤ a ⊓ aᶜ := le_inf inf_le_left hs_le
+          simpa using hs_le_inf
+        · exact bot_le
+      have hs_disj : Disjoint s a :=
+        disjoint_iff.mpr (by simpa [inf_comm] using hs_inf_bot)
+      have hs_le_compl : s ≤ aᶜ := (le_compl_iff_disjoint_right).2 hs_disj
+      have hupperF : IsUpperSet F.elements := filter_upperSet F
+      have hacF : aᶜ ∈ F.elements := hupperF hs_le_compl hsF
+      exact hac_not hacF
+    exact ⟨C, hC_le_P, hC_le_F, hC_not_least⟩
+
+lemma compl_mem_freeStar_to_filterSet_iff_not_mem
+    (a : α) (S : FreeStar (α := α)) :
+    aᶜ ∈ (freeStar_to_filterSet S).elements ↔ a ∉ S.elements := by
+  constructor
+  · intro hac
+    rcases hac with ⟨y, hy, hy_eq⟩
+    have hy_not : y ∉ S.elements := by
+      simpa [Set.mem_compl_iff] using hy
+    have hy_a : y = a := by
+      have h := congrArg compl hy_eq
+      simpa using h
+    exact hy_a ▸ hy_not
+  · intro ha
+    refine ⟨a, ?_, by simp⟩
+    simpa [Set.mem_compl_iff] using ha
+
 theorem freeStar_filtrator_bridge
     (a : α) (S : FreeStar (α := α)) :
     freeStar_principal α a ∈ separator_core (F := freeStar_filtrator α) S ↔
       a ∈ S.elements := by
-  sorry
+  have h_princ_map :
+      freeStar_to_filterSet (freeStar_principal α a) = filterSet_principal α a := by
+    calc
+      freeStar_to_filterSet (freeStar_principal α a)
+          = freeStar_to_filterSet (filterSet_to_freeStar (filterSet_principal α a)) := by
+            simp [freeStar_principal]
+      _ = filterSet_principal α a := filterSet_to_freeStar_left_inv (filterSet_principal α a)
+  constructor
+  · intro h
+    have hsep : freeStar_principal α a ∈ separator S := h.2
+    have hsepF' :
+        freeStar_to_filterSet (freeStar_principal α a) ∈
+          separator (freeStar_to_filterSet S) :=
+      (freeStar_to_filterSet_mem_separator_iff (α := α)
+        (X := freeStar_principal α a) (S := S)).1 hsep
+    have hsepF : filterSet_principal α a ∈ separator (freeStar_to_filterSet S) := by
+      simpa [h_princ_map] using hsepF'
+    have hnot_compl : aᶜ ∉ (freeStar_to_filterSet S).elements :=
+      (filterSet_principal_mem_separator_iff_not_compl_mem (α := α)
+        a (freeStar_to_filterSet S)).1 hsepF
+    by_contra ha_not
+    exact hnot_compl ((compl_mem_freeStar_to_filterSet_iff_not_mem (α := α) a S).2 ha_not)
+  · intro ha
+    have hnot_compl : aᶜ ∉ (freeStar_to_filterSet S).elements := by
+      intro hac
+      exact ((compl_mem_freeStar_to_filterSet_iff_not_mem (α := α) a S).1 hac) ha
+    have hsepF : filterSet_principal α a ∈ separator (freeStar_to_filterSet S) :=
+      (filterSet_principal_mem_separator_iff_not_compl_mem (α := α)
+        a (freeStar_to_filterSet S)).2 hnot_compl
+    have hsepF' :
+        freeStar_to_filterSet (freeStar_principal α a) ∈
+          separator (freeStar_to_filterSet S) := by
+      simpa [h_princ_map] using hsepF
+    have hsep : freeStar_principal α a ∈ separator S :=
+      (freeStar_to_filterSet_mem_separator_iff (α := α)
+        (X := freeStar_principal α a) (S := S)).2 hsepF'
+    exact ⟨⟨a, rfl⟩, hsep⟩
 
 theorem freeStar_filtrator_strongly_star_separable
     : Filtrator.strongly_star_separable (freeStar_filtrator α) := by
