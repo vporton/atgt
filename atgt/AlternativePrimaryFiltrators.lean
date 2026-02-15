@@ -7,6 +7,7 @@ import Mathlib.Order.Defs.Unbundled
 import atgt.Poset
 import atgt.PosetFilter
 import atgt.Filtrator.Separable
+import atgt.Filtrator.Primary
 
 universe u
 
@@ -265,6 +266,18 @@ def freeStarOrderIsoFilterSet [P : BooleanAlgebra α] :
     · intro h
       have hmono := freeStar_to_filterSet_monotone (α := α)
       simpa [filterSet_to_freeStar_left_inv] using hmono h
+
+def filterSetOrderIsoPosetFilter [PartialOrder α] :
+    FilterSet (U := (inferInstance : PartialOrder α)) ≃o
+      PosetFilter (U := (inferInstance : PartialOrder α)) where
+  toEquiv :=
+    { toFun := PosetFilter.ThroughEquiv.toPosetFilter
+      invFun := PosetFilter.toThroughEquiv
+      left_inv := PosetFilter.toThroughEquiv_toPosetFilter
+      right_inv := PosetFilter.ThroughEquiv.toPosetFilter_toThroughEquiv }
+  map_rel_iff' := by
+    intro F G
+    rfl
 
 namespace SeparatorCoreFreeStars
 
@@ -635,6 +648,37 @@ def freeStar_principals : Set (FreeStar (α := α)) :=
 
 def freeStar_filtrator : Filtrator (FreeStar (α := α)) :=
   Filtrator.of_subset (freeStar_principals α)
+
+def freeStar_filtrator_primary : Filtrator.Primary (FreeStar (α := α)) := by
+  refine
+    { toFiltrator := freeStar_filtrator α
+      is_primary := ?_ }
+  refine ⟨_, (inferInstance : PartialOrder α), ?_⟩
+  let comp : PosetFilter (U := (inferInstance : PartialOrder α)) ≃o FreeStar (α := α) :=
+    ((filterSetOrderIsoPosetFilter (α := α)).symm.trans
+      (freeStarOrderIsoFilterSet (α := α)).symm)
+  have hcomp_eval (F : PosetFilter (U := (inferInstance : PartialOrder α))) :
+      comp F = filterSet_to_freeStar (PosetFilter.toThroughEquiv F) := by
+    rfl
+  refine ⟨{ toRelIso := comp, core_match := ?_ }⟩
+  change comp.toFun '' Principals (U := (inferInstance : PartialOrder α)) =
+    freeStar_principals α
+  ext F
+  constructor
+  · intro hF
+    rcases hF with ⟨G, hG, rfl⟩
+    rcases hG with ⟨a, rfl⟩
+    refine ⟨a, ?_⟩
+    simpa [hcomp_eval, freeStar_principal, filterSet_principal]
+  · intro hF
+    rcases hF with ⟨a, rfl⟩
+    refine ⟨PosetFilter.principal (U := (inferInstance : PartialOrder α)) a, ⟨a, rfl⟩, ?_⟩
+    simpa [hcomp_eval, freeStar_principal, filterSet_principal]
+
+theorem freeStar_filtrator_is_primary :
+    ∃ hprim : Filtrator.Primary.{u, u} (FreeStar (α := α)),
+      hprim.toFiltrator = freeStar_filtrator α := by
+  exact ⟨freeStar_filtrator_primary (α := α), rfl⟩
 
 theorem filterSet_principal_has_min (a : α) :
     ∃ z ∈ (filterSet_principal α a).elements, ∀ p ∈ (filterSet_principal α a).elements, z ≤ p := by
