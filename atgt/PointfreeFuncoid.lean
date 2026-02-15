@@ -332,9 +332,8 @@ theorem theorem1617_of_separator_bridge
 /--
 Theorem 1617 (p. 317), literal value equation form:
 `⟨f⟩ x = sInf (⟨⟨f⟩⟩ (up x))`.
-FIXME:
 -/
-theorem theorem1617
+theorem pointfree_funcoid_fwd_value
     {α : Type u} {β : Type v}
     [X : Filtrator α]
     [SemilatticeInf α]
