@@ -2,6 +2,7 @@ import Mathlib.Data.Ordmap.Ordset
 import Mathlib.Data.Set.Basic
 import Mathlib.Data.Set.Operations
 import Mathlib.Order.Hom.Basic
+import Mathlib.Order.Atoms
 
 universe u v u2 v2
 
@@ -154,3 +155,6 @@ theorem isStronglySeparable_iff_star_orderEmbedding {α : Type u} [PartialOrder 
       have hfb : f b = separator b := congrFun hf b
       simpa [hfa, hfb] using h_sub_le
     exact (OrderEmbedding.le_iff_le f).mp hle
+
+-- TODO: Move to a separate module.
+def atoms [SemilatticeSup α] [OrderBot α] (a : α) : Set α := {x : α | x ≤ a ∧ IsAtom x}

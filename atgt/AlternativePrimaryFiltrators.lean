@@ -2,7 +2,6 @@ import Mathlib.Data.Set.Basic
 import Mathlib.Order.Lattice
 import Mathlib.Order.CompleteLattice.Basic
 import Mathlib.Order.CompleteBooleanAlgebra
-import Mathlib.Order.Atoms
 import Mathlib.Order.Hom.Set
 import Mathlib.Order.Defs.Unbundled
 import atgt.Poset
@@ -1031,8 +1030,6 @@ def IsFreeStarLike [SemilatticeSup α] (S : Set α) : Prop :=
 def IsStarrish (α : Type u) [SemilatticeSup α] : Prop :=
   ∀ a : α, IsFreeStarLike (⋆a)
 
-def atoms [SemilatticeSup α] [OrderBot α] (a : α) : Set α := {x : α | x ≤ a ∧ IsAtom x}
-
 def IsCompletelyStarrish (α : Type u) [CompleteLattice α] : Prop :=
   ∀ a : α, IsFreeStarLike (⋆a) ∧ ∀ T : Set α, sSup T ∈ ⋆a ↔ ∃ x ∈ T, x ∈ ⋆a
 
@@ -1127,7 +1124,7 @@ theorem completeDistribLattice_isCompletelyStarrish (α : Type u) [CompleteDistr
 end StarrishPosets
 
 export StarrishPosets
-  (IsFreeStarLike IsStarrish atoms IsCompletelyStarrish
+  (IsFreeStarLike IsStarrish IsCompletelyStarrish
     distributiveLattice_isStarrish atoms_sup_eq_union
     completelyStarrish_imp_starrish atoms_sSup_eq_iUnion_atoms
     completeDistribLattice_isCompletelyStarrish)

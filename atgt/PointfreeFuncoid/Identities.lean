@@ -207,7 +207,7 @@ theorem meet_domain_iff_fwd_not_least
     exact (meet_comm x (f.bwd (⊤ : β))).2 (by simpa [PointfreeFuncoid.domain] using hdomx)
 
 def IsSeparatorAtomistic (α : Type u) [CompleteLattice α] : Prop :=
-  ∀ x : α, x = sSup {a : α | a ∈ AlternativePrimaryFiltrators.atoms (⊤ : α) ∧ meet a x}
+  ∀ x : α, x = sSup {a : α | a ∈ atoms (⊤ : α) ∧ meet a x}
 
 theorem domain_eq_sSup_atoms_fwd_ne_bot
     {α : Type u} {β : Type v}
@@ -216,14 +216,14 @@ theorem domain_eq_sSup_atoms_fwd_ne_bot
     (h_atomistic : IsSeparatorAtomistic α)
     (f : PointfreeFuncoid (inferInstance : PartialOrder α) Y) :
     f.domain =
-      sSup {a : α | a ∈ AlternativePrimaryFiltrators.atoms (⊤ : α) ∧ f.fwd a ≠ (⊥ : β)} := by
+      sSup {a : α | a ∈ atoms (⊤ : α) ∧ f.fwd a ≠ (⊥ : β)} := by
   have hdom :
       f.domain =
-        sSup {a : α | a ∈ AlternativePrimaryFiltrators.atoms (⊤ : α) ∧ meet a f.domain} :=
+        sSup {a : α | a ∈ atoms (⊤ : α) ∧ meet a f.domain} :=
     h_atomistic f.domain
   have hset :
-      {a : α | a ∈ AlternativePrimaryFiltrators.atoms (⊤ : α) ∧ meet a f.domain} =
-      {a : α | a ∈ AlternativePrimaryFiltrators.atoms (⊤ : α) ∧ f.fwd a ≠ (⊥ : β)} := by
+      {a : α | a ∈ atoms (⊤ : α) ∧ meet a f.domain} =
+      {a : α | a ∈ atoms (⊤ : α) ∧ f.fwd a ≠ (⊥ : β)} := by
     ext a
     constructor
     · intro ha
@@ -241,8 +241,8 @@ theorem domain_eq_sSup_atoms_fwd_ne_bot
         exact ha.2 (le_antisymm (hleast ⊥) bot_le)
       exact (meet_domain_iff_fwd_not_least (f := f) (x := a)).2 h_notleast
   have hsSup :
-      sSup {a : α | a ∈ AlternativePrimaryFiltrators.atoms (⊤ : α) ∧ meet a f.domain} =
-        sSup {a : α | a ∈ AlternativePrimaryFiltrators.atoms (⊤ : α) ∧ f.fwd a ≠ (⊥ : β)} :=
+      sSup {a : α | a ∈ atoms (⊤ : α) ∧ meet a f.domain} =
+        sSup {a : α | a ∈ atoms (⊤ : α) ∧ f.fwd a ≠ (⊥ : β)} :=
     congrArg sSup hset
   exact hdom.trans hsSup
 
