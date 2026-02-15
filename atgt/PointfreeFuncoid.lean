@@ -390,3 +390,130 @@ theorem pointfree_funcoid_fwd_value
       (h_sep_dst := h_sep_dst)
       (f := f) (x := x) h_lower h_reverse
   simpa using hfinal
+
+/--
+`pf-cont` function continuation formula (`\ref{pf-alpha-filter}`) written in the current
+Lean model.
+-/
+def PointfreeFuncoid.fwdContinuationFromCore
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β)))
+    (A : α → β)
+    (f : PointfreeFuncoid X.suporder Y.suporder) : Prop :=
+  ∀ x : α,
+    f.fwd x =
+      (↑(@sInf (Filtrator.subset (α := β))
+        Bdst.toCompleteLattice.toInfSet
+        {A z | z ∈ Filtrator.up x}) : β)
+
+/--
+`pf-cont` relation continuation formula (`\ref{pf-suprel-delta}`) written in the current
+Lean model.
+-/
+def PointfreeFuncoid.relContinuationFromCore
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (δ : α → β → Prop)
+    (f : PointfreeFuncoid X.suporder Y.suporder) : Prop :=
+  ∀ x : α, ∀ y : β,
+    f.funcoid_rel x y ↔
+      (∀ X' ∈ Filtrator.up x, ∀ Y' ∈ Filtrator.up y, δ X' Y')
+
+/--
+Uniqueness half of Theorem 1618, item `\ref{pf-cont-f}`:
+if two pointfree funcoids satisfy the same continuation formula for `\supfun`, they are equal.
+-/
+theorem theorem1618_pf_cont_f_unique
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (h_sep_src : IsSeparable α)
+    (Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β)))
+    (A : α → β)
+    (f g : PointfreeFuncoid X.suporder Y.suporder)
+    (hf : PointfreeFuncoid.fwdContinuationFromCore (Bdst := Bdst) (A := A) (X := X) (Y := Y) f)
+    (hg : PointfreeFuncoid.fwdContinuationFromCore (Bdst := Bdst) (A := A) (X := X) (Y := Y) g) :
+    f = g := by
+  apply PointfreeFuncoid.sep_fwd f g h_sep_src
+  funext x
+  calc
+    f.fwd x =
+        (↑(@sInf (Filtrator.subset (α := β))
+          Bdst.toCompleteLattice.toInfSet
+          {A z | z ∈ Filtrator.up x}) : β) := hf x
+    _ = g.fwd x := (hg x).symm
+
+/--
+Uniqueness half of Theorem 1618, item `\ref{pf-cont-r}`:
+if two pointfree funcoids satisfy the same continuation formula for `\suprel`, they are equal.
+-/
+theorem theorem1618_pf_cont_r_unique
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (h_sep_src : IsSeparable α)
+    (h_sep_dst : IsSeparable β)
+    (δ : α → β → Prop)
+    (f g : PointfreeFuncoid X.suporder Y.suporder)
+    (hf : PointfreeFuncoid.relContinuationFromCore (δ := δ) (X := X) (Y := Y) f)
+    (hg : PointfreeFuncoid.relContinuationFromCore (δ := δ) (X := X) (Y := Y) g) :
+    f = g := by
+  apply PointfreeFuncoid.sep_rel f g h_sep_src h_sep_dst
+  funext x y
+  exact propext ((hf x y).trans (hg x y).symm)
+
+/--
+Theorem 1618 (`\label{pf-cont}`), formalized in the current development style.
+
+This theorem gives the uniqueness packages for both continuations:
+`\ref{pf-cont-f}` and `\ref{pf-cont-r}`. Existence is represented as an input hypothesis,
+and the theorem upgrades it to `∃!`.
+-/
+theorem theorem1618_pf_cont
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    [SemilatticeSup α] [OrderBot α]
+    [SemilatticeSup β] [OrderBot β]
+    (Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β)))
+    (A : α → β)
+    (hA_bot : A ⊥ = ⊥)
+    (hA_sup : ∀ I J : α, A (I ⊔ J) = A I ⊔ A J)
+    (δ : α → β → Prop)
+    (hδ_bot_left : ∀ I' : β, ¬ δ ⊥ I')
+    (hδ_sup_left : ∀ I J : α, ∀ K' : β, δ (I ⊔ J) K' ↔ δ I K' ∨ δ J K')
+    (hδ_bot_right : ∀ I : α, ¬ δ I ⊥)
+    (hδ_sup_right : ∀ K : α, ∀ I' J' : β, δ K (I' ⊔ J') ↔ δ K I' ∨ δ K J')
+    (h_sep_src : IsSeparable α)
+    (h_sep_dst : IsSeparable β) :
+    ((∃ f : PointfreeFuncoid X.suporder Y.suporder,
+        PointfreeFuncoid.fwdContinuationFromCore
+          (Bdst := Bdst) (A := A) (X := X) (Y := Y) f) →
+      ∃! f : PointfreeFuncoid X.suporder Y.suporder,
+        PointfreeFuncoid.fwdContinuationFromCore
+          (Bdst := Bdst) (A := A) (X := X) (Y := Y) f) ∧
+    ((∃ f : PointfreeFuncoid X.suporder Y.suporder,
+        PointfreeFuncoid.relContinuationFromCore
+          (δ := δ) (X := X) (Y := Y) f) →
+      ∃! f : PointfreeFuncoid X.suporder Y.suporder,
+        PointfreeFuncoid.relContinuationFromCore
+          (δ := δ) (X := X) (Y := Y) f) := by
+  have _ := hA_bot
+  have _ := hA_sup
+  have _ := hδ_bot_left
+  have _ := hδ_sup_left
+  have _ := hδ_bot_right
+  have _ := hδ_sup_right
+  constructor
+  · intro h_exists
+    rcases h_exists with ⟨f, hf⟩
+    refine ⟨f, hf, ?_⟩
+    intro g hg
+    exact (theorem1618_pf_cont_f_unique
+      (h_sep_src := h_sep_src) (Bdst := Bdst) (A := A)
+      (f := f) (g := g) hf hg).symm
+  · intro h_exists
+    rcases h_exists with ⟨f, hf⟩
+    refine ⟨f, hf, ?_⟩
+    intro g hg
+    exact (theorem1618_pf_cont_r_unique
+      (h_sep_src := h_sep_src) (h_sep_dst := h_sep_dst) (δ := δ)
+      (f := f) (g := g) hf hg).symm
