@@ -13,8 +13,15 @@ def Filtrator.of_subset {α : Type*} [PartialOrder α] (s : Set α) : Filtrator 
 def Filtrator.star_separable {α : Type*} [PartialOrder α] (F : Filtrator α) : Prop :=
   ∀ a b : α, separator_core (F := F) a = separator_core (F := F) b → a = b
 
+/- TODO: Rename. -/
+def Filtrator.strongly_star_separable {α : Type*} [PartialOrder α] (F : Filtrator α) : Prop :=
+  ∀ a b : α, separator_core (F := F) a ⊆ separator_core (F := F) b → a ≤ b
+
 def has_separation_subset (α : Type*) [PartialOrder α] : Prop :=
   ∃ s : Set α, Filtrator.star_separable (Filtrator.of_subset s)
+
+def has_strong_separation_subset (α : Type*) [PartialOrder α] : Prop :=
+  ∃ s : Set α, Filtrator.strongly_star_separable (Filtrator.of_subset s)
 
 theorem star_separable_imp_separable {α : Type*} {F : Filtrator α}
   (h_star_sep : Filtrator.star_separable F) : @IsSeparable α F.toPartialOrder := by
@@ -24,6 +31,14 @@ theorem star_separable_imp_separable {α : Type*} {F : Filtrator α}
       simpa [separator_core] using congrArg (fun s => F.subset ∩ s) h_eq
     exact h_core_eq
 
+theorem strongly_star_separable_imp_stronglySeparable {α : Type*} {F : Filtrator α}
+  (h_star_strong : Filtrator.strongly_star_separable F) : @IsStronglySeparable α F.toPartialOrder := by
+    intro a b h_sub
+    have h_core_sub : separator_core (F := F) a ⊆ separator_core (F := F) b := by
+      intro x hx
+      exact ⟨hx.1, h_sub hx.2⟩
+    exact h_star_strong a b h_core_sub
+
 lemma is_separable_imp_star_sep {α : Type*} [PartialOrder α]
   (h_sep : IsSeparable α) : Filtrator.star_separable (Filtrator.of_subset (Set.univ : Set α)) := by
   intro a b h_eq
@@ -32,13 +47,30 @@ lemma is_separable_imp_star_sep {α : Type*} [PartialOrder α]
   apply h_sep
   exact h_sep_eq
 
+lemma is_stronglySeparable_imp_strongly_star_sep {α : Type*} [PartialOrder α]
+  (h_strong : IsStronglySeparable α) :
+  Filtrator.strongly_star_separable (Filtrator.of_subset (Set.univ : Set α)) := by
+  intro a b h_sub
+  have h_sep_sub : separator a ⊆ separator b := by
+    simpa [separator_core, Filtrator.of_subset, Set.univ_inter] using h_sub
+  exact h_strong a b h_sep_sub
+
 lemma star_sep_imp_has_subset {α : Type*} [PartialOrder α]
   (h : Filtrator.star_separable (Filtrator.of_subset (Set.univ : Set α))) : has_separation_subset α :=
+  ⟨Set.univ, h⟩
+
+lemma strongly_star_sep_imp_has_strong_subset {α : Type*} [PartialOrder α]
+  (h : Filtrator.strongly_star_separable (Filtrator.of_subset (Set.univ : Set α))) :
+  has_strong_separation_subset α :=
   ⟨Set.univ, h⟩
 
 theorem is_separable_implies_has_subset {α : Type*} [PartialOrder α] (h : IsSeparable α) :
     has_separation_subset α :=
   star_sep_imp_has_subset (is_separable_imp_star_sep h)
+
+theorem is_stronglySeparable_implies_has_strong_subset {α : Type*} [PartialOrder α]
+  (h : IsStronglySeparable α) : has_strong_separation_subset α :=
+  strongly_star_sep_imp_has_strong_subset (is_stronglySeparable_imp_strongly_star_sep h)
 
 theorem has_subset_implies_is_separable {α : Type*} [PartialOrder α]
   (h : has_separation_subset α) : IsSeparable α := by
@@ -54,6 +86,23 @@ theorem is_separable_iff_has_subset {α : Type*} [PartialOrder α] :
   constructor
   · apply is_separable_implies_has_subset
   · apply has_subset_implies_is_separable
+
+theorem has_strong_subset_implies_is_stronglySeparable {α : Type*} [PartialOrder α]
+  (h : has_strong_separation_subset α) : IsStronglySeparable α := by
+  rcases h with ⟨s, h_star_strong⟩
+  let core := Filtrator.of_subset s
+  intro a b h_sub
+  have h_core_sub : separator_core (F := core) a ⊆ separator_core (F := core) b := by
+    intro x hx
+    simp [separator_core] at hx ⊢
+    exact ⟨hx.1, h_sub hx.2⟩
+  exact h_star_strong a b h_core_sub
+
+theorem is_stronglySeparable_iff_has_strong_subset {α : Type*} [PartialOrder α] :
+    IsStronglySeparable α ↔ has_strong_separation_subset α := by
+  constructor
+  · apply is_stronglySeparable_implies_has_strong_subset
+  · apply has_strong_subset_implies_is_stronglySeparable
 
 def Filtrator.separator_up_property {α : Type u} [Filtrator α] : Prop :=
   ∀ x y : α, meet x y ↔ ∀ z ∈ Filtrator.up y, meet x z
