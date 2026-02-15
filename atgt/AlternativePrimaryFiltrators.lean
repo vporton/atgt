@@ -720,11 +720,11 @@ def freeStar_filtrator_primary : Filtrator.Primary (FreeStar (α := α)) := by
     rcases hF with ⟨G, hG, rfl⟩
     rcases hG with ⟨a, rfl⟩
     refine ⟨a, ?_⟩
-    simpa [hcomp_eval, freeStar_principal, filterSet_principal]
+    simp [hcomp_eval, freeStar_principal, filterSet_principal]
   · intro hF
     rcases hF with ⟨a, rfl⟩
     refine ⟨PosetFilter.principal (U := (inferInstance : PartialOrder α)) a, ⟨a, rfl⟩, ?_⟩
-    simpa [hcomp_eval, freeStar_principal, filterSet_principal]
+    simp [hcomp_eval, freeStar_principal, filterSet_principal]
 
 theorem freeStar_filtrator_is_primary :
     ∃ hprim : Filtrator.Primary.{u, u} (FreeStar (α := α)),
@@ -738,8 +738,7 @@ theorem freeStar_filtrator_strongly_star_separable_of_bridge
         freeStar_principal α a ∈ separator_core (F := freeStar_filtrator α) S ↔
           a ∈ S.elements) :
     Filtrator.strongly_star_separable (freeStar_filtrator α) := by
-  intro S T hsub
-  intro a haS
+  intro S T hsub a haS
   have ha_coreS :
       freeStar_principal α a ∈ separator_core (F := freeStar_filtrator α) S :=
     (hbridge a S).2 haS
