@@ -731,6 +731,33 @@ theorem freeStar_filtrator_is_primary :
       hprim.toFiltrator = freeStar_filtrator α := by
   exact ⟨freeStar_filtrator_primary (α := α), rfl⟩
 
+theorem freeStar_filtrator_strongly_star_separable_of_bridge
+    (hbridge :
+      ∀ a : α, ∀ S : FreeStar (α := α),
+        freeStar_principal α a ∈ separator_core (F := freeStar_filtrator α) S ↔
+          a ∈ S.elements) :
+    Filtrator.strongly_star_separable (freeStar_filtrator α) := by
+  intro S T hsub
+  intro a haS
+  have ha_coreS :
+      freeStar_principal α a ∈ separator_core (F := freeStar_filtrator α) S :=
+    (hbridge a S).2 haS
+  have ha_coreT :
+      freeStar_principal α a ∈ separator_core (F := freeStar_filtrator α) T :=
+    hsub ha_coreS
+  exact (hbridge a T).1 ha_coreT
+
+theorem freeStar_filtrator_bridge
+    (a : α) (S : FreeStar (α := α)) :
+    freeStar_principal α a ∈ separator_core (F := freeStar_filtrator α) S ↔
+      a ∈ S.elements := by
+  sorry
+
+theorem freeStar_filtrator_strongly_star_separable
+    : Filtrator.strongly_star_separable (freeStar_filtrator α) := by
+  exact freeStar_filtrator_strongly_star_separable_of_bridge (α := α)
+    (fun a S => freeStar_filtrator_bridge (α := α) a S)
+
 theorem filterSet_principal_has_min (a : α) :
     ∃ z ∈ (filterSet_principal α a).elements, ∀ p ∈ (filterSet_principal α a).elements, z ≤ p := by
   refine ⟨a, ?_, ?_⟩
