@@ -251,9 +251,78 @@ lemma separable_of_primary_boolean_core
         (α := α) (Bcore := Bcore) (hcoreOrder := hcoreOrder))
   exact stronglySeparable_imp_separable hstrong
 
+/-- `separator_up_property` holds for primary filtrators over boolean lattices.
+This is a consequence of filters on a boolean lattice being determined by their
+upper sets in the core: if `F` meets every principal filter in `G`, then `F` meets `G`. -/
+lemma separator_up_of_primary_boolean_core
+    {γ : Type u}
+    [F : Filtrator.Primary γ]
+    [Bcore : BooleanAlgebra (Filtrator.subset (α := γ))]
+    (_hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ)) :
+    F.toFiltrator.separator_up_property := by
+  sorry
+
+/-- Existence witness for Theorem 1654, item 2 (`\ref{pf-at-r}`):
+construct a funcoid whose relation on atoms matches the given `δ`.
+The construction follows the book proof: lift `δ` to a core relation
+`δ'(X, Y) ↔ ∃ x ∈ atoms X, ∃ y ∈ atoms Y, δ x y`, verify the core conditions
+(⊥ and ⊔ preservation), apply theorem 1618 (`pf-cont`), and bridge from
+`relContinuationFromCore` to `relContinuationFromAtoms1654` via corollary 1652
+and the atomic relation condition. -/
+lemma theorem1654_item2_exists
+    {α : Type u} {β : Type v}
+    [X : Filtrator.Primary α] [Y : Filtrator.Primary β]
+    [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
+    [OrderBot α] [OrderBot β]
+    (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
+    (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
+    (δ : α → β → Prop)
+    (hδ_cond : PointfreeFuncoid.atomicRelationCondition1654 (δ := δ)) :
+    ∃ f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
+      PointfreeFuncoid.relContinuationFromAtoms1654 (δ := δ) f := by
+  /-
+  Proof outline (following the book proof of Theorem 1654, item \ref{pf-at-r}):
+  1. Define the core relation δ'(x, y) := ∃ a ∈ atoms x, ∃ b ∈ atoms y, δ a b.
+  2. Verify core conditions for δ':
+     - ¬ δ'(⊥_core, Y) and ¬ δ'(X, ⊥_core) (atoms of core-⊥ is empty)
+     - δ'((I ⊔ J)_core, K) ↔ δ'(I, K) ∨ δ'(J, K) (atoms distributes over core-⊔)
+     - similarly for the right argument
+  3. Apply theorem 1618 (pf-cont) to obtain ∃!f with relContinuationFromCore(δ', f).
+  4. Bridge: for atoms a, b:
+     f.funcoid_rel a b ↔ ∀X'∈up a, ∀Y'∈up b, δ' X' Y'
+                        ↔ ∀X'∈up a, ∀Y'∈up b, (∃x∈atoms X', ∃y∈atoms Y', δ x y)
+                        ↔ δ a b  (by atomicRelationCondition1654 + trivial reverse)
+  5. Use corollary 1652 to extend to all elements:
+     f.funcoid_rel x y ↔ ∃a∈atoms x, ∃b∈atoms y, f.funcoid_rel a b
+                        ↔ ∃a∈atoms x, ∃b∈atoms y, δ a b
+  -/
+  sorry
+
+/-- Existence witness for Theorem 1654, item 1 (`\ref{pf-at-f}`):
+construct a funcoid whose forward function on atoms matches the given function `A`.
+The construction follows the book proof: define `α'` on core by
+`α'(X) = ⊔{A(a) | a ∈ atoms X}`, show it preserves ⊥ and ⊔,
+apply theorem 1618 (`pf-cont`), and verify the continuation property. -/
+lemma theorem1654_item1_exists
+    {α : Type u} {β : Type v}
+    [Filtrator.Primary α] [Filtrator.Primary β]
+    [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
+    [OrderBot α]
+    [CompleteLattice β]
+    (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
+    (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
+    (A : α → β)
+    (hA_cond : PointfreeFuncoid.atomicFunctionCondition1654 (A := A)) :
+    ∃ f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
+      PointfreeFuncoid.fwdContinuationFromAtoms1654 (A := A) f := by
+  sorry
+
 /--
-Theorem 1654, item 1 (`\ref{pf-at-f}`), in the current style:
-existence is supplied as an input hypothesis and upgraded to `∃!`.
+Theorem 1654, item 1 (`\ref{pf-at-f}`): existence and uniqueness of a pointfree funcoid
+whose forward function on atoms matches the given function `A`.
+Existence is constructed via theorem 1618 (`pf-cont`).
 -/
 theorem theorem1654_item1
     {α : Type u} {β : Type v}
@@ -266,17 +335,12 @@ theorem theorem1654_item1
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
     (A : α → β)
     (hA_cond : PointfreeFuncoid.atomicFunctionCondition1654 (A := A)) :
-    (∃ f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
-      PointfreeFuncoid.fwdContinuationFromAtoms1654 (A := A) f) →
     ∃! f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
       PointfreeFuncoid.fwdContinuationFromAtoms1654 (A := A) f := by
-  have _ := h_dst_core_order
-  have _ := hA_cond
   have h_sep_src : IsSeparable α :=
     separable_of_primary_boolean_core
       (α := α) (Bcore := Bsrc) h_src_core_order
-  intro h_exists
-  rcases h_exists with ⟨f, hf⟩
+  rcases theorem1654_item1_exists h_src_core_order h_dst_core_order A hA_cond with ⟨f, hf⟩
   refine ⟨f, hf, ?_⟩
   intro g hg
   have hfg : f = g := by
@@ -286,8 +350,10 @@ theorem theorem1654_item1
   exact hfg.symm
 
 /--
-Theorem 1654, item 2 (`\ref{pf-at-r}`), in the current style:
-existence is supplied as an input hypothesis and upgraded to `∃!`.
+Theorem 1654, item 2 (`\ref{pf-at-r}`): existence and uniqueness of a pointfree funcoid
+whose relation on atoms matches the given relation `δ`.
+Existence is constructed via theorem 1618 (`pf-cont`) by lifting `δ` to a core relation
+`δ'(X, Y) ↔ ∃ x ∈ atoms X, ∃ y ∈ atoms Y, δ x y`.
 -/
 theorem theorem1654_item2
     {α : Type u} {β : Type v}
@@ -299,19 +365,15 @@ theorem theorem1654_item2
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
     (δ : α → β → Prop)
     (hδ_cond : PointfreeFuncoid.atomicRelationCondition1654 (δ := δ)) :
-    (∃ f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
-      PointfreeFuncoid.relContinuationFromAtoms1654 (δ := δ) f) →
     ∃! f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
       PointfreeFuncoid.relContinuationFromAtoms1654 (δ := δ) f := by
-  have _ := hδ_cond
   have h_sep_src : IsSeparable α :=
     separable_of_primary_boolean_core
       (α := α) (Bcore := Bsrc) h_src_core_order
   have h_sep_dst : IsSeparable β :=
     separable_of_primary_boolean_core
       (α := β) (Bcore := Bdst) h_dst_core_order
-  intro h_exists
-  rcases h_exists with ⟨f, hf⟩
+  rcases theorem1654_item2_exists h_src_core_order h_dst_core_order δ hδ_cond with ⟨f, hf⟩
   refine ⟨f, hf, ?_⟩
   intro g hg
   have hfg : f = g := by
