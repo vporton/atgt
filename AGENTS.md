@@ -1,5 +1,7 @@
 After finishing updating the Lean code, verify it by running `lake build`.
 
+If you can't derive the theorem conclusion from conditions, don't silently add a new condition, but rather ask the user.
+
 For a chain of implications explicitly referred by words "implication tuple" in informal theorem condition (1)->(2)->...->(n) create a namespace with implications:
 (1)->(2), (2)->(3), ..., (n-1)->(n)
 and as their consequences (1)->(n), (2)->(n), ..., (n-2)->(n).
