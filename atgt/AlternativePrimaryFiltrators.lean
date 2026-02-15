@@ -20,12 +20,6 @@ structure IdealSet [PartialOrder α] where
   cup_elements {a b : α} :
       a ∈ elements ∧ b ∈ elements ↔ ∃ z : α, z ∈ elements ∧ a ≤ z ∧ b ≤ z
 
-structure FreeStar [PartialOrder α] where
-  elements: Set α
-  non_univ: elements ≠ Set.univ
-  cup_not_elements {a b : α} :
-      a ∉ elements ∧ b ∉ elements ↔ ∃ z : α, z ∉ elements ∧ a ≤ z ∧ b ≤ z
-
 @[ext]
 lemma IdealSet.ext [PartialOrder α] (F G : IdealSet (α := α))
     (h : F.elements = G.elements) : F = G := by
@@ -33,6 +27,12 @@ lemma IdealSet.ext [PartialOrder α] (F G : IdealSet (α := α))
   cases G
   cases h
   rfl
+
+structure FreeStar [PartialOrder α] where
+  elements: Set α
+  non_univ: elements ≠ Set.univ
+  cup_not_elements {a b : α} :
+      a ∉ elements ∧ b ∉ elements ↔ ∃ z : α, z ∉ elements ∧ a ≤ z ∧ b ≤ z
 
 @[ext]
 lemma FreeStar.ext [PartialOrder α] (F G : FreeStar (α := α))
