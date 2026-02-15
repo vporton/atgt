@@ -209,6 +209,32 @@ instance {α: Type*}(U : PartialOrder α) : PartialOrder (PosetFilter U) where
     apply PosetFilterBase.ext_elements
     exact Set.Subset.antisymm hGF hFG
 
+def PosetFilter.castOrderIso {α : Type*} {U V : PartialOrder α}
+    (h : U = V) : PosetFilter U ≃o PosetFilter V where
+  toEquiv :=
+    { toFun := fun F => h ▸ F
+      invFun := fun G => h.symm ▸ G
+      left_inv := by
+        intro F
+        cases h
+        rfl
+      right_inv := by
+        intro G
+        cases h
+        rfl }
+  map_rel_iff' := by
+    intro F G
+    cases h
+    rfl
+
+@[simp]
+lemma PosetFilter.castOrderIso_principal {α : Type*} {U V : PartialOrder α}
+    (h : U = V) (x : α) :
+    PosetFilter.castOrderIso h (PosetFilter.principal (U := U) x) =
+      PosetFilter.principal (U := V) x := by
+  cases h
+  rfl
+
 lemma le_principal_iff_subset {α: Type*}{U : PartialOrder α} (F : PosetFilter U) (x : α) : F ≤ PosetFilter.principal x ↔ x ∈ F.elements := by
   letI : PartialOrder α := U
   constructor

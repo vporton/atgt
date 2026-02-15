@@ -421,6 +421,411 @@ def PointfreeFuncoid.relContinuationFromCore
     f.funcoid_rel x y ↔
       (∀ X' ∈ Filtrator.up x, ∀ Y' ∈ Filtrator.up y, δ X' Y')
 
+open AlternativePrimaryFiltrators
+open AlternativePrimaryFiltrators.PrincipalConstructions
+
+lemma principal_core_separator_iff_meet
+    {β : Type u} [Filtrator.Primary β]
+    (b : β) (y : Filtrator.subset (α := β)) :
+    (PosetFilter.principal (U := Filtrator.suborder (α := β)) y ∈
+      separator (Filtrator.Primary.to_poset_filter (α := β) b)) ↔ meet b y.1 := by
+  have hsep : y.1 ∈ separator b ↔
+      Filtrator.Primary.to_filters_iso.toRelIso y.1 ∈
+        separator (Filtrator.Primary.to_filters_iso.toRelIso b) :=
+    (StrongSeparability.orderIso_mem_separator_iff
+      (e := Filtrator.Primary.to_filters_iso.toRelIso)
+      (x := y.1) (a := b))
+  have hy : Filtrator.Primary.to_filters_iso.toRelIso y.1 =
+      PosetFilter.principal (U := Filtrator.suborder (α := β)) y := by
+    calc
+      Filtrator.Primary.to_filters_iso.toRelIso y.1 =
+          Filtrator.Primary.to_poset_filter (α := β) y.1 :=
+        Filtrator.Primary.to_filters_iso_eq_to_poset_filter (α := β) y.1
+      _ = PosetFilter.principal (U := Filtrator.suborder (α := β)) y := by
+        ext z
+        rfl
+  have hb : Filtrator.Primary.to_filters_iso.toRelIso b =
+      Filtrator.Primary.to_poset_filter (α := β) b :=
+    Filtrator.Primary.to_filters_iso_eq_to_poset_filter (α := β) b
+  have hfinal : y.1 ∈ separator b ↔
+      PosetFilter.principal (U := Filtrator.suborder (α := β)) y ∈
+        separator (Filtrator.Primary.to_poset_filter (α := β) b) := by
+    simpa [hy, hb] using hsep
+  simpa [separator, meet_comm] using hfinal.symm
+
+lemma exists_core_value_of_freeStar
+    {β : Type u} [Filtrator.Primary β]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
+    (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
+    (S : @FreeStar (Filtrator.subset (α := β)) Bdst.toPartialOrder) :
+    letI : PartialOrder (Filtrator.subset (α := β)) := Bdst.toPartialOrder
+    ∃ b : β, ∀ y : Filtrator.subset (α := β),
+      y ∈ (@FreeStar.elements (Filtrator.subset (α := β)) Bdst.toPartialOrder S) ↔ meet b y.1 := by
+  letI : PartialOrder (Filtrator.subset (α := β)) := Bdst.toPartialOrder
+  let F_through : FilterSet (U := (inferInstance : PartialOrder (Filtrator.subset (α := β)))) :=
+    freeStar_to_filterSet S
+  let F_pos : PosetFilter (U := (inferInstance : PartialOrder (Filtrator.subset (α := β)))) :=
+    PosetFilter.ThroughEquiv.toPosetFilter F_through
+  let F_sub : PosetFilter (U := Filtrator.suborder (α := β)) :=
+    PosetFilter.castOrderIso h_dst_core_order F_pos
+  rcases Filtrator.Primary.exists_to_poset_filter_eq (α := β) F_sub with ⟨b, hb⟩
+  refine ⟨b, ?_⟩
+  intro y
+  have h1 : y ∈ (@FreeStar.elements (Filtrator.subset (α := β)) Bdst.toPartialOrder S) ↔
+      filterSet_principal (Filtrator.subset (α := β)) y ∈ separator F_through := by
+    constructor
+    · intro hy
+      have hnot_compl : yᶜ ∉ F_through.elements := by
+        intro hyc
+        exact ((compl_mem_freeStar_to_filterSet_iff_not_mem
+          (α := Filtrator.subset (α := β)) y S).1 (by simpa [F_through] using hyc)) hy
+      exact (filterSet_principal_mem_separator_iff_not_compl_mem
+        (α := Filtrator.subset (α := β)) y F_through).2 hnot_compl
+    · intro hy
+      have hnot_compl : yᶜ ∉ F_through.elements :=
+        (filterSet_principal_mem_separator_iff_not_compl_mem
+          (α := Filtrator.subset (α := β)) y F_through).1 hy
+      by_contra hny
+      exact hnot_compl ((compl_mem_freeStar_to_filterSet_iff_not_mem
+        (α := Filtrator.subset (α := β)) y S).2 hny)
+  have h2 :
+      filterSet_principal (Filtrator.subset (α := β)) y ∈ separator F_through ↔
+      PosetFilter.principal (U := (inferInstance : PartialOrder (Filtrator.subset (α := β)))) y ∈
+        separator F_pos := by
+    simpa [filterSet_principal, F_pos] using
+      (StrongSeparability.orderIso_mem_separator_iff
+        (e := filterSetOrderIsoPosetFilter (α := Filtrator.subset (α := β)))
+        (x := filterSet_principal (Filtrator.subset (α := β)) y)
+        (a := F_through))
+  have h3 :
+      PosetFilter.principal (U := (inferInstance : PartialOrder (Filtrator.subset (α := β)))) y ∈
+        separator F_pos ↔
+      PosetFilter.principal (U := Filtrator.suborder (α := β)) y ∈
+        separator F_sub := by
+    simpa [F_sub, PosetFilter.castOrderIso_principal (h := h_dst_core_order) y] using
+      (StrongSeparability.orderIso_mem_separator_iff
+        (e := PosetFilter.castOrderIso h_dst_core_order)
+        (x := PosetFilter.principal
+          (U := (inferInstance : PartialOrder (Filtrator.subset (α := β)))) y)
+        (a := F_pos))
+  have h4 :
+      PosetFilter.principal (U := Filtrator.suborder (α := β)) y ∈
+        separator F_sub ↔
+      PosetFilter.principal (U := Filtrator.suborder (α := β)) y ∈
+        separator (Filtrator.Primary.to_poset_filter (α := β) b) := by
+    simp [hb]
+  calc
+    y ∈ (@FreeStar.elements (Filtrator.subset (α := β)) Bdst.toPartialOrder S) ↔
+      filterSet_principal (Filtrator.subset (α := β)) y ∈ separator F_through := h1
+    _ ↔
+      PosetFilter.principal (U := (inferInstance : PartialOrder (Filtrator.subset (α := β)))) y ∈
+        separator F_pos := h2
+    _ ↔
+      PosetFilter.principal (U := Filtrator.suborder (α := β)) y ∈
+        separator F_sub := h3
+    _ ↔
+      PosetFilter.principal (U := Filtrator.suborder (α := β)) y ∈
+        separator (Filtrator.Primary.to_poset_filter (α := β) b) := h4
+    _ ↔ meet b y.1 := principal_core_separator_iff_meet (b := b) (y := y)
+
+lemma delta_left_mono_core
+    {α : Type u} {β : Type v}
+    [Filtrator.Primary α] [Filtrator.Primary β]
+    [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
+    (δ : α → β → Prop)
+    (hδ_sup_left :
+      ∀ I J : Filtrator.subset (α := α), ∀ K' : Filtrator.subset (α := β),
+        δ (I ⊔ J).1 K'.1 ↔ δ I.1 K'.1 ∨ δ J.1 K'.1)
+    {I J : Filtrator.subset (α := α)} {K' : Filtrator.subset (α := β)}
+    (hIJ : @LE.le (Filtrator.subset (α := α)) Bsrc.toPartialOrder.toLE I J) :
+    δ I.1 K'.1 → δ J.1 K'.1 := by
+  intro hIK
+  have hsup : I ⊔ J = J := sup_eq_right.mpr hIJ
+  have h_eq : δ J.1 K'.1 ↔ δ I.1 K'.1 ∨ δ J.1 K'.1 := by
+    calc
+      δ J.1 K'.1 ↔ δ (I ⊔ J).1 K'.1 := by simp [hsup]
+      _ ↔ δ I.1 K'.1 ∨ δ J.1 K'.1 := hδ_sup_left I J K'
+  exact h_eq.2 (Or.inl hIK)
+
+lemma delta_left_antitone_not_core
+    {α : Type u} {β : Type v}
+    [Filtrator.Primary α] [Filtrator.Primary β]
+    [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
+    (δ : α → β → Prop)
+    (hδ_sup_left :
+      ∀ I J : Filtrator.subset (α := α), ∀ K' : Filtrator.subset (α := β),
+        δ (I ⊔ J).1 K'.1 ↔ δ I.1 K'.1 ∨ δ J.1 K'.1)
+    {I J : Filtrator.subset (α := α)} {K' : Filtrator.subset (α := β)}
+    (hIJ : @LE.le (Filtrator.subset (α := α)) Bsrc.toPartialOrder.toLE I J) :
+    ¬ δ J.1 K'.1 → ¬ δ I.1 K'.1 := by
+  intro hJ hI
+  exact hJ (delta_left_mono_core (δ := δ) (hδ_sup_left := hδ_sup_left) hIJ hI)
+
+lemma delta_right_mono_core
+    {α : Type u} {β : Type v}
+    [Filtrator.Primary α] [Filtrator.Primary β]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
+    (δ : α → β → Prop)
+    (hδ_sup_right :
+      ∀ K : Filtrator.subset (α := α), ∀ I' J' : Filtrator.subset (α := β),
+        δ K.1 (I' ⊔ J').1 ↔ δ K.1 I'.1 ∨ δ K.1 J'.1)
+    {K : Filtrator.subset (α := α)} {I' J' : Filtrator.subset (α := β)}
+    (hIJ : @LE.le (Filtrator.subset (α := β)) Bdst.toPartialOrder.toLE I' J') :
+    δ K.1 I'.1 → δ K.1 J'.1 := by
+  intro hKI
+  have hsup : I' ⊔ J' = J' := sup_eq_right.mpr hIJ
+  have h_eq : δ K.1 J'.1 ↔ δ K.1 I'.1 ∨ δ K.1 J'.1 := by
+    calc
+      δ K.1 J'.1 ↔ δ K.1 (I' ⊔ J').1 := by simp [hsup]
+      _ ↔ δ K.1 I'.1 ∨ δ K.1 J'.1 := hδ_sup_right K I' J'
+  exact h_eq.2 (Or.inl hKI)
+
+noncomputable def relRightCoreFreeStar
+    {α : Type u} {β : Type v}
+    [Filtrator.Primary α] [Filtrator.Primary β]
+    [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
+    (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
+    (δ : α → β → Prop)
+    (hδ_bot_right : ∀ I : Filtrator.subset (α := α), ¬ δ I.1 (⊥ : Filtrator.subset (α := β)).1)
+    (hδ_sup_left :
+      ∀ I J : Filtrator.subset (α := α), ∀ K' : Filtrator.subset (α := β),
+        δ (I ⊔ J).1 K'.1 ↔ δ I.1 K'.1 ∨ δ J.1 K'.1)
+    (hδ_sup_right :
+      ∀ K : Filtrator.subset (α := α), ∀ I' J' : Filtrator.subset (α := β),
+        δ K.1 (I' ⊔ J').1 ↔ δ K.1 I'.1 ∨ δ K.1 J'.1)
+    (x : α) :
+    @FreeStar (Filtrator.subset (α := β)) Bdst.toPartialOrder := by
+  classical
+  letI : PartialOrder (Filtrator.subset (α := α)) := Bsrc.toPartialOrder
+  letI : PartialOrder (Filtrator.subset (α := β)) := Bdst.toPartialOrder
+  refine
+    { elements := {y : Filtrator.subset (α := β) | ∀ X' ∈ Filtrator.up x, δ X' y.1}
+      non_univ := ?_
+      cup_not_elements := ?_ }
+  · intro h_univ
+    rcases Filtrator.Primary.exists_up_in_subset (α := α) x with ⟨X0, hX0⟩
+    have hbot_mem : (⊥ : Filtrator.subset (α := β)) ∈
+        {y : Filtrator.subset (α := β) | ∀ X' ∈ Filtrator.up x, δ X' y.1} := by
+      simp [h_univ]
+    have hbot_rel : ∀ X' ∈ Filtrator.up x, δ X' (⊥ : Filtrator.subset (α := β)).1 := hbot_mem
+    exact (hδ_bot_right X0) (hbot_rel X0.1 ⟨X0.2, hX0⟩)
+  · intro a b
+    constructor
+    · intro hab
+      rcases not_forall.mp hab.1 with ⟨Xa, hXa_not⟩
+      have hXa_pair : Xa ∈ Filtrator.up x ∧ ¬ δ Xa a.1 := _root_.not_imp.mp hXa_not
+      rcases hXa_pair with ⟨hXa_up, hXa_nδ⟩
+      rcases not_forall.mp hab.2 with ⟨Xb, hXb_not⟩
+      have hXb_pair : Xb ∈ Filtrator.up x ∧ ¬ δ Xb b.1 := _root_.not_imp.mp hXb_not
+      rcases hXb_pair with ⟨hXb_up, hXb_nδ⟩
+      let Xa' : Filtrator.subset (α := α) := ⟨Xa, hXa_up.1⟩
+      let Xb' : Filtrator.subset (α := α) := ⟨Xb, hXb_up.1⟩
+      rcases Filtrator.Primary.directed_up_in_subset (α := α) x Xa' Xb' hXa_up.2 hXb_up.2 with
+        ⟨Xc, hXc_up, hXc_le_Xa, hXc_le_Xb⟩
+      have hXc_le_Xa_core : @LE.le (Filtrator.subset (α := α)) Bsrc.toPartialOrder.toLE Xc Xa' := by
+        have hsub : @LE.le (Filtrator.subset (α := α)) (Filtrator.suborder (α := α)).toLE Xc Xa' := hXc_le_Xa
+        simpa [h_src_core_order] using hsub
+      have hXc_le_Xb_core : @LE.le (Filtrator.subset (α := α)) Bsrc.toPartialOrder.toLE Xc Xb' := by
+        have hsub : @LE.le (Filtrator.subset (α := α)) (Filtrator.suborder (α := α)).toLE Xc Xb' := hXc_le_Xb
+        simpa [h_src_core_order] using hsub
+      have hXc_nδ_a : ¬ δ Xc.1 a.1 :=
+        delta_left_antitone_not_core (δ := δ) (hδ_sup_left := hδ_sup_left) hXc_le_Xa_core hXa_nδ
+      have hXc_nδ_b : ¬ δ Xc.1 b.1 :=
+        delta_left_antitone_not_core (δ := δ) (hδ_sup_left := hδ_sup_left) hXc_le_Xb_core hXb_nδ
+      have hXc_nδ_sup : ¬ δ Xc.1 (a ⊔ b).1 := by
+        intro hsup
+        have h_or : δ Xc.1 a.1 ∨ δ Xc.1 b.1 :=
+          (hδ_sup_right Xc a b).1 hsup
+        exact h_or.elim hXc_nδ_a hXc_nδ_b
+      refine ⟨a ⊔ b, ?_, le_sup_left, le_sup_right⟩
+      intro h_all
+      exact hXc_nδ_sup (h_all Xc.1 ⟨Xc.2, hXc_up⟩)
+    · rintro ⟨z, hz_not, haz, hbz⟩
+      have hna : ¬ ∀ X' ∈ Filtrator.up x, δ X' a.1 := by
+        intro h_all
+        apply hz_not
+        intro X' hX'
+        have hXa : δ ((⟨X', hX'.1⟩ : Filtrator.subset (α := α)).1) a.1 := by
+          simpa using (h_all X' hX')
+        have haz_core : @LE.le (Filtrator.subset (α := β)) Bdst.toPartialOrder.toLE a z := haz
+        have hzrel : δ ((⟨X', hX'.1⟩ : Filtrator.subset (α := α)).1) z.1 :=
+          delta_right_mono_core (δ := δ) (hδ_sup_right := hδ_sup_right)
+            (K := ⟨X', hX'.1⟩) haz_core hXa
+        simpa using hzrel
+      have hnb : ¬ ∀ X' ∈ Filtrator.up x, δ X' b.1 := by
+        intro h_all
+        apply hz_not
+        intro X' hX'
+        have hXb : δ ((⟨X', hX'.1⟩ : Filtrator.subset (α := α)).1) b.1 := by
+          simpa using (h_all X' hX')
+        have hbz_core : @LE.le (Filtrator.subset (α := β)) Bdst.toPartialOrder.toLE b z := hbz
+        have hzrel : δ ((⟨X', hX'.1⟩ : Filtrator.subset (α := α)).1) z.1 :=
+          delta_right_mono_core (δ := δ) (hδ_sup_right := hδ_sup_right)
+            (K := ⟨X', hX'.1⟩) hbz_core hXb
+        simpa using hzrel
+      exact ⟨hna, hnb⟩
+
+noncomputable def relLeftCoreFreeStar
+    {α : Type u} {β : Type v}
+    [Filtrator.Primary α] [Filtrator.Primary β]
+    [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
+    (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
+    (δ : α → β → Prop)
+    (hδ_bot_left : ∀ I' : Filtrator.subset (α := β), ¬ δ (⊥ : Filtrator.subset (α := α)).1 I'.1)
+    (hδ_sup_right :
+      ∀ K : Filtrator.subset (α := α), ∀ I' J' : Filtrator.subset (α := β),
+        δ K.1 (I' ⊔ J').1 ↔ δ K.1 I'.1 ∨ δ K.1 J'.1)
+    (hδ_sup_left :
+      ∀ I J : Filtrator.subset (α := α), ∀ K' : Filtrator.subset (α := β),
+        δ (I ⊔ J).1 K'.1 ↔ δ I.1 K'.1 ∨ δ J.1 K'.1)
+    (y : β) :
+    @FreeStar (Filtrator.subset (α := α)) Bsrc.toPartialOrder := by
+  exact relRightCoreFreeStar
+    (α := β) (β := α)
+    (Bsrc := Bdst) (Bdst := Bsrc)
+    (h_src_core_order := h_dst_core_order)
+    (δ := fun y' x' => δ x' y')
+    (hδ_bot_right := hδ_bot_left)
+    (hδ_sup_left := fun I J K' => hδ_sup_right K' I J)
+    (hδ_sup_right := fun K I' J' => hδ_sup_left I' J' K)
+    y
+
+lemma separable_of_primary_boolean_core
+    {γ : Type u}
+    [Filtrator.Primary γ]
+    [Bcore : BooleanAlgebra (Filtrator.subset (α := γ))]
+    (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ)) :
+    IsSeparable γ := by
+  have hstrong : IsStronglySeparable γ := by
+    simpa [Filtrator.supset, Filtrator.suporder] using
+      (primary_imp_booleanStronglySeparableCore
+        (α := γ) (Bcore := Bcore) (hcoreOrder := hcoreOrder))
+  exact stronglySeparable_imp_separable hstrong
+
+noncomputable def theorem1618_rel_witness
+    {α : Type u} {β : Type v}
+    [X : Filtrator.Primary α] [Y : Filtrator.Primary β]
+    [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
+    (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
+    (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
+    (h_sep_up_src : (X.toFiltrator).separator_up_property)
+    (h_sep_up_dst : (Y.toFiltrator).separator_up_property)
+    (δ : α → β → Prop)
+    (hδ_bot_left : ∀ I' : Filtrator.subset (α := β), ¬ δ (⊥ : Filtrator.subset (α := α)).1 I'.1)
+    (hδ_sup_left : ∀ I J : Filtrator.subset (α := α), ∀ K' : Filtrator.subset (α := β),
+      δ (I ⊔ J).1 K'.1 ↔ δ I.1 K'.1 ∨ δ J.1 K'.1)
+    (hδ_bot_right : ∀ I : Filtrator.subset (α := α), ¬ δ I.1 (⊥ : Filtrator.subset (α := β)).1)
+    (hδ_sup_right : ∀ K : Filtrator.subset (α := α), ∀ I' J' : Filtrator.subset (α := β),
+      δ K.1 (I' ⊔ J').1 ↔ δ K.1 I'.1 ∨ δ K.1 J'.1) :
+    ∃ f : PointfreeFuncoid X.toFiltrator.suporder Y.toFiltrator.suporder,
+      PointfreeFuncoid.relContinuationFromCore (δ := δ) (X := X.toFiltrator) (Y := Y.toFiltrator) f := by
+  classical
+  let fwdVal : α → β :=
+    fun x => Classical.choose (
+      exists_core_value_of_freeStar
+        (β := β) (Bdst := Bdst) (h_dst_core_order := h_dst_core_order)
+        (S := relRightCoreFreeStar
+          (h_src_core_order := h_src_core_order)
+          (δ := δ) (hδ_bot_right := hδ_bot_right)
+          (hδ_sup_left := hδ_sup_left) (hδ_sup_right := hδ_sup_right)
+          x))
+  let bwdVal : β → α :=
+    fun y => Classical.choose (
+      exists_core_value_of_freeStar
+        (β := α) (Bdst := Bsrc) (h_dst_core_order := h_src_core_order)
+        (S := relLeftCoreFreeStar
+          (h_dst_core_order := h_dst_core_order)
+          (δ := δ) (hδ_bot_left := hδ_bot_left)
+          (hδ_sup_right := hδ_sup_right) (hδ_sup_left := hδ_sup_left)
+          y))
+  let f : PointfreeFuncoid X.toFiltrator.suporder Y.toFiltrator.suporder :=
+    { fwd := fwdVal
+      bwd := bwdVal
+      rev := by
+        intro x y
+        let R : Prop := ∀ X' ∈ Filtrator.up x, ∀ Y' ∈ Filtrator.up y, δ X' Y'
+        have hfwd_core : ∀ x0 : α, ∀ y0 : Filtrator.subset (α := β),
+            (∀ X' ∈ Filtrator.up x0, δ X' y0.1) ↔ meet (fwdVal x0) y0.1 := by
+          intro x0 y0
+          exact Classical.choose_spec (
+            exists_core_value_of_freeStar
+              (β := β) (Bdst := Bdst) (h_dst_core_order := h_dst_core_order)
+              (S := relRightCoreFreeStar
+                (h_src_core_order := h_src_core_order)
+                (δ := δ) (hδ_bot_right := hδ_bot_right)
+                (hδ_sup_left := hδ_sup_left) (hδ_sup_right := hδ_sup_right)
+                x0)) y0
+        have hbwd_core : ∀ y0 : β, ∀ x0 : Filtrator.subset (α := α),
+            (∀ Y' ∈ Filtrator.up y0, δ x0.1 Y') ↔ meet (bwdVal y0) x0.1 := by
+          intro y0 x0
+          exact Classical.choose_spec (
+            exists_core_value_of_freeStar
+              (β := α) (Bdst := Bsrc) (h_dst_core_order := h_src_core_order)
+              (S := relLeftCoreFreeStar
+                (h_dst_core_order := h_dst_core_order)
+                (δ := δ) (hδ_bot_left := hδ_bot_left)
+                (hδ_sup_right := hδ_sup_right) (hδ_sup_left := hδ_sup_left)
+                y0)) x0
+        have hfwd : meet (fwdVal x) y ↔ R := by
+          constructor
+          · intro hmeet X' hX' Y' hY'
+            have hYmeet : meet (fwdVal x) Y' := meet_mono_right hY'.2 hmeet
+            exact (hfwd_core x ⟨Y', hY'.1⟩).2 hYmeet X' hX'
+          · intro hR
+            have hall : ∀ Y' ∈ Filtrator.up y, meet (fwdVal x) Y' := by
+              intro Y' hY'
+              have hcore : ∀ X' ∈ Filtrator.up x, δ X' Y' := by
+                intro X' hX'
+                exact hR X' hX' Y' hY'
+              exact (hfwd_core x ⟨Y', hY'.1⟩).1 hcore
+            exact (h_sep_up_dst (fwdVal x) y).2 hall
+        have hbwd : meet (bwdVal y) x ↔ R := by
+          constructor
+          · intro hmeet X' hX' Y' hY'
+            have hXmeet : meet (bwdVal y) X' := meet_mono_right hX'.2 hmeet
+            exact (hbwd_core y ⟨X', hX'.1⟩).2 hXmeet Y' hY'
+          · intro hR
+            have hall : ∀ X' ∈ Filtrator.up x, meet (bwdVal y) X' := by
+              intro X' hX'
+              have hcore : ∀ Y' ∈ Filtrator.up y, δ X' Y' := by
+                intro Y' hY'
+                exact hR X' hX' Y' hY'
+              exact (hbwd_core y ⟨X', hX'.1⟩).1 hcore
+            exact (h_sep_up_src (bwdVal y) x).2 hall
+        exact (by
+          simpa [R] using (hfwd.trans hbwd.symm)) }
+  refine ⟨f, ?_⟩
+  intro x y
+  have hfwd_core : ∀ x0 : α, ∀ y0 : Filtrator.subset (α := β),
+      (∀ X' ∈ Filtrator.up x0, δ X' y0.1) ↔ meet (fwdVal x0) y0.1 := by
+    intro x0 y0
+    exact Classical.choose_spec (
+      exists_core_value_of_freeStar
+        (β := β) (Bdst := Bdst) (h_dst_core_order := h_dst_core_order)
+        (S := relRightCoreFreeStar
+          (h_src_core_order := h_src_core_order)
+          (δ := δ) (hδ_bot_right := hδ_bot_right)
+          (hδ_sup_left := hδ_sup_left) (hδ_sup_right := hδ_sup_right)
+          x0)) y0
+  constructor
+  · intro hrel
+    have hmeet : meet (fwdVal x) y := by simpa [PointfreeFuncoid.funcoid_rel, f] using hrel
+    intro X' hX' Y' hY'
+    have hYmeet : meet (fwdVal x) Y' := meet_mono_right hY'.2 hmeet
+    exact (hfwd_core x ⟨Y', hY'.1⟩).2 hYmeet X' hX'
+  · intro hR
+    have hall : ∀ Y' ∈ Filtrator.up y, meet (fwdVal x) Y' := by
+      intro Y' hY'
+      have hcore : ∀ X' ∈ Filtrator.up x, δ X' Y' := by
+        intro X' hX'
+        exact hR X' hX' Y' hY'
+      exact (hfwd_core x ⟨Y', hY'.1⟩).1 hcore
+    have hmeet : meet (fwdVal x) y := (h_sep_up_dst (fwdVal x) y).2 hall
+    simpa [PointfreeFuncoid.funcoid_rel, f] using hmeet
+
 /--
 Uniqueness half of Theorem 1618, item `\ref{pf-cont-f}`:
 if two pointfree funcoids satisfy the same continuation formula for `\supfun`, they are equal.
@@ -463,68 +868,104 @@ theorem theorem1618_pf_cont_r_unique
   exact propext ((hf x y).trans (hg x y).symm)
 
 /--
-Theorem 1618 (`\label{pf-cont}`), item `\ref{pf-cont-f}` in the current development style.
-
-Existence is represented as an input hypothesis, and the theorem upgrades it to `∃!`.
--/
-theorem theorem1618_pf_cont_f
-    {α : Type u} {β : Type v}
-    [X : Filtrator α] [Y : Filtrator β]
-    [SemilatticeSup α] [OrderBot α]
-    [SemilatticeSup β] [OrderBot β]
-    (Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β)))
-    (A : α → β)
-    (hA_bot : A ⊥ = ⊥)
-    (hA_sup : ∀ I J : α, A (I ⊔ J) = A I ⊔ A J)
-    (h_sep_src : IsSeparable α) :
-    (∃ f : PointfreeFuncoid X.suporder Y.suporder,
-      PointfreeFuncoid.fwdContinuationFromCore
-        (Bdst := Bdst) (A := A) (X := X) (Y := Y) f) →
-    ∃! f : PointfreeFuncoid X.suporder Y.suporder,
-      PointfreeFuncoid.fwdContinuationFromCore
-        (Bdst := Bdst) (A := A) (X := X) (Y := Y) f := by
-  have _ := hA_bot
-  have _ := hA_sup
-  intro h_exists
-  rcases h_exists with ⟨f, hf⟩
-  refine ⟨f, hf, ?_⟩
-  intro g hg
-  exact (theorem1618_pf_cont_f_unique
-    (h_sep_src := h_sep_src) (Bdst := Bdst) (A := A)
-    (f := f) (g := g) hf hg).symm
-
-/--
 Theorem 1618 (`\label{pf-cont}`), item `\ref{pf-cont-r}` in the current development style.
 
-Existence is represented as an input hypothesis, and the theorem upgrades it to `∃!`.
+Existence is constructed from the core relation assumptions (book proof path:
+free stars on the core, then corresponding core filters, then a pointfree funcoid).
 -/
 theorem theorem1618_pf_cont_r
     {α : Type u} {β : Type v}
-    [X : Filtrator α] [Y : Filtrator β]
-    [SemilatticeSup α] [OrderBot α]
-    [SemilatticeSup β] [OrderBot β]
+    [X : Filtrator.Primary α] [Y : Filtrator.Primary β]
+    [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
+    (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
+    (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
+    (h_sep_up_src : (X.toFiltrator).separator_up_property)
+    (h_sep_up_dst : (Y.toFiltrator).separator_up_property)
     (δ : α → β → Prop)
-    (hδ_bot_left : ∀ I' : β, ¬ δ ⊥ I')
-    (hδ_sup_left : ∀ I J : α, ∀ K' : β, δ (I ⊔ J) K' ↔ δ I K' ∨ δ J K')
-    (hδ_bot_right : ∀ I : α, ¬ δ I ⊥)
-    (hδ_sup_right : ∀ K : α, ∀ I' J' : β, δ K (I' ⊔ J') ↔ δ K I' ∨ δ K J')
-    (h_sep_src : IsSeparable α)
-    (h_sep_dst : IsSeparable β) :
-    (∃ f : PointfreeFuncoid X.suporder Y.suporder,
+    (hδ_bot_left : ∀ I' : Filtrator.subset (α := β), ¬ δ (⊥ : Filtrator.subset (α := α)).1 I'.1)
+    (hδ_sup_left : ∀ I J : Filtrator.subset (α := α), ∀ K' : Filtrator.subset (α := β),
+      δ (I ⊔ J).1 K'.1 ↔ δ I.1 K'.1 ∨ δ J.1 K'.1)
+    (hδ_bot_right : ∀ I : Filtrator.subset (α := α), ¬ δ I.1 (⊥ : Filtrator.subset (α := β)).1)
+    (hδ_sup_right : ∀ K : Filtrator.subset (α := α), ∀ I' J' : Filtrator.subset (α := β),
+      δ K.1 (I' ⊔ J').1 ↔ δ K.1 I'.1 ∨ δ K.1 J'.1) :
+    ∃! f : PointfreeFuncoid X.toFiltrator.suporder Y.toFiltrator.suporder,
       PointfreeFuncoid.relContinuationFromCore
-        (δ := δ) (X := X) (Y := Y) f) →
-    ∃! f : PointfreeFuncoid X.suporder Y.suporder,
-      PointfreeFuncoid.relContinuationFromCore
-        (δ := δ) (X := X) (Y := Y) f := by
-  have _ := hδ_bot_left
-  have _ := hδ_sup_left
-  have _ := hδ_bot_right
-  have _ := hδ_sup_right
-  intro h_exists
-  rcases h_exists with ⟨f, hf⟩
+        (δ := δ) (X := X.toFiltrator) (Y := Y.toFiltrator) f := by
+  have h_sep_src : IsSeparable α :=
+    separable_of_primary_boolean_core
+      (γ := α) (Bcore := Bsrc) h_src_core_order
+  have h_sep_dst : IsSeparable β :=
+    separable_of_primary_boolean_core
+      (γ := β) (Bcore := Bdst) h_dst_core_order
+  rcases theorem1618_rel_witness
+      (h_src_core_order := h_src_core_order)
+      (h_dst_core_order := h_dst_core_order)
+      (h_sep_up_src := h_sep_up_src)
+      (h_sep_up_dst := h_sep_up_dst)
+      (δ := δ)
+      (hδ_bot_left := hδ_bot_left)
+      (hδ_sup_left := hδ_sup_left)
+      (hδ_bot_right := hδ_bot_right)
+      (hδ_sup_right := hδ_sup_right) with ⟨f, hf⟩
   refine ⟨f, hf, ?_⟩
   intro g hg
   exact (theorem1618_pf_cont_r_unique
     (h_sep_src := h_sep_src) (h_sep_dst := h_sep_dst) (δ := δ)
     (f := f) (g := g) hf hg).symm
 
+/--
+Theorem 1618 (`\label{pf-cont}`), item `\ref{pf-cont-f}` in the current development style.
+
+Existence is obtained by reducing to the relation form (`\ref{pf-cont-r}`) and then using
+the relation-to-function bridge.
+-/
+theorem theorem1618_pf_cont_f
+    {α : Type u} {β : Type v}
+    [X : Filtrator.Primary α] [Y : Filtrator.Primary β]
+    [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
+    [Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β))]
+    (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
+    (h_dst_core_order : Bdst.toBooleanAlgebra.toPartialOrder = Filtrator.suborder (α := β))
+    (h_sep_up_src : (X.toFiltrator).separator_up_property)
+    (h_sep_up_dst : (Y.toFiltrator).separator_up_property)
+    (A : α → β)
+    (hA_rel_bot_left : ∀ I' : Filtrator.subset (α := β), ¬ meet I'.1 (A (⊥ : Filtrator.subset (α := α)).1))
+    (hA_rel_sup_left :
+      ∀ I J : Filtrator.subset (α := α), ∀ K' : Filtrator.subset (α := β),
+        meet K'.1 (A (I ⊔ J).1) ↔ meet K'.1 (A I.1) ∨ meet K'.1 (A J.1))
+    (hA_rel_bot_right : ∀ I : Filtrator.subset (α := α), ¬ meet (⊥ : Filtrator.subset (α := β)).1 (A I.1))
+    (hA_rel_sup_right :
+      ∀ K : Filtrator.subset (α := α), ∀ I' J' : Filtrator.subset (α := β),
+        meet (I' ⊔ J').1 (A K.1) ↔ meet I'.1 (A K.1) ∨ meet J'.1 (A K.1))
+    (h_rel_to_fwd :
+      ∀ f : PointfreeFuncoid X.toFiltrator.suporder Y.toFiltrator.suporder,
+        PointfreeFuncoid.relContinuationFromCore
+          (δ := fun x y => meet y (A x))
+          (X := X.toFiltrator) (Y := Y.toFiltrator) f →
+        PointfreeFuncoid.fwdContinuationFromCore
+          (Bdst := Bdst) (A := A) (X := X.toFiltrator) (Y := Y.toFiltrator) f) :
+    ∃! f : PointfreeFuncoid X.toFiltrator.suporder Y.toFiltrator.suporder,
+      PointfreeFuncoid.fwdContinuationFromCore
+        (Bdst := Bdst) (A := A) (X := X.toFiltrator) (Y := Y.toFiltrator) f := by
+  have h_sep_src : IsSeparable α :=
+    separable_of_primary_boolean_core
+      (γ := α) (Bcore := Bsrc) h_src_core_order
+  rcases theorem1618_pf_cont_r
+      (h_src_core_order := h_src_core_order)
+      (h_dst_core_order := h_dst_core_order)
+      (h_sep_up_src := h_sep_up_src)
+      (h_sep_up_dst := h_sep_up_dst)
+      (δ := fun x y => meet y (A x))
+      (hδ_bot_left := hA_rel_bot_left)
+      (hδ_sup_left := hA_rel_sup_left)
+      (hδ_bot_right := hA_rel_bot_right)
+      (hδ_sup_right := hA_rel_sup_right) with ⟨f, hf_rel, _⟩
+  have hf : PointfreeFuncoid.fwdContinuationFromCore
+      (Bdst := Bdst) (A := A) (X := X.toFiltrator) (Y := Y.toFiltrator) f :=
+    h_rel_to_fwd f hf_rel
+  refine ⟨f, hf, ?_⟩
+  intro g hg
+  exact (theorem1618_pf_cont_f_unique
+    (h_sep_src := h_sep_src) (Bdst := Bdst) (A := A)
+    (f := f) (g := g) hf hg).symm
