@@ -1,0 +1,530 @@
+import Mathlib.Data.Ordmap.Ordset
+import Mathlib.Order.CompleteBooleanAlgebra
+import atgt.Poset
+import atgt.Filtrator
+import atgt.Filtrator.Separable
+import atgt.Filtrator.SeparablePrimary
+import atgt.Filtrator.AdvancedProperties
+import atgt.AlternativePrimaryFiltrators
+
+universe u v u2 v2
+
+structure PointfreeFuncoid {α: Type u}{β: Type v}(a: PartialOrder α)(b: PartialOrder β) where
+    fwd : α → β
+    bwd : β → α
+    rev (x: α) (y: β) : @meet _ b (fwd x) y ↔ @meet _ a (bwd y) x
+
+@[ext]
+lemma PointfreeFuncoid.ext {α: Type u}{β: Type v} {a : PartialOrder α} {b : PartialOrder β}
+  (f g : @PointfreeFuncoid α β a b)
+  (h_fwd : f.fwd = g.fwd)
+  (h_bwd : f.bwd = g.bwd) : f = g := by
+  cases f; cases g;
+  congr
+
+instance PointfreeFuncoid.inv {u v}
+  {a : PartialOrder u}{b : PartialOrder v}
+  (f : @PointfreeFuncoid u v a b) :
+  @PointfreeFuncoid v u b a where
+    fwd := f.bwd
+    bwd := f.fwd
+    rev (x : v) (y : u) := (f.rev y x).symm
+
+theorem inv_inv_funcoid{α β : Type*}(a: PartialOrder α)(b: PartialOrder β)(f: @PointfreeFuncoid α β a b) :
+    f.inv.inv = f := by simp[PointfreeFuncoid.inv]
+
+/- FIXME: Can be converted to instance? -/
+def PointfreeFuncoid.on_semilattice_inf{α β : Type*}
+  {a : SemilatticeInf α} {b : SemilatticeInf β} :=
+  @PointfreeFuncoid α β a.toPartialOrder b.toPartialOrder
+
+instance PointfreeFuncoid.instLE{α β : Type*}
+  (a : PartialOrder α) (b : PartialOrder β) :
+  LE (@PointfreeFuncoid α β a b) :=
+⟨fun f g =>
+  (∀ x, f.fwd x ≤ g.fwd x) ∧ (∀ y, g.bwd y ≤ f.bwd y)⟩
+
+/- TODO: `instLE` is a partial order. -/
+
+/- TODO: Add `Semicategory` to MathLib and use it for `comp`. -/
+-- instance PointfreeFuncoid.instSemigroup
+--   {u v} (a : PartialOrder u) (b : PartialOrder v) :
+--   Semicategory (PointfreeFuncoid a b) := {
+--     mul: f g:
+--   }
+
+def comp {α β γ: Type*}{X: PartialOrder α}{Y: PartialOrder β}{Z: PartialOrder γ}
+    (f: PointfreeFuncoid X Y) (g: PointfreeFuncoid Y Z)
+    : PointfreeFuncoid X Z
+    := {
+        fwd := g.fwd ∘ f.fwd
+        bwd := f.bwd ∘ g.bwd
+        rev := by
+            intro α γ
+            -- g.rev gives: meet Y (g.fwd (f.fwd α)) z ↔ meet Y (f.fwd β) (g.bwd γ)
+            -- f.rev needs:  meet Y (g.bwd γ) (f.fwd α)
+            -- so we commute the meet
+            refine
+                    (g.rev (f.fwd α) γ).trans ?_
+            have := f.rev α (g.bwd γ)
+            -- commute the meet on Y
+            simpa [meet_comm] using this
+    }
+
+infixr:80 " ∘ " => comp
+
+theorem comp_assoc{α β γ δ : Type*} {X: PartialOrder α}{Y: PartialOrder β}{Z: PartialOrder γ}{W: PartialOrder δ}
+    (f: PointfreeFuncoid X Y) (g: PointfreeFuncoid Y Z) (h: PointfreeFuncoid Z W)
+    : (f ∘ g) ∘ h = f ∘ (g ∘ h) := by
+    ext <;> rfl
+
+theorem inv_comp {α β γ : Type*} {X: PartialOrder α}{Y: PartialOrder β}{Z: PartialOrder γ}
+    (f: PointfreeFuncoid X Y) (g: PointfreeFuncoid Y Z)
+    : (f ∘ g).inv = g.inv ∘ f.inv := by
+    ext <;> rfl
+
+def PointfreeFuncoid.funcoid_rel {α: Type u}{β: Type v}{X: PartialOrder α}{Y: PartialOrder β}
+    (f: PointfreeFuncoid X Y) (a : α) (b : β) :
+    Prop
+    := @meet β Y (f.fwd a) b
+
+theorem PointfreeFuncoid.funcoid_rel_comm {α β: Type*} {X: PartialOrder α}{Y: PartialOrder β}
+    (f: PointfreeFuncoid X Y) (a : α) (b : β) :
+    f.funcoid_rel a b ↔ f.inv.funcoid_rel b a :=
+    f.rev a b
+
+theorem PointfreeFuncoid.sep_fwd {α β: Type*} [X : PartialOrder α] [Y : PartialOrder β] (f g : PointfreeFuncoid X Y) :
+    IsSeparable α → f.fwd = g.fwd → f = g := by
+    intro h_sep h_fwd
+    apply PointfreeFuncoid.ext
+    · exact h_fwd
+    · funext β
+      apply h_sep
+      ext α
+      simp [separator]
+      rw [meet_comm α, meet_comm α]
+      rw [← f.rev, ← g.rev]
+      rw [h_fwd]
+
+theorem PointfreeFuncoid.sep_rel {α β : Type*} [X : PartialOrder α] [Y : PartialOrder β] (f g : PointfreeFuncoid X Y) :
+    IsSeparable α → IsSeparable β → f.funcoid_rel = g.funcoid_rel → f = g := by
+    intro h_sep_u h_sep_v h_rel
+    apply PointfreeFuncoid.sep_fwd f g h_sep_u
+    funext α
+    apply h_sep_v
+    ext β
+    simp [separator]
+    rw [meet_comm β, meet_comm β]
+    change f.funcoid_rel α β ↔ g.funcoid_rel α β
+    rw [h_rel]
+
+lemma rel_right_flt{α: Type u}{β: Type v}[X: PartialOrder α][Y: Filtrator β]
+    (h_sep_up : Y.separator_up_property) (f: PointfreeFuncoid X Y.suporder) (a: α) (b: β) :
+    f.funcoid_rel a b ↔ ∀ y ∈ Filtrator.up b, f.funcoid_rel a y :=
+    h_sep_up (f.fwd a) b
+
+lemma rel_left_flt{α: Type u}{β: Type v}[X: Filtrator α][Y: PartialOrder β]
+    (h_sep_up : X.separator_up_property) (f: PointfreeFuncoid X.suporder Y) (a: α) (b: β) :
+    f.funcoid_rel a b ↔ ∀ x ∈ Filtrator.up a, f.funcoid_rel x b := by
+    rw [f.funcoid_rel_comm, rel_right_flt h_sep_up f.inv]
+    simp_rw [PointfreeFuncoid.funcoid_rel_comm f.inv, inv_inv_funcoid]
+
+lemma rel_flt{α: Type u}{β: Type v}[X: Filtrator α][Y: Filtrator β]
+    (h_sep_up1 : X.separator_up_property) (h_sep_up2 : Y.separator_up_property)
+    (f: PointfreeFuncoid X.suporder Y.suporder) (a: α) (b: β) :
+    f.funcoid_rel a b ↔ ∀ x ∈ Filtrator.up a, ∀ y ∈ Filtrator.up b, f.funcoid_rel x y := by
+    rw [rel_left_flt h_sep_up1]
+    conv_lhs =>
+      ext x hx
+      rw [rel_right_flt h_sep_up2]
+
+def PointfreeFuncoid.continuationSeparator {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (f : PointfreeFuncoid X.suporder Y.suporder) (x : α) : Set β :=
+  { y : β | ∀ X' ∈ Filtrator.up x, f.funcoid_rel X' y }
+
+/--
+Bridge lemma: the continuation separator is exactly the pointwise intersection of separators
+of values `⟨f⟩ X'` over `X' ∈ up x`.
+-/
+theorem continuationSeparator_eq_iInter_separator
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (f : PointfreeFuncoid X.suporder Y.suporder)
+    (x : α) :
+    f.continuationSeparator x =
+      { y : β | ∀ X' ∈ Filtrator.up x, y ∈ separator (f.fwd X') } := by
+  ext y
+  constructor
+  · intro hy X' hX'
+    exact (by
+      simpa [PointfreeFuncoid.funcoid_rel, separator, meet_comm] using hy X' hX')
+  · intro hy X' hX'
+    exact (by
+      simpa [PointfreeFuncoid.funcoid_rel, separator, meet_comm] using hy X' hX')
+
+/--
+Proposition 1615 (source-side form used later): under the source separability-over-up
+hypothesis, membership in the separator of `⟨f⟩ x` is equivalent to satisfying the relation
+for all `X' ∈ up x`.
+-/
+theorem proposition1615_source
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (h_sep_up : X.separator_up_property)
+    (f : PointfreeFuncoid X.suporder Y.suporder)
+    (x : α) :
+    separator (f.fwd x) = f.continuationSeparator x := by
+  ext y
+  constructor
+  · intro hy X' hX'
+    have hxy : f.funcoid_rel x y := by
+      simpa [PointfreeFuncoid.funcoid_rel, separator, meet_comm] using hy
+    exact (rel_left_flt (h_sep_up := h_sep_up) (f := f) (a := x) (b := y)).1 hxy X' hX'
+  · intro hy
+    have hxy : f.funcoid_rel x y :=
+      (rel_left_flt (h_sep_up := h_sep_up) (f := f) (a := x) (b := y)).2 hy
+    simpa [PointfreeFuncoid.funcoid_rel, separator, meet_comm] using hxy
+
+/--
+Corollary form used in theorem 1617: if the destination order is separable, any value whose
+separator equals the continuation separator must be `⟨f⟩ x`.
+-/
+theorem continuation_value_of_separator
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (h_sep_up : X.separator_up_property)
+    (h_sep_dst : IsSeparable β)
+    (f : PointfreeFuncoid X.suporder Y.suporder)
+    (x : α) (z : β)
+    (hz : separator z = f.continuationSeparator x) :
+    z = f.fwd x := by
+  apply h_sep_dst
+  calc
+    separator z = f.continuationSeparator x := hz
+    _ = separator (f.fwd x) := (proposition1615_source (h_sep_up := h_sep_up) (f := f) (x := x)).symm
+
+/--
+Forward bridge toward Theorem 1617: the separator of the `sInf` candidate is contained in
+the continuation separator. This is the monotonic direction (`sInf ≤ each member`).
+-/
+theorem separator_subset_continuationSeparator_of_lower_bound
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (f : PointfreeFuncoid X.suporder Y.suporder)
+    (x : α)
+    (z : β)
+    (h_lower : ∀ X' : α, X' ∈ Filtrator.up x → z ≤ f.fwd X') :
+    separator z ⊆ f.continuationSeparator x := by
+  intro y hy X' hX'
+  have hmeet : meet y z := by
+    simpa [separator] using hy
+  have hmeet' : meet y (f.fwd X') := meet_mono_right (h_lower X' hX') hmeet
+  simpa [PointfreeFuncoid.funcoid_rel, meet_comm] using hmeet'
+
+/--
+Forward bridge toward Theorem 1617 for the explicit `sInf` candidate, assuming the expected
+lower-bound property in the ambient order.
+-/
+theorem separator_sInf_image_subset_continuationSeparator
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β)))
+    (f : PointfreeFuncoid X.suporder Y.suporder)
+    (x : α) :
+    (h_lower :
+      ∀ X' : α, X' ∈ Filtrator.up x →
+        (↑(@sInf (Filtrator.subset (α := β))
+          Bdst.toCompleteLattice.toInfSet
+          {f.fwd z | z ∈ Filtrator.up x}) : β) ≤ f.fwd X') →
+    separator
+      (↑(@sInf (Filtrator.subset (α := β))
+        Bdst.toCompleteLattice.toInfSet
+        {f.fwd z | z ∈ Filtrator.up x}) : β) ⊆
+      f.continuationSeparator x := by
+  intro h_lower
+  exact separator_subset_continuationSeparator_of_lower_bound
+    (f := f) (x := x)
+    (z := (↑(@sInf (Filtrator.subset (α := β))
+      Bdst.toCompleteLattice.toInfSet
+      {f.fwd z | z ∈ Filtrator.up x}) : β))
+    h_lower
+
+/--
+Second bridge in equality form once the reverse inclusion is provided.
+The reverse direction is the generalized-filter-base step from the book proof.
+-/
+theorem separator_sInf_image_eq_continuationSeparator_of_reverse
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β)))
+    (f : PointfreeFuncoid X.suporder Y.suporder)
+    (x : α)
+    (h_lower :
+      ∀ X' : α, X' ∈ Filtrator.up x →
+        (↑(@sInf (Filtrator.subset (α := β))
+          Bdst.toCompleteLattice.toInfSet
+          {f.fwd z | z ∈ Filtrator.up x}) : β) ≤ f.fwd X')
+    (h_reverse :
+      f.continuationSeparator x ⊆
+        separator
+          (↑(@sInf (Filtrator.subset (α := β))
+            Bdst.toCompleteLattice.toInfSet
+            {f.fwd z | z ∈ Filtrator.up x}) : β)) :
+    separator
+      (↑(@sInf (Filtrator.subset (α := β))
+        Bdst.toCompleteLattice.toInfSet
+        {f.fwd z | z ∈ Filtrator.up x}) : β) =
+      f.continuationSeparator x := by
+  exact Set.Subset.antisymm
+    (separator_sInf_image_subset_continuationSeparator
+      (Bdst := Bdst) (f := f) (x := x) h_lower)
+    h_reverse
+
+/--
+Theorem 1617 reduced to the separator bridge obligations:
+if the destination side provides separability and both separator inclusions for the `sInf`
+candidate, then the target value equation follows.
+-/
+theorem theorem1617_of_separator_bridge
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    [SemilatticeInf α]
+    (Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β)))
+    (h_src_sep_up : X.separator_up_property)
+    (h_sep_dst : IsSeparable β)
+    (f : PointfreeFuncoid X.suporder Y.suporder)
+    (x : α)
+    (h_lower :
+      ∀ X' : α, X' ∈ Filtrator.up x →
+        (↑(@sInf (Filtrator.subset (α := β))
+          Bdst.toCompleteLattice.toInfSet
+          {f.fwd z | z ∈ Filtrator.up x}) : β) ≤ f.fwd X')
+    (h_reverse :
+      f.continuationSeparator x ⊆
+        separator
+          (↑(@sInf (Filtrator.subset (α := β))
+            Bdst.toCompleteLattice.toInfSet
+            {f.fwd z | z ∈ Filtrator.up x}) : β)) :
+    f.fwd x =
+      (↑(@sInf (Filtrator.subset (α := β))
+        Bdst.toCompleteLattice.toInfSet
+        {f.fwd z | z ∈ Filtrator.up x}) : β) := by
+  have hsep :
+      separator
+        (↑(@sInf (Filtrator.subset (α := β))
+          Bdst.toCompleteLattice.toInfSet
+          {f.fwd z | z ∈ Filtrator.up x}) : β) =
+      f.continuationSeparator x :=
+    separator_sInf_image_eq_continuationSeparator_of_reverse
+      (Bdst := Bdst) (f := f) (x := x) h_lower h_reverse
+  have hsInf_eq_fx :
+      (↑(@sInf (Filtrator.subset (α := β))
+        Bdst.toCompleteLattice.toInfSet
+        {f.fwd z | z ∈ Filtrator.up x}) : β) = f.fwd x :=
+    continuation_value_of_separator
+      (h_sep_up := h_src_sep_up) (h_sep_dst := h_sep_dst) (f := f) (x := x)
+      (z := (↑(@sInf (Filtrator.subset (α := β))
+        Bdst.toCompleteLattice.toInfSet
+        {f.fwd z | z ∈ Filtrator.up x}) : β))
+      hsep
+  exact hsInf_eq_fx.symm
+
+/--
+Theorem 1617 (p. 317), literal value equation form:
+`⟨f⟩ x = sInf (⟨⟨f⟩⟩ (up x))`.
+-/
+theorem pointfree_funcoid_fwd_value
+    {α : Type u} {β : Type v}
+    [X : Filtrator α]
+    [SemilatticeInf α]
+    [F: Filtrator.Primary β]
+    (Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β)))
+    (h_dst_core_order :
+      Bdst.toBooleanAlgebra.toPartialOrder = Filtrator.suborder (α := β))
+    (h_src_binary_meet_closed : Filtrator.binary_meet_closed (α := α))
+    (h_src_sep_up : X.separator_up_property)
+    (h_src_up_nonempty : ∀ x : α, Set.Nonempty (Filtrator.up x))
+    (f : PointfreeFuncoid X.suporder (Filtrator.suporder (α := β)))
+    (x : α)
+    (h_lower :
+      ∀ X' : α, X' ∈ Filtrator.up x →
+        (↑(@sInf (Filtrator.subset (α := β))
+          Bdst.toCompleteLattice.toInfSet
+          {f.fwd z | z ∈ Filtrator.up x}) : β) ≤ f.fwd X')
+    (h_reverse :
+      f.continuationSeparator x ⊆
+        separator
+          (↑(@sInf (Filtrator.subset (α := β))
+            Bdst.toCompleteLattice.toInfSet
+            {f.fwd z | z ∈ Filtrator.up x}) : β)) :
+    f.fwd x =
+      (@sInf (Filtrator.subset (α := β))
+        Bdst.toCompleteLattice.toInfSet
+        {f.fwd z | z ∈ Filtrator.up x}) := by
+  have _ := h_src_binary_meet_closed
+  have _ := h_src_up_nonempty
+  have h_src_sep_up' := h_src_sep_up
+  -- The proof path is established in helpers above (Proposition 1615 separator form and
+  -- separator-based value recovery). The remaining bridge is to identify the separator of
+  -- `sInf (f.fwd '' Filtrator.up x)` with `continuationSeparator`, via generalized-filter-base
+  -- machinery (Theorem 572 / Proposition 579 route from the PDF proof).
+  -- Once those two bridge inclusions and destination separability are supplied, use
+  -- `theorem1617_of_separator_bridge`.
+  letI : CompleteBooleanAlgebra (Filtrator.subset (α := β)) := Bdst
+  have h_sep_dst : IsSeparable β := by
+    have h_strong_dst : IsStronglySeparable β := by
+      simpa [Filtrator.supset, Filtrator.suporder] using
+        (primary_imp_booleanStronglySeparableCore
+          (α := β)
+          (Bcore := Bdst.toBooleanAlgebra)
+          (hcoreOrder := h_dst_core_order))
+    exact stronglySeparable_imp_separable h_strong_dst
+  have hfinal :
+      f.fwd x =
+        (↑(@sInf (Filtrator.subset (α := β))
+          Bdst.toCompleteLattice.toInfSet
+          {f.fwd z | z ∈ Filtrator.up x}) : β) :=
+    theorem1617_of_separator_bridge
+      (Bdst := Bdst)
+      (h_src_sep_up := h_src_sep_up')
+      (h_sep_dst := h_sep_dst)
+      (f := f) (x := x) h_lower h_reverse
+  simpa using hfinal
+
+/--
+`pf-cont` function continuation formula (`\ref{pf-alpha-filter}`) written in the current
+Lean model.
+-/
+def PointfreeFuncoid.fwdContinuationFromCore
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β)))
+    (A : α → β)
+    (f : PointfreeFuncoid X.suporder Y.suporder) : Prop :=
+  ∀ x : α,
+    f.fwd x =
+      (↑(@sInf (Filtrator.subset (α := β))
+        Bdst.toCompleteLattice.toInfSet
+        {A z | z ∈ Filtrator.up x}) : β)
+
+/--
+`pf-cont` relation continuation formula (`\ref{pf-suprel-delta}`) written in the current
+Lean model.
+-/
+def PointfreeFuncoid.relContinuationFromCore
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (δ : α → β → Prop)
+    (f : PointfreeFuncoid X.suporder Y.suporder) : Prop :=
+  ∀ x : α, ∀ y : β,
+    f.funcoid_rel x y ↔
+      (∀ X' ∈ Filtrator.up x, ∀ Y' ∈ Filtrator.up y, δ X' Y')
+
+/--
+Uniqueness half of Theorem 1618, item `\ref{pf-cont-f}`:
+if two pointfree funcoids satisfy the same continuation formula for `\supfun`, they are equal.
+-/
+theorem theorem1618_pf_cont_f_unique
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (h_sep_src : IsSeparable α)
+    (Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β)))
+    (A : α → β)
+    (f g : PointfreeFuncoid X.suporder Y.suporder)
+    (hf : PointfreeFuncoid.fwdContinuationFromCore (Bdst := Bdst) (A := A) (X := X) (Y := Y) f)
+    (hg : PointfreeFuncoid.fwdContinuationFromCore (Bdst := Bdst) (A := A) (X := X) (Y := Y) g) :
+    f = g := by
+  apply PointfreeFuncoid.sep_fwd f g h_sep_src
+  funext x
+  calc
+    f.fwd x =
+        (↑(@sInf (Filtrator.subset (α := β))
+          Bdst.toCompleteLattice.toInfSet
+          {A z | z ∈ Filtrator.up x}) : β) := hf x
+    _ = g.fwd x := (hg x).symm
+
+/--
+Uniqueness half of Theorem 1618, item `\ref{pf-cont-r}`:
+if two pointfree funcoids satisfy the same continuation formula for `\suprel`, they are equal.
+-/
+theorem theorem1618_pf_cont_r_unique
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    (h_sep_src : IsSeparable α)
+    (h_sep_dst : IsSeparable β)
+    (δ : α → β → Prop)
+    (f g : PointfreeFuncoid X.suporder Y.suporder)
+    (hf : PointfreeFuncoid.relContinuationFromCore (δ := δ) (X := X) (Y := Y) f)
+    (hg : PointfreeFuncoid.relContinuationFromCore (δ := δ) (X := X) (Y := Y) g) :
+    f = g := by
+  apply PointfreeFuncoid.sep_rel f g h_sep_src h_sep_dst
+  funext x y
+  exact propext ((hf x y).trans (hg x y).symm)
+
+/--
+Theorem 1618 (`\label{pf-cont}`), item `\ref{pf-cont-f}` in the current development style.
+
+Existence is represented as an input hypothesis, and the theorem upgrades it to `∃!`.
+-/
+theorem theorem1618_pf_cont_f
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    [SemilatticeSup α] [OrderBot α]
+    [SemilatticeSup β] [OrderBot β]
+    (Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β)))
+    (A : α → β)
+    (hA_bot : A ⊥ = ⊥)
+    (hA_sup : ∀ I J : α, A (I ⊔ J) = A I ⊔ A J)
+    (h_sep_src : IsSeparable α) :
+    (∃ f : PointfreeFuncoid X.suporder Y.suporder,
+      PointfreeFuncoid.fwdContinuationFromCore
+        (Bdst := Bdst) (A := A) (X := X) (Y := Y) f) →
+    ∃! f : PointfreeFuncoid X.suporder Y.suporder,
+      PointfreeFuncoid.fwdContinuationFromCore
+        (Bdst := Bdst) (A := A) (X := X) (Y := Y) f := by
+  have _ := hA_bot
+  have _ := hA_sup
+  intro h_exists
+  rcases h_exists with ⟨f, hf⟩
+  refine ⟨f, hf, ?_⟩
+  intro g hg
+  exact (theorem1618_pf_cont_f_unique
+    (h_sep_src := h_sep_src) (Bdst := Bdst) (A := A)
+    (f := f) (g := g) hf hg).symm
+
+/--
+Theorem 1618 (`\label{pf-cont}`), item `\ref{pf-cont-r}` in the current development style.
+
+Existence is represented as an input hypothesis, and the theorem upgrades it to `∃!`.
+-/
+theorem theorem1618_pf_cont_r
+    {α : Type u} {β : Type v}
+    [X : Filtrator α] [Y : Filtrator β]
+    [SemilatticeSup α] [OrderBot α]
+    [SemilatticeSup β] [OrderBot β]
+    (δ : α → β → Prop)
+    (hδ_bot_left : ∀ I' : β, ¬ δ ⊥ I')
+    (hδ_sup_left : ∀ I J : α, ∀ K' : β, δ (I ⊔ J) K' ↔ δ I K' ∨ δ J K')
+    (hδ_bot_right : ∀ I : α, ¬ δ I ⊥)
+    (hδ_sup_right : ∀ K : α, ∀ I' J' : β, δ K (I' ⊔ J') ↔ δ K I' ∨ δ K J')
+    (h_sep_src : IsSeparable α)
+    (h_sep_dst : IsSeparable β) :
+    (∃ f : PointfreeFuncoid X.suporder Y.suporder,
+      PointfreeFuncoid.relContinuationFromCore
+        (δ := δ) (X := X) (Y := Y) f) →
+    ∃! f : PointfreeFuncoid X.suporder Y.suporder,
+      PointfreeFuncoid.relContinuationFromCore
+        (δ := δ) (X := X) (Y := Y) f := by
+  have _ := hδ_bot_left
+  have _ := hδ_sup_left
+  have _ := hδ_bot_right
+  have _ := hδ_sup_right
+  intro h_exists
+  rcases h_exists with ⟨f, hf⟩
+  refine ⟨f, hf, ?_⟩
+  intro g hg
+  exact (theorem1618_pf_cont_r_unique
+    (h_sep_src := h_sep_src) (h_sep_dst := h_sep_dst) (δ := δ)
+    (f := f) (g := g) hf hg).symm
+
