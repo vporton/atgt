@@ -12,18 +12,13 @@ universe u v
 
 namespace PointfreeFuncoid
 
-/-- Atoms under `a`, in the active order on `α`. -/
-def atomsUnder
-    {α : Type u} [PartialOrder α] [OrderBot α] (a : α) : Set α :=
-  {x : α | x ≤ a ∧ IsAtom x}
-
 /-- `sSup` of values `⟨f⟩ a` over atoms under `x` (Theorem 1650 target expression). -/
 def atomicSupImage
     {α : Type u} {β : Type v}
     [X : PartialOrder α] [Y : PartialOrder β]
     [OrderBot α] [CompleteLattice β]
     (f : PointfreeFuncoid X Y) (x : α) : β :=
-  sSup {z : β | ∃ a ∈ atomsUnder x, z = f.fwd a}
+  sSup {z : β | ∃ a ∈ atoms x, z = f.fwd a}
 
 /-- Destination-side bridge used in Theorem 1650: separator of the `sSup` atom image. -/
 def atomicSupSeparatorBridge
@@ -33,7 +28,7 @@ def atomicSupSeparatorBridge
     (f : PointfreeFuncoid X Y) (x : α) : Prop :=
   ∀ y : β,
     meet y (f.atomicSupImage x) ↔
-      ∃ a ∈ atomsUnder x, meet y (f.fwd a)
+      ∃ a ∈ atoms x, meet y (f.fwd a)
 
 /--
 Formula (25) in Theorem 1654, item 1: continuation of a function on atoms to `⟨f⟩`.
@@ -45,7 +40,7 @@ def fwdContinuationFromAtoms1654
     (A : α → β)
     (f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β))) : Prop :=
   ∀ x : α,
-    f.fwd x = sSup {z : β | ∃ a ∈ atomsUnder x, z = A a}
+    f.fwd x = sSup {z : β | ∃ a ∈ atoms x, z = A a}
 
 /--
 Condition (24) in Theorem 1654, item 1, in the present vocabulary.
@@ -58,7 +53,7 @@ def atomicFunctionCondition1654
     (A : α → β) : Prop :=
   ∀ a : α, IsAtom a →
     A a ≤ sInf {z : β | ∃ x ∈ Filtrator.up a,
-      z = sSup {w : β | ∃ u ∈ atomsUnder x, w = A u}}
+      z = sSup {w : β | ∃ u ∈ atoms x, w = A u}}
 
 /--
 Formula (27) in Theorem 1654, item 2: continuation of a relation on atoms to `suprel f`.
@@ -71,7 +66,7 @@ def relContinuationFromAtoms1654
     (f : PointfreeFuncoid X Y) : Prop :=
   ∀ x : α, ∀ y : β,
     f.funcoid_rel x y ↔
-      ∃ a ∈ atomsUnder x, ∃ b ∈ atomsUnder y, δ a b
+      ∃ a ∈ atoms x, ∃ b ∈ atoms y, δ a b
 
 /--
 Condition (26) in Theorem 1654, item 2, in the present vocabulary.
@@ -83,7 +78,7 @@ def atomicRelationCondition1654
     (δ : α → β → Prop) : Prop :=
   ∀ a : α, ∀ b : β, IsAtom a → IsAtom b →
     (∀ X' ∈ Filtrator.up a, ∀ Y' ∈ Filtrator.up b,
-      ∃ x ∈ atomsUnder X', ∃ y ∈ atomsUnder Y', δ x y) →
+      ∃ x ∈ atoms X', ∃ y ∈ atoms Y', δ x y) →
       δ a b
 
 end PointfreeFuncoid
@@ -96,7 +91,7 @@ theorem proposition1651_left
     [X : PartialOrder α] [Y : PartialOrder β]
     [OrderBot α] [IsAtomic α]
     (f : PointfreeFuncoid X Y) (x : α) (y : β) :
-    f.funcoid_rel x y ↔ ∃ a ∈ atomsUnder x, f.funcoid_rel a y := by
+    f.funcoid_rel x y ↔ ∃ a ∈ atoms x, f.funcoid_rel a y := by
   constructor
   · intro hxy
     have hbwdx : meet (f.bwd y) x := (f.rev x y).1 hxy
@@ -126,7 +121,7 @@ theorem proposition1651_right
     [X : PartialOrder α] [Y : PartialOrder β]
     [OrderBot β] [IsAtomic β]
     (f : PointfreeFuncoid X Y) (x : α) (y : β) :
-    f.funcoid_rel x y ↔ ∃ b ∈ atomsUnder y, f.funcoid_rel x b := by
+    f.funcoid_rel x y ↔ ∃ b ∈ atoms y, f.funcoid_rel x b := by
   constructor
   · intro hxy
     have hyx : f.inv.funcoid_rel y x := (f.funcoid_rel_comm x y).1 hxy
@@ -147,8 +142,8 @@ theorem proposition1651
     [OrderBot α] [IsAtomic α]
     [OrderBot β] [IsAtomic β]
     (f : PointfreeFuncoid X Y) (x : α) (y : β) :
-    (f.funcoid_rel x y ↔ ∃ a ∈ atomsUnder x, f.funcoid_rel a y) ∧
-      (f.funcoid_rel x y ↔ ∃ b ∈ atomsUnder y, f.funcoid_rel x b) := by
+    (f.funcoid_rel x y ↔ ∃ a ∈ atoms x, f.funcoid_rel a y) ∧
+      (f.funcoid_rel x y ↔ ∃ b ∈ atoms y, f.funcoid_rel x b) := by
   exact ⟨proposition1651_left (f := f) (x := x) (y := y),
     proposition1651_right (f := f) (x := x) (y := y)⟩
 
@@ -159,7 +154,7 @@ theorem corollary1652
     [OrderBot α] [IsAtomic α]
     [OrderBot β] [IsAtomic β]
     (f : PointfreeFuncoid X Y) (x : α) (y : β) :
-    f.funcoid_rel x y ↔ ∃ a ∈ atomsUnder x, ∃ b ∈ atomsUnder y, f.funcoid_rel a b := by
+    f.funcoid_rel x y ↔ ∃ a ∈ atoms x, ∃ b ∈ atoms y, f.funcoid_rel a b := by
   constructor
   · intro hxy
     rcases (proposition1651_left (f := f) (x := x) (y := y)).1 hxy with ⟨a, ha, hay⟩
@@ -189,9 +184,9 @@ theorem corollary1653
   ext y
   have hrelxy : f.funcoid_rel x y ↔ g.funcoid_rel x y := by
     calc
-      f.funcoid_rel x y ↔ ∃ a ∈ atomsUnder x, f.funcoid_rel a y :=
+      f.funcoid_rel x y ↔ ∃ a ∈ atoms x, f.funcoid_rel a y :=
         proposition1651_left (f := f) (x := x) (y := y)
-      _ ↔ ∃ a ∈ atomsUnder x, g.funcoid_rel a y := by
+      _ ↔ ∃ a ∈ atoms x, g.funcoid_rel a y := by
         constructor
         · rintro ⟨a, ha, hay⟩
           refine ⟨a, ha, ?_⟩
@@ -222,7 +217,7 @@ theorem theorem1650
   apply h_sep_dst
   ext y
   have hsrc :
-      meet y (f.fwd x) ↔ ∃ a ∈ atomsUnder x, meet y (f.fwd a) := by
+      meet y (f.fwd x) ↔ ∃ a ∈ atoms x, meet y (f.fwd a) := by
     simpa [PointfreeFuncoid.funcoid_rel, meet_comm] using
       (proposition1651_left (f := f) (x := x) (y := y))
   exact hsrc.trans (h_bridge y).symm

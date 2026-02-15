@@ -156,5 +156,4 @@ theorem isStronglySeparable_iff_star_orderEmbedding {α : Type u} [PartialOrder 
       simpa [hfa, hfb] using h_sub_le
     exact (OrderEmbedding.le_iff_le f).mp hle
 
--- TODO: Move to a separate module.
-def atoms [SemilatticeSup α] [OrderBot α] (a : α) : Set α := {x : α | x ≤ a ∧ IsAtom x}
+def atoms [PartialOrder α] [OrderBot α] (a : α) : Set α := {x : α | x ≤ a ∧ IsAtom x}
