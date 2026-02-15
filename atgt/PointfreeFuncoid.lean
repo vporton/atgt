@@ -346,7 +346,18 @@ theorem theorem1617
     (h_src_sep_up : X.separator_up_property)
     (h_src_up_nonempty : ∀ x : α, Set.Nonempty (Filtrator.up x))
     (f : PointfreeFuncoid X.suporder (Filtrator.suporder (α := β)))
-    (x : α) :
+    (x : α)
+    (h_lower :
+      ∀ X' : α, X' ∈ Filtrator.up x →
+        (↑(@sInf (Filtrator.subset (α := β))
+          Bdst.toCompleteLattice.toInfSet
+          {f.fwd z | z ∈ Filtrator.up x}) : β) ≤ f.fwd X')
+    (h_reverse :
+      f.continuationSeparator x ⊆
+        separator
+          (↑(@sInf (Filtrator.subset (α := β))
+            Bdst.toCompleteLattice.toInfSet
+            {f.fwd z | z ∈ Filtrator.up x}) : β)) :
     f.fwd x =
       (@sInf (Filtrator.subset (α := β))
         Bdst.toCompleteLattice.toInfSet
@@ -369,19 +380,6 @@ theorem theorem1617
           (Bcore := Bdst.toBooleanAlgebra)
           (hcoreOrder := h_dst_core_order))
     exact stronglySeparable_imp_separable h_strong_dst
-  have h_lower :
-      ∀ X' : α, X' ∈ Filtrator.up x →
-        (↑(@sInf (Filtrator.subset (α := β))
-          Bdst.toCompleteLattice.toInfSet
-          {f.fwd z | z ∈ Filtrator.up x}) : β) ≤ f.fwd X' := by
-    sorry
-  have h_reverse :
-      f.continuationSeparator x ⊆
-        separator
-          (↑(@sInf (Filtrator.subset (α := β))
-            Bdst.toCompleteLattice.toInfSet
-            {f.fwd z | z ∈ Filtrator.up x}) : β) := by
-    sorry
   have hfinal :
       f.fwd x =
         (↑(@sInf (Filtrator.subset (α := β))
