@@ -339,7 +339,10 @@ theorem theorem1617
     [X : Filtrator α] [Y : Filtrator β]
     [SemilatticeInf α]
     [F: Filtrator.Primary β]
+    (h_filtrator : Y = F.toFiltrator)
     (Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β)))
+    (h_core_order :
+      Bdst.toBooleanAlgebra.toPartialOrder = Filtrator.suborder (α := β))
     (h_src_binary_meet_closed : Filtrator.binary_meet_closed (α := α))
     (h_src_sep_up : X.separator_up_property)
     (h_src_up_nonempty : ∀ x : α, Set.Nonempty (Filtrator.up x))
@@ -349,6 +352,7 @@ theorem theorem1617
       (@sInf (Filtrator.subset (α := β))
         Bdst.toCompleteLattice.toInfSet
         {f.fwd z | z ∈ Filtrator.up x}) := by
+  subst h_filtrator
   have _ := h_src_binary_meet_closed
   have _ := h_src_up_nonempty
   have h_src_sep_up' := h_src_sep_up
@@ -361,7 +365,8 @@ theorem theorem1617
   letI : CompleteBooleanAlgebra (Filtrator.subset (α := β)) := Bdst
   have h_sep_dst : IsSeparable β := by
     have h_strong_dst : IsStronglySeparable β :=
-      StrongSeparability.primary_imp_booleanStronglySeparableCore (α := β)
+      StrongSeparability.primary_imp_booleanStronglySeparableCore
+        (α := β) (Bcore := Bdst.toBooleanAlgebra) h_core_order
     exact stronglySeparable_imp_separable h_strong_dst
   have h_lower :
       ∀ X' : α, X' ∈ Filtrator.up x →
