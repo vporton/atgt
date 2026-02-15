@@ -466,6 +466,55 @@ noncomputable def separatorCoreToFreeStarRange_orderIso [BooleanAlgebra α] :
     intro a b
     exact separatorCoreToFreeStarRange_map_rel_iff (α := α) a b
 
+lemma orderIso_mem_separator_iff {β : Type u} [PartialOrder β]
+    [BooleanAlgebra α] (e : α ≃o β) (x a : α) :
+    x ∈ separator a ↔ e x ∈ separator (e a) := by
+  constructor
+  · intro hx
+    rcases hx with ⟨c, hcx, hca, hnot⟩
+    refine ⟨e c, (e.map_rel_iff).2 hcx, (e.map_rel_iff).2 hca, ?_⟩
+    intro hleast
+    apply hnot
+    intro y
+    exact (e.map_rel_iff).1 (hleast (e y))
+  · intro hx
+    rcases hx with ⟨c, hcx, hca, hnot⟩
+    refine ⟨e.symm c, ?_, ?_, ?_⟩
+    · simpa using (e.symm.map_rel_iff).2 hcx
+    · simpa using (e.symm.map_rel_iff).2 hca
+    intro hleast
+    apply hnot
+    intro y
+    exact (e.symm.map_rel_iff).1 (hleast (e.symm y))
+
+theorem separatorCoreFreeStarRange_stronglySeparable [BooleanAlgebra α] :
+    IsStronglySeparable (separatorCoreFreeStarRange (α := α)) := by
+  let e : α ≃o separatorCoreFreeStarRange (α := α) :=
+    separatorCoreToFreeStarRange_orderIso (α := α)
+  have hα : IsStronglySeparable α :=
+    StrongSeparability.boolean_imp_stronglySeparable (α := α)
+  intro A B hsub
+  have hsub' : separator (e.symm A) ⊆ separator (e.symm B) := by
+    intro x hx
+    have hxA : e x ∈ separator A := by
+      simpa using
+        (orderIso_mem_separator_iff
+          (α := α) (β := separatorCoreFreeStarRange (α := α))
+          (e := e) (x := x) (a := e.symm A)).1 hx
+    have hxB : e x ∈ separator B := hsub hxA
+    exact
+      (orderIso_mem_separator_iff
+        (α := α) (β := separatorCoreFreeStarRange (α := α))
+        (e := e) (x := x) (a := e.symm B)).2 (by simpa using hxB)
+  have hle : e.symm A ≤ e.symm B := hα (e.symm A) (e.symm B) hsub'
+  exact (e.symm.map_rel_iff).1 hle
+
+theorem separatorCoreFreeStarRange_strongly_star_separable [BooleanAlgebra α] :
+    Filtrator.strongly_star_separable
+      (Filtrator.of_subset (Set.univ : Set (separatorCoreFreeStarRange (α := α)))) := by
+  exact is_stronglySeparable_imp_strongly_star_sep
+    (separatorCoreFreeStarRange_stronglySeparable (α := α))
+
 end SeparatorCoreFreeStars
 
 export SeparatorCoreFreeStars
@@ -473,7 +522,9 @@ export SeparatorCoreFreeStars
     separatorCoreSetFreeStars separatorCoreToSetFreeStars
     separatorCoreToSetFreeStars_bijective separatorCoreToSetFreeStars_orderIso
     separatorCoreFreeStarRange separatorCoreToFreeStarRange
-    separatorCoreToFreeStarRange_bijective separatorCoreToFreeStarRange_orderIso)
+    separatorCoreToFreeStarRange_bijective separatorCoreToFreeStarRange_orderIso
+    separatorCoreFreeStarRange_stronglySeparable
+    separatorCoreFreeStarRange_strongly_star_separable)
 
 lemma exists_not_mem_of_ne_univ {F : Set α} (hne : F ≠ Set.univ) : ∃ x : α, x ∉ F := by
   classical
