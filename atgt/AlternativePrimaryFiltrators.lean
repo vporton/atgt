@@ -1063,7 +1063,7 @@ theorem atoms_sup_eq_union [DistribLattice α] [OrderBot α]
     have hsplit : c = (c ⊓ a) ⊔ (c ⊓ b) := by
       calc
         c = c ⊓ (a ⊔ b) := (inf_eq_left.2 hc.1).symm
-        _ = (c ⊓ a) ⊔ (c ⊓ b) := by simpa [inf_sup_left]
+        _ = (c ⊓ a) ⊔ (c ⊓ b) := by simp [inf_sup_left]
     have hca_cases : c ⊓ a = ⊥ ∨ c ⊓ a = c := (IsAtom.le_iff hc.2).1 inf_le_left
     rcases hca_cases with hca | hca
     · right
