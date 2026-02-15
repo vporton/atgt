@@ -340,6 +340,8 @@ theorem theorem1617
     [SemilatticeInf α]
     [F: Filtrator.Primary β]
     (Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β)))
+    (h_dst_core_order :
+      Bdst.toBooleanAlgebra.toPartialOrder = Filtrator.suborder (α := β))
     (h_src_binary_meet_closed : Filtrator.binary_meet_closed (α := α))
     (h_src_sep_up : X.separator_up_property)
     (h_src_up_nonempty : ∀ x : α, Set.Nonempty (Filtrator.up x))
@@ -360,7 +362,13 @@ theorem theorem1617
   -- `theorem1617_of_separator_bridge`.
   letI : CompleteBooleanAlgebra (Filtrator.subset (α := β)) := Bdst
   have h_sep_dst : IsSeparable β := by
-    sorry
+    have h_strong_dst : IsStronglySeparable β := by
+      simpa [Filtrator.supset, Filtrator.suporder] using
+        (primary_imp_booleanStronglySeparableCore
+          (α := β)
+          (Bcore := Bdst.toBooleanAlgebra)
+          (hcoreOrder := h_dst_core_order))
+    exact stronglySeparable_imp_separable h_strong_dst
   have h_lower :
       ∀ X' : α, X' ∈ Filtrator.up x →
         (↑(@sInf (Filtrator.subset (α := β))
