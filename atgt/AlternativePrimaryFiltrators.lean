@@ -2,6 +2,7 @@ import Mathlib.Data.Set.Basic
 import Mathlib.Order.Lattice
 import Mathlib.Order.CompleteLattice.Basic
 import Mathlib.Order.CompleteBooleanAlgebra
+import Mathlib.Order.Atoms
 import Mathlib.Order.Hom.Set
 import Mathlib.Order.Defs.Unbundled
 import atgt.Poset
@@ -1030,7 +1031,7 @@ def IsFreeStarLike [SemilatticeSup α] (S : Set α) : Prop :=
 def IsStarrish (α : Type u) [SemilatticeSup α] : Prop :=
   ∀ a : α, IsFreeStarLike (⋆a)
 
-def atoms [SemilatticeSup α] (a : α) : Set α := {c : α | a ∈ ⋆c}
+def atoms [SemilatticeSup α] [OrderBot α] (a : α) : Set α := {x : α | x ≤ a ∧ IsAtom x}
 
 def IsCompletelyStarrish (α : Type u) [CompleteLattice α] : Prop :=
   ∀ a : α, IsFreeStarLike (⋆a) ∧ ∀ T : Set α, sSup T ∈ ⋆a ↔ ∃ x ∈ T, x ∈ ⋆a
@@ -1056,36 +1057,47 @@ theorem distributiveLattice_isStarrish (α : Type u) [DistribLattice α] :
     · exact Or.inl ((meet_as_inf x a).2 hx_notleast)
     · exact Or.inr ((meet_as_inf y a).2 hy_notleast)
 
-theorem atoms_sup_eq_union [SemilatticeSup α]
-    (hstar : IsStarrish α) (a b : α) :
+theorem atoms_sup_eq_union [DistribLattice α] [OrderBot α]
+    (_hstar : IsStarrish α) (a b : α) :
     atoms (a ⊔ b) = atoms a ∪ atoms b := by
   ext c
-  rcases hstar c with ⟨hupper, hsup_imp_or⟩
   constructor
   · intro hc
-    exact hsup_imp_or a b hc
+    have hsplit : c = (c ⊓ a) ⊔ (c ⊓ b) := by
+      calc
+        c = c ⊓ (a ⊔ b) := (inf_eq_left.2 hc.1).symm
+        _ = (c ⊓ a) ⊔ (c ⊓ b) := by simpa [inf_sup_left]
+    have hca_cases : c ⊓ a = ⊥ ∨ c ⊓ a = c := (IsAtom.le_iff hc.2).1 inf_le_left
+    rcases hca_cases with hca | hca
+    · right
+      have hcb_eq : c = c ⊓ b := by simpa [hca] using hsplit
+      refine ⟨?_, hc.2⟩
+      exact hcb_eq ▸ (inf_le_right : c ⊓ b ≤ b)
+    · left
+      refine ⟨?_, hc.2⟩
+      exact hca ▸ (inf_le_right : c ⊓ a ≤ a)
   · intro hc
     cases hc with
-    | inl ha => exact hupper (le_sup_left : a ≤ a ⊔ b) ha
-    | inr hb => exact hupper (le_sup_right : b ≤ a ⊔ b) hb
+    | inl ha => exact ⟨ha.1.trans le_sup_left, ha.2⟩
+    | inr hb => exact ⟨hb.1.trans le_sup_right, hb.2⟩
 
 theorem completelyStarrish_imp_starrish [CompleteLattice α]
     (h : IsCompletelyStarrish α) : IsStarrish α := by
   intro a
   exact (h a).1
 
-theorem atoms_sSup_eq_iUnion_atoms [CompleteLattice α]
-    (h : IsCompletelyStarrish α) (T : Set α) :
+theorem atoms_sSup_eq_iUnion_atoms [CompleteDistribLattice α]
+    (_h : IsCompletelyStarrish α) (T : Set α) :
     atoms (sSup T) = ⋃ x ∈ T, atoms x := by
   ext c
   constructor
   · intro hc
-    rcases ((h c).2 T).1 hc with ⟨x, hxT, hxc⟩
-    exact Set.mem_iUnion.2 ⟨x, Set.mem_iUnion.2 ⟨hxT, hxc⟩⟩
+    rcases (IsAtom.le_sSup hc.2).1 hc.1 with ⟨x, hxT, hcx⟩
+    exact Set.mem_iUnion.2 ⟨x, Set.mem_iUnion.2 ⟨hxT, ⟨hcx, hc.2⟩⟩⟩
   · intro hc
     rcases Set.mem_iUnion.1 hc with ⟨x, hx⟩
     rcases Set.mem_iUnion.1 hx with ⟨hxT, hxc⟩
-    exact ((h c).2 T).2 ⟨x, hxT, hxc⟩
+    exact ⟨(IsAtom.le_sSup hxc.2).2 ⟨x, hxT, hxc.1⟩, hxc.2⟩
 
 theorem completeDistribLattice_isCompletelyStarrish (α : Type u) [CompleteDistribLattice α] :
     IsCompletelyStarrish α := by
