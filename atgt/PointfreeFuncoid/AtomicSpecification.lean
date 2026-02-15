@@ -1,4 +1,5 @@
 import atgt.PointfreeFuncoid.Core
+import atgt.AlternativePrimaryFiltrators
 
 /-!
 Section 20.6 (Specifying funcoids by functions or relations on atomic filters),
@@ -20,15 +21,30 @@ def atomicSupImage
     (f : PointfreeFuncoid X Y) (x : α) : β :=
   sSup {z : β | ∃ a ∈ atoms x, z = f.fwd a}
 
-/-- Destination-side bridge used in Theorem 1650: separator of the `sSup` atom image. -/
-def atomicSupSeparatorBridge
+theorem atomicSupSeparatorBridge
     {α : Type u} {β : Type v}
-    [X : PartialOrder α] [Y : PartialOrder β]
-    [OrderBot α] [CompleteLattice β]
-    (f : PointfreeFuncoid X Y) (x : α) : Prop :=
-  ∀ y : β,
-    meet y (f.atomicSupImage x) ↔
-      ∃ a ∈ atoms x, meet y (f.fwd a)
+    [X : PartialOrder α]
+    [OrderBot α] [CompleteDistribLattice β]
+    (f : PointfreeFuncoid X (inferInstance : PartialOrder β))
+    (x : α) :
+    ∀ y : β,
+      meet y (f.atomicSupImage x) ↔
+        ∃ a ∈ atoms x, meet y (f.fwd a) := by
+  intro y
+  let S : Set β := {z : β | ∃ a ∈ atoms x, z = f.fwd a}
+  have hstar : AlternativePrimaryFiltrators.IsCompletelyStarrish β :=
+    AlternativePrimaryFiltrators.completeDistribLattice_isCompletelyStarrish β
+  calc
+    meet y (f.atomicSupImage x) ↔ f.atomicSupImage x ∈ separator y := by
+      simp [separator, meet_comm]
+    _ ↔ ∃ z ∈ S, z ∈ separator y := by
+      simpa [PointfreeFuncoid.atomicSupImage, S] using (hstar y).2 S
+    _ ↔ ∃ a ∈ atoms x, meet y (f.fwd a) := by
+      constructor
+      · rintro ⟨z, ⟨a, ha, rfl⟩, hz⟩
+        exact ⟨a, ha, (meet_comm y (f.fwd a)).2 hz⟩
+      · rintro ⟨a, ha, hyfa⟩
+        exact ⟨f.fwd a, ⟨a, ha, rfl⟩, (meet_comm y (f.fwd a)).1 hyfa⟩
 
 /--
 Formula (25) in Theorem 1654, item 1: continuation of a function on atoms to `⟨f⟩`.
@@ -201,47 +217,18 @@ theorem corollary1653
   simpa [separator, PointfreeFuncoid.funcoid_rel, meet_comm] using hrelxy
 
 /--
-Destination-side separator bridge from the implication chain used in the proof of Theorem 1650.
-
-This is the `\partial`-of-join step (`d-f-join` in the book): membership in the separator of
-`sSup` of atom-images is equivalent to existence of an atom-image in the separator.
--/
-theorem atomicSupSeparatorBridge
-    {α : Type u} {β : Type v}
-    [X : PartialOrder α]
-    [OrderBot α] [CompleteDistribLattice β]
-    (f : PointfreeFuncoid X (inferInstance : PartialOrder β))
-    (x : α) :
-    PointfreeFuncoid.atomicSupSeparatorBridge (f := f) x := by
-  intro y
-  let S : Set β := {z : β | ∃ a ∈ atoms x, z = f.fwd a}
-  have hstar : AlternativePrimaryFiltrators.IsCompletelyStarrish β :=
-    AlternativePrimaryFiltrators.completeDistribLattice_isCompletelyStarrish β
-  calc
-    meet y (f.atomicSupImage x) ↔ f.atomicSupImage x ∈ separator y := by
-      simp [separator, meet_comm]
-    _ ↔ ∃ z ∈ S, z ∈ separator y := by
-      simpa [PointfreeFuncoid.atomicSupImage, S] using (hstar y).2 S
-    _ ↔ ∃ a ∈ atoms x, meet y (f.fwd a) := by
-      constructor
-      · rintro ⟨z, ⟨a, ha, rfl⟩, hz⟩
-        exact ⟨a, ha, (meet_comm y (f.fwd a)).2 hz⟩
-      · rintro ⟨a, ha, hyfa⟩
-        exact ⟨f.fwd a, ⟨a, ha, rfl⟩, (meet_comm y (f.fwd a)).1 hyfa⟩
-
-/--
 Theorem 1650 in separator-bridge form:
 once the destination-side `sSup` separator bridge is available, the value equation follows.
 -/
 theorem theorem1650
     {α : Type u} {β : Type v}
-    [X : PartialOrder α] [Y : PartialOrder β]
+    [X : PartialOrder α]
     [OrderBot α] [IsAtomic α]
-    [CompleteLattice β]
+    [CompleteDistribLattice β]
     (h_sep_dst : IsSeparable β)
-    (f : PointfreeFuncoid X Y)
+    (f : PointfreeFuncoid X (inferInstance : PartialOrder β))
     (x : α)
-    (h_bridge : PointfreeFuncoid.atomicSupSeparatorBridge (f := f) x) :
+    :
     f.fwd x = f.atomicSupImage x := by
   apply h_sep_dst
   ext y
@@ -249,7 +236,8 @@ theorem theorem1650
       meet y (f.fwd x) ↔ ∃ a ∈ atoms x, meet y (f.fwd a) := by
     simpa [PointfreeFuncoid.funcoid_rel, meet_comm] using
       (proposition1651_left (f := f) (x := x) (y := y))
-  exact hsrc.trans (h_bridge y).symm
+  have hbridge := PointfreeFuncoid.atomicSupSeparatorBridge (f := f) x
+  exact hsrc.trans (hbridge y).symm
 
 lemma separable_of_primary_boolean_core
     {α : Type u}
