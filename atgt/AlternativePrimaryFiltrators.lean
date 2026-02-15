@@ -699,9 +699,92 @@ theorem freeStar_to_filterSet_freeStar_principal (a : α) :
 theorem filterSet_to_freeStar_filterSet_principal (a : α) :
     filterSet_to_freeStar (filterSet_principal α a) = freeStar_principal α a := rfl
 
+lemma filterSet_principal_le_iff (a b : α) :
+    filterSet_principal α a ≤ filterSet_principal α b ↔ a ≤ b := by
+  change
+    (filterSet_principal α b).elements ⊆ (filterSet_principal α a).elements ↔ a ≤ b
+  constructor
+  · intro h
+    exact h (by
+      simp [filterSet_principal, PosetFilter.toThroughEquiv, PosetFilter.principal])
+  · intro hab x hx
+    exact le_trans hab (by
+      simpa [filterSet_principal, PosetFilter.toThroughEquiv, PosetFilter.principal] using hx)
+
+lemma freeStar_principal_le_iff (a b : α) :
+    freeStar_principal α a ≤ freeStar_principal α b ↔ a ≤ b := by
+  constructor
+  · intro h
+    have h' :
+        freeStar_to_filterSet (freeStar_principal α a) ≤
+          freeStar_to_filterSet (freeStar_principal α b) :=
+      (freeStarOrderIsoFilterSet (α := α)).map_rel_iff.2 h
+    simpa [freeStar_to_filterSet_freeStar_principal, filterSet_principal_le_iff]
+      using h'
+  · intro hab
+    have h' :
+        freeStar_to_filterSet (freeStar_principal α a) ≤
+          freeStar_to_filterSet (freeStar_principal α b) := by
+      simpa [freeStar_to_filterSet_freeStar_principal, filterSet_principal_le_iff]
+        using (filterSet_principal_le_iff (α := α) a b).2 hab
+    exact (freeStarOrderIsoFilterSet (α := α)).map_rel_iff.1 h'
+
+lemma freeStar_principal_injective :
+    Function.Injective (freeStar_principal α) := by
+  intro a b hab
+  have hfs : filterSet_principal α a = filterSet_principal α b := by
+    exact (freeStar_to_filterSet_freeStar_principal (α := α) a) ▸
+      (freeStar_to_filterSet_freeStar_principal (α := α) b) ▸ congrArg freeStar_to_filterSet hab
+  have hpf :
+      PosetFilter.principal (U := (inferInstance : PartialOrder α)) a =
+        PosetFilter.principal (U := (inferInstance : PartialOrder α)) b := by
+    simpa [filterSet_principal] using congrArg
+      (PosetFilter.ThroughEquiv.toPosetFilter (U := (inferInstance : PartialOrder α))) hfs
+  exact (principal_injective (U := (inferInstance : PartialOrder α))) hpf
+
+noncomputable def freeStarPrincipalOrderIso :
+    α ≃o {S : FreeStar (α := α) // S ∈ freeStar_principals α} where
+  toEquiv :=
+    { toFun := fun a => ⟨freeStar_principal α a, ⟨a, rfl⟩⟩
+      invFun := fun S => Classical.choose S.2
+      left_inv := by
+        intro a
+        exact (freeStar_principal_injective (α := α))
+          (Classical.choose_spec (⟨a, rfl⟩ : ∃ x : α, freeStar_principal α x = freeStar_principal α a))
+      right_inv := by
+        intro S
+        apply Subtype.ext
+        exact Classical.choose_spec S.2 }
+  map_rel_iff' := by
+    intro a b
+    exact freeStar_principal_le_iff (α := α) a b
+
+lemma orderIso_mem_separator_iff {β : Type u} [PartialOrder β]
+    (e : α ≃o β) (x a : α) :
+    x ∈ separator a ↔ e x ∈ separator (e a) := by
+  constructor
+  · intro hx
+    rcases hx with ⟨c, hcx, hca, hnot⟩
+    refine ⟨e c, (e.map_rel_iff).2 hcx, (e.map_rel_iff).2 hca, ?_⟩
+    intro hleast
+    apply hnot
+    intro y
+    exact (e.map_rel_iff).1 (hleast (e y))
+  · intro hx
+    rcases hx with ⟨c, hcx, hca, hnot⟩
+    refine ⟨e.symm c, ?_, ?_, ?_⟩
+    · simpa using (e.symm.map_rel_iff).2 hcx
+    · simpa using (e.symm.map_rel_iff).2 hca
+    intro hleast
+    apply hnot
+    intro y
+    exact (e.symm.map_rel_iff).1 (hleast (e.symm y))
+
 end PrincipalConstructions
 
-export PrincipalConstructions (freeStar_principal freeStar_principals freeStar_filtrator)
+export PrincipalConstructions
+  (freeStar_principal freeStar_principals freeStar_filtrator
+    freeStarPrincipalOrderIso)
 
 namespace StarrishPosets
 
