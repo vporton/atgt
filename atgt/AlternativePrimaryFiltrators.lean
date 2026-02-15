@@ -630,6 +630,12 @@ def filterSet_principal (a : α) : FilterSet (U := (inferInstance : PartialOrder
 def freeStar_principal (a : α) : FreeStar (α := α) :=
   filterSet_to_freeStar (filterSet_principal α a)
 
+def freeStar_principals : Set (FreeStar (α := α)) :=
+  { freeStar_principal α a | a : α }
+
+def freeStar_filtrator : Filtrator (FreeStar (α := α)) :=
+  Filtrator.of_subset (freeStar_principals α)
+
 theorem filterSet_principal_has_min (a : α) :
     ∃ z ∈ (filterSet_principal α a).elements, ∀ p ∈ (filterSet_principal α a).elements, z ≤ p := by
   refine ⟨a, ?_, ?_⟩
@@ -651,7 +657,7 @@ theorem filterSet_to_freeStar_filterSet_principal (a : α) :
 
 end PrincipalConstructions
 
--- export PrincipalConstructions (FreeStarFiltrator)
+export PrincipalConstructions (freeStar_principal freeStar_principals freeStar_filtrator)
 
 namespace StarrishPosets
 
