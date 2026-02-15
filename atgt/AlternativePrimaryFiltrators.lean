@@ -622,8 +622,32 @@ end Semilattices
 
 namespace PrincipalConstructions
 
--- class FreeStarFiltrator [PartialOrder α] extends Filtrator (FreeStar (α := α)) where
---   subset := {F : FreeStar (α := α) | IsPrincipalUpperSet F.elements}
+variable (α : Type u) [BooleanAlgebra α]
+
+def filterSet_principal (a : α) : FilterSet (U := (inferInstance : PartialOrder α)) :=
+  PosetFilter.toThroughEquiv (PosetFilter.principal (U := (inferInstance : PartialOrder α)) a)
+
+def freeStar_principal (a : α) : FreeStar (α := α) :=
+  filterSet_to_freeStar (filterSet_principal α a)
+
+theorem filterSet_principal_has_min (a : α) :
+    ∃ z ∈ (filterSet_principal α a).elements, ∀ p ∈ (filterSet_principal α a).elements, z ≤ p := by
+  refine ⟨a, ?_, ?_⟩
+  · simp [filterSet_principal, PosetFilter.toThroughEquiv, PosetFilter.principal]
+  · intro p hp
+    simp [filterSet_principal, PosetFilter.toThroughEquiv, PosetFilter.principal] at hp
+    exact hp
+
+theorem freeStar_to_filterSet_freeStar_principal (a : α) :
+    freeStar_to_filterSet (freeStar_principal α a) = filterSet_principal α a := by
+  calc
+    freeStar_to_filterSet (freeStar_principal α a)
+        = freeStar_to_filterSet (filterSet_to_freeStar (filterSet_principal α a)) := by
+          simp [freeStar_principal]
+    _ = filterSet_principal α a := filterSet_to_freeStar_left_inv (filterSet_principal α a)
+
+theorem filterSet_to_freeStar_filterSet_principal (a : α) :
+    filterSet_to_freeStar (filterSet_principal α a) = freeStar_principal α a := rfl
 
 end PrincipalConstructions
 
