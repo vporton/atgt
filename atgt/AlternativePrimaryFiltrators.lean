@@ -731,6 +731,7 @@ theorem freeStar_filtrator_is_primary :
       hprim.toFiltrator = freeStar_filtrator α := by
   exact ⟨freeStar_filtrator_primary (α := α), rfl⟩
 
+-- TODO: Don't have it as a separate lemma.
 theorem freeStar_filtrator_strongly_star_separable_of_bridge
     (hbridge :
       ∀ a : α, ∀ S : FreeStar (α := α),
