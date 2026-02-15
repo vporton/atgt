@@ -266,63 +266,6 @@ def freeStarOrderIsoFilterSet [P : BooleanAlgebra α] :
       have hmono := freeStar_to_filterSet_monotone (α := α)
       simpa [filterSet_to_freeStar_left_inv] using hmono h
 
-namespace PosetFilterFreeStarBijection
-
-/-- Canonical map from poset filters to free stars on a Boolean algebra. -/
-def posetFilter_to_freeStar [P : BooleanAlgebra α] :
-    PosetFilter (U := (inferInstance : PartialOrder α)) → FreeStar (α := α) :=
-  fun F => filterSet_to_freeStar (PosetFilter.toThroughEquiv F)
-
-/-- Inverse map from free stars back to poset filters. -/
-def freeStar_to_posetFilter [P : BooleanAlgebra α] :
-    FreeStar (α := α) → PosetFilter (U := (inferInstance : PartialOrder α)) :=
-  fun S => PosetFilter.ThroughEquiv.toPosetFilter (freeStar_to_filterSet S)
-
-theorem posetFilter_to_freeStar_left_inv [P : BooleanAlgebra α]
-    (F : PosetFilter (U := (inferInstance : PartialOrder α))) :
-    freeStar_to_posetFilter (posetFilter_to_freeStar F) = F := by
-  unfold freeStar_to_posetFilter posetFilter_to_freeStar
-  calc
-    PosetFilter.ThroughEquiv.toPosetFilter
-        (freeStar_to_filterSet
-          (filterSet_to_freeStar (PosetFilter.toThroughEquiv F)))
-      = PosetFilter.ThroughEquiv.toPosetFilter (PosetFilter.toThroughEquiv F) := by
-          simp [filterSet_to_freeStar_left_inv]
-    _ = F := by simp
-
-theorem posetFilter_to_freeStar_right_inv [P : BooleanAlgebra α] (S : FreeStar (α := α)) :
-    posetFilter_to_freeStar (freeStar_to_posetFilter S) = S := by
-  unfold freeStar_to_posetFilter posetFilter_to_freeStar
-  calc
-    filterSet_to_freeStar
-        (PosetFilter.toThroughEquiv
-          (PosetFilter.ThroughEquiv.toPosetFilter (freeStar_to_filterSet S)))
-      = filterSet_to_freeStar (freeStar_to_filterSet S) := by
-          simp
-    _ = S := freeStar_to_filterSet_left_inv S
-
-theorem posetFilter_to_freeStar_bijective [P : BooleanAlgebra α] :
-    Function.Bijective
-      (posetFilter_to_freeStar :
-        PosetFilter (U := (inferInstance : PartialOrder α)) → FreeStar (α := α)) := by
-  constructor
-  · intro F G h
-    have h' :
-        freeStar_to_posetFilter (posetFilter_to_freeStar F) =
-          freeStar_to_posetFilter (posetFilter_to_freeStar G) :=
-      congrArg freeStar_to_posetFilter h
-    simpa [posetFilter_to_freeStar_left_inv] using h'
-  · intro S
-    refine ⟨freeStar_to_posetFilter S, ?_⟩
-    exact posetFilter_to_freeStar_right_inv S
-
-end PosetFilterFreeStarBijection
-
-export PosetFilterFreeStarBijection
-  (posetFilter_to_freeStar freeStar_to_posetFilter
-    posetFilter_to_freeStar_left_inv posetFilter_to_freeStar_right_inv
-    posetFilter_to_freeStar_bijective)
-
 namespace SeparatorCoreFreeStars
 
 def separatorCoreSet [BooleanAlgebra α] (a : α) : Set α :=
@@ -534,13 +477,10 @@ lemma exists_not_mem_of_ne_univ {F : Set α} (hne : F ≠ Set.univ) : ∃ x : α
 theorem filter_upperSet [PartialOrder α]
     (h : FilterSet (U := (inferInstance : PartialOrder α))) :
     IsUpperSet h.elements := by
-  let hf : PosetFilter (U := (inferInstance : PartialOrder α)) :=
-    PosetFilter.ThroughEquiv.toPosetFilter h
   intro a b hle ha
-  have ha' : a ∈ hf.carrier := by
-    simpa [hf.carrier_eq_elements] using ha
-  have hb' : b ∈ hf.carrier := hf.upper' hle ha'
-  simpa [hf.carrier_eq_elements] using hb'
+  rcases (h.cap_elements (x := a) (y := a)).1 ⟨ha, ha⟩ with ⟨z, hz, hza, _⟩
+  have hzb : z ≤ b := le_trans hza hle
+  exact ((h.cap_elements (x := z) (y := b)).2 ⟨z, hz, le_rfl, hzb⟩).2
 
 theorem ideal_lowerSet [PartialOrder α] (h : IdealSet (α := α)) : IsLowerSet h.elements := by
   intro a b hba ha
