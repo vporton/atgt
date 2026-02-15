@@ -68,6 +68,7 @@ variable {α : Type u}
 abbrev BooleanStronglySeparable (α : Type u) [BooleanAlgebra α] : Prop :=
   IsStronglySeparable α
 
+-- TODO: supefluous theorem?
 /-- Boolean lattices are strongly separable (order-theoretic form used by Proposition 579). -/
 theorem boolean_imp_stronglySeparable [BooleanAlgebra α] : BooleanStronglySeparable α := by
   intro a b h_sub
@@ -99,6 +100,7 @@ theorem boolean_imp_stronglySeparable [BooleanAlgebra α] : BooleanStronglySepar
     exact hx_inf_b_not_least (hx_inf_b_eq_bot ▸ hleast_bot)
   exact hx_not_sep_b (h_sub hx_sep_a)
 
+-- TODO: supefluous theorem?
 /-- Any complete Boolean algebra is separable (in its own order). -/
 theorem completeBoolean_imp_separable (B : CompleteBooleanAlgebra α) : IsSeparable α := by
   letI : CompleteBooleanAlgebra α := B
