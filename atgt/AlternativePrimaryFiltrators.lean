@@ -14,35 +14,20 @@ namespace AlternativePrimaryFiltrators
 
 variable {α : Type u}
 
-def IsFilterSet [PartialOrder α] (F : Set α) : Prop :=
-  Set.Nonempty F ∧
-    ∀ a b : α, (a ∈ F ∧ b ∈ F) ↔ ∃ z : α, z ∈ F ∧ z ≤ a ∧ z ≤ b
-
-def IsIdealSet [PartialOrder α] (F : Set α) : Prop :=
-  Set.Nonempty F ∧
-    ∀ a b : α, (a ∈ F ∧ b ∈ F) ↔ ∃ z : α, z ∈ F ∧ a ≤ z ∧ b ≤ z
-
-def IsFreeStar [PartialOrder α] (F : Set α) : Prop :=
-  F ≠ Set.univ ∧
-    ∀ a b : α, (a ∉ F ∧ b ∉ F) ↔ ∃ z : α, z ∈ F ∧ a ≤ z ∧ b ≤ z
-
-def IsMixer [PartialOrder α] (F : Set α) : Prop :=
-  F ≠ Set.univ ∧
-    ∀ a b : α, (a ∉ F ∧ b ∉ F) ↔ ∃ z : α, z ∈ F ∧ z ≤ a ∧ z ≤ b
-
--- This duplicates `PosetFilter`, but introduced here for uniformity.
-class FilterSet [PartialOrder α] where
+structure IdealSet [PartialOrder α] where
   elements: Set α
-  non_side: Set.Nonempty elements
-  main: ∀ a b : α, (a ∈ elements ∧ b ∈ elements) ↔ ∃ z : α, z ∈ elements ∧ z ≤ a ∧ z ≤ b
+  non_empty: Set.Nonempty elements
+  cup_elements {a b : α} :
+      a ∈ elements ∧ b ∈ elements ↔ ∃ z : α, z ∈ elements ∧ a ≤ z ∧ b ≤ z
 
-class FreeStar [PartialOrder α] where
+structure FreeStar [PartialOrder α] where
   elements: Set α
-  non_side: elements ≠ Set.univ
-  main: ∀ a b : α, (a ∉ elements ∧ b ∉ elements) ↔ ∃ z : α, z ∉ elements ∧ a ≤ z ∧ b ≤ z
+  non_univ: elements ≠ Set.univ
+  cup_not_elements {a b : α} :
+      a ∉ elements ∧ b ∉ elements ↔ ∃ z : α, z ∉ elements ∧ a ≤ z ∧ b ≤ z
 
 @[ext]
-lemma FilterSet.ext [PartialOrder α] (F G : FilterSet (α := α))
+lemma IdealSet.ext [PartialOrder α] (F G : IdealSet (α := α))
     (h : F.elements = G.elements) : F = G := by
   cases F
   cases G
@@ -57,20 +42,19 @@ lemma FreeStar.ext [PartialOrder α] (F G : FreeStar (α := α))
   cases h
   rfl
 
-instance [PartialOrder α] : LE (FilterSet (α := α)) where
-  le F G := G.elements ⊆ F.elements
+structure Mixer [PartialOrder α] where
+  elements: Set α
+  non_univ: elements ≠ Set.univ
+  cap_not_elements {a b : α} :
+      a ∉ elements ∧ b ∉ elements ↔ ∃ z : α, z ∉ elements ∧ z ≤ a ∧ z ≤ b
 
-instance [PartialOrder α] : PartialOrder (FilterSet (α := α)) where
-  le := (· ≤ ·)
-  le_refl F := by
-    intro x hx
-    exact hx
-  le_trans F G H hFG hGH := by
-    intro x hxH
-    exact hFG (hGH hxH)
-  le_antisymm F G hFG hGF := by
-    apply FilterSet.ext
-    exact Set.Subset.antisymm hGF hFG
+@[ext]
+lemma Mixer.ext [PartialOrder α] (F G : Mixer (α := α))
+    (h : F.elements = G.elements) : F = G := by
+  cases F
+  cases G
+  cases h
+  rfl
 
 instance [PartialOrder α] : LE (FreeStar (α := α)) where
   le F G := F.elements ⊆ G.elements
@@ -87,49 +71,38 @@ instance [PartialOrder α] : PartialOrder (FreeStar (α := α)) where
     apply FreeStar.ext
     exact Set.Subset.antisymm hFG hGF
 
-def posetFilter_to_filterSet [P: PartialOrder α] (F : PosetFilter P) : FilterSet (α := α) := {
-  elements := F.elements
-  non_side := F.non_empty
-  main := by
-    intro a b
-    constructor
-    · intro hab
-      rcases F.cap_elements hab.1 hab.2 with ⟨z, hz, hza, hzb⟩
-      exact ⟨z, hz, hza, hzb⟩
-    · intro h
-      rcases h with ⟨z, hz, hza, hzb⟩
-      have hz_carrier : z ∈ F.carrier := by
-        simpa [F.carrier_eq_elements] using hz
-      have ha_carrier : a ∈ F.carrier := F.upper' hza hz_carrier
-      have hb_carrier : b ∈ F.carrier := F.upper' hzb hz_carrier
-      exact ⟨by simpa [F.carrier_eq_elements] using ha_carrier,
-        by simpa [F.carrier_eq_elements] using hb_carrier⟩
-}
+instance [PartialOrder α] :
+    LE (PosetFilter.ThroughEquiv (U := (inferInstance : PartialOrder α))) where
+  le F G := G.elements ⊆ F.elements
 
-def filterSet_to_posetFilter [P: PartialOrder α] (F : FilterSet (α := α)) : PosetFilter P := {
-  elements := F.elements
-  non_empty := F.non_side
-  cap_elements := by
-    intro x y hx hy
-    exact (F.main x y).1 ⟨hx, hy⟩
-  carrier := F.elements
-  upper' := by
-    intro x y hxy hx
-    rcases F.non_side with ⟨w, hw⟩
-    rcases (F.main x w).1 ⟨hx, hw⟩ with ⟨z, hz, hzx, hzw⟩
-    have hzy : z ≤ y := le_trans hzx hxy
-    exact ((F.main y w).2 ⟨z, hz, hzy, hzw⟩).1
-  carrier_eq_elements := rfl
-}
+instance [PartialOrder α] :
+    PartialOrder (PosetFilter.ThroughEquiv (U := (inferInstance : PartialOrder α))) where
+  le := (· ≤ ·)
+  le_refl F := by
+    intro x hx
+    exact hx
+  le_trans F G H hFG hGH := by
+    intro x hxH
+    exact hFG (hGH hxH)
+  le_antisymm F G hFG hGF := by
+    apply PosetFilter.ThroughEquiv.ext_elements
+    exact Set.Subset.antisymm hGF hFG
+
+def posetFilter_to_filterSet [P: PartialOrder α] (F : PosetFilter P) : PosetFilter.ThroughEquiv P :=
+  PosetFilter.toThroughEquiv F
+
+def filterSet_to_posetFilter [P: PartialOrder α] (F : PosetFilter.ThroughEquiv P) : PosetFilter P :=
+  PosetFilter.ThroughEquiv.toPosetFilter F
 
 -- TODO: This and below can be shortened by proving conversions with ideals first.
-def freeStar_to_filterSet [P: BooleanAlgebra α] (F : FreeStar (α := α)) : FilterSet (α := α) := {
+def freeStar_to_filterSet [P: BooleanAlgebra α] (F : FreeStar (α := α)) :
+    PosetFilter.ThroughEquiv (U := (inferInstance : PartialOrder α)) := {
   elements := (·ᶜ) '' F.elementsᶜ
-  non_side := by
+  non_empty := by
     classical
     have hex : ∃ x : α, x ∉ F.elements := by
       by_contra h
-      apply F.non_side
+      apply F.non_univ
       ext x
       constructor
       · intro _
@@ -139,7 +112,7 @@ def freeStar_to_filterSet [P: BooleanAlgebra α] (F : FreeStar (α := α)) : Fil
         exact h ⟨x, hx⟩
     rcases hex with ⟨x, hx⟩
     exact ⟨xᶜ, ⟨x, by simpa [Set.mem_compl_iff] using hx, by simp⟩⟩
-  main := by
+  cap_elements := by
     intro a b
     let G := F.elementsᶜ
     have mem_equiv (x : α) : x ∈ (·ᶜ) '' G ↔ xᶜ ∉ F.elements := by
@@ -173,7 +146,7 @@ def freeStar_to_filterSet [P: BooleanAlgebra α] (F : FreeStar (α := α)) : Fil
         have hza : yᶜ ≤ a := by simpa using compl_le_compl hay
         have hzb : yᶜ ≤ b := by simpa using compl_le_compl hby
         exact ⟨yᶜ, hy_mem, hza, hzb⟩
-    exact (left.trans (F.main aᶜ bᶜ)).trans right.symm
+    exact (left.trans (F.cup_not_elements (a := aᶜ) (b := bᶜ))).trans right.symm
 }
 
 lemma compl_image_compl_image [BooleanAlgebra α] (s : Set α) :
@@ -188,16 +161,17 @@ lemma compl_image_compl_image [BooleanAlgebra α] (s : Set α) :
       simp
     _ = s := by simp
 
-def filterSet_to_freeStar [P: BooleanAlgebra α] (F : FilterSet (α := α)) : FreeStar (α := α) := {
+def filterSet_to_freeStar [P: BooleanAlgebra α]
+    (F : PosetFilter.ThroughEquiv (U := (inferInstance : PartialOrder α))) : FreeStar (α := α) := {
   elements := ((·ᶜ) '' F.elements)ᶜ
-  non_side := by
+  non_univ := by
     intro h_univ
-    rcases F.non_side with ⟨x, hx⟩
+    rcases F.non_empty with ⟨x, hx⟩
     have hx_mem : xᶜ ∈ (·ᶜ) '' F.elements := ⟨x, hx, rfl⟩
     have hx_not : xᶜ ∉ ((·ᶜ) '' F.elements)ᶜ := by simp [hx_mem]
     have hx_univ : xᶜ ∈ ((·ᶜ) '' F.elements)ᶜ := by simp [h_univ]
     exact hx_not hx_univ
-  main := by
+  cup_not_elements := by
     intro a b
     let G := (·ᶜ) '' F.elements
     have mem_equiv (x : α) : x ∈ G ↔ xᶜ ∈ F.elements := by
@@ -228,7 +202,7 @@ def filterSet_to_freeStar [P: BooleanAlgebra α] (F : FilterSet (α := α)) : Fr
         have hya_le : a ≤ yᶜ := by simpa using compl_le_compl hya
         have hyb_le : b ≤ yᶜ := by simpa using compl_le_compl hyb
         exact ⟨yᶜ, by simpa [Set.mem_compl_iff] using hyc, hya_le, hyb_le⟩
-    exact (left.trans (F.main aᶜ bᶜ)).trans right.symm
+    exact (left.trans (F.cap_elements (x := aᶜ) (y := bᶜ))).trans right.symm
 }
 
 theorem filterSet_to_posetFilter_left_inv [P : PartialOrder α] (F : PosetFilter P) :
@@ -237,38 +211,30 @@ theorem filterSet_to_posetFilter_left_inv [P : PartialOrder α] (F : PosetFilter
   apply PosetFilterBase.ext_elements
   rfl
 
-theorem posetFilter_to_filterSet_left_inv [P : PartialOrder α] (F : FilterSet (α := α)) :
+theorem posetFilter_to_filterSet_left_inv [P : PartialOrder α] (F : PosetFilter.ThroughEquiv P) :
     posetFilter_to_filterSet (filterSet_to_posetFilter F) = F := by
-  ext x
-  rfl
+  exact PosetFilter.toThroughEquiv_toPosetFilter F
 
 theorem posetFilter_to_filterSet_bijective [P : PartialOrder α] :
-    Function.Bijective (posetFilter_to_filterSet : PosetFilter P → FilterSet (α := α)) := by
-  constructor
-  · intro F G h
-    have h' : filterSet_to_posetFilter (posetFilter_to_filterSet F) =
-        filterSet_to_posetFilter (posetFilter_to_filterSet G) :=
-      congrArg filterSet_to_posetFilter h
-    calc
-      F = filterSet_to_posetFilter (posetFilter_to_filterSet F) := (filterSet_to_posetFilter_left_inv F).symm
-      _ = filterSet_to_posetFilter (posetFilter_to_filterSet G) := h'
-      _ = G := filterSet_to_posetFilter_left_inv G
-  · intro G
-    use filterSet_to_posetFilter G
-    simp [posetFilter_to_filterSet_left_inv]
+    Function.Bijective (posetFilter_to_filterSet : PosetFilter P → PosetFilter.ThroughEquiv P) :=
+  PosetFilter.toThroughEquiv_bijective
 
-theorem freeStar_to_filterSet_left_inv [P : BooleanAlgebra α] (F : FreeStar (α := α)) :
+theorem freeStar_to_filterSet_left_inv [P : BooleanAlgebra α]
+    (F : FreeStar (α := α)) :
     filterSet_to_freeStar (freeStar_to_filterSet F) = F := by
   ext x
   simp [filterSet_to_freeStar, freeStar_to_filterSet, compl_image_compl_image]
 
-theorem filterSet_to_freeStar_left_inv [P : BooleanAlgebra α] (F : FilterSet (α := α)) :
+theorem filterSet_to_freeStar_left_inv [P : BooleanAlgebra α]
+    (F : PosetFilter.ThroughEquiv (U := (inferInstance : PartialOrder α))) :
     freeStar_to_filterSet (filterSet_to_freeStar F) = F := by
+  apply PosetFilter.ThroughEquiv.ext_elements
   ext x
   simp [filterSet_to_freeStar, freeStar_to_filterSet, compl_image_compl_image]
 
 theorem freeStar_to_filterSet_bijective [P : BooleanAlgebra α] :
-    Function.Bijective (freeStar_to_filterSet : FreeStar (α := α) → FilterSet (α := α)) := by
+    Function.Bijective (freeStar_to_filterSet :
+      FreeStar (α := α) → PosetFilter.ThroughEquiv (U := (inferInstance : PartialOrder α))) := by
   constructor
   · intro F G h
     have h' : filterSet_to_freeStar (freeStar_to_filterSet F) =
@@ -283,7 +249,8 @@ theorem freeStar_to_filterSet_bijective [P : BooleanAlgebra α] :
     simp [filterSet_to_freeStar_left_inv]
 
 theorem freeStar_to_filterSet_monotone [P : BooleanAlgebra α] :
-    Monotone (freeStar_to_filterSet : FreeStar (α := α) → FilterSet (α := α)) := by
+    Monotone (freeStar_to_filterSet :
+      FreeStar (α := α) → PosetFilter.ThroughEquiv (U := (inferInstance : PartialOrder α))) := by
   intro F G hFG x hx
   rcases hx with ⟨y, hy, hyx⟩
   refine ⟨y, ?_, hyx⟩
@@ -291,14 +258,15 @@ theorem freeStar_to_filterSet_monotone [P : BooleanAlgebra α] :
   exact hy (hFG hyF)
 
 theorem filterSet_to_freeStar_monotone [P : BooleanAlgebra α] :
-    Monotone (filterSet_to_freeStar : FilterSet (α := α) → FreeStar (α := α)) := by
+    Monotone (filterSet_to_freeStar :
+      PosetFilter.ThroughEquiv (U := (inferInstance : PartialOrder α)) → FreeStar (α := α)) := by
   intro F G hFG x hxF hxG
   apply hxF
   rcases hxG with ⟨y, hyG, hyx⟩
   refine ⟨y, hFG hyG, hyx⟩
 
 def freeStarOrderIsoFilterSet [P : BooleanAlgebra α] :
-    FreeStar (α := α) ≃o FilterSet (α := α) where
+    FreeStar (α := α) ≃o PosetFilter.ThroughEquiv (U := (inferInstance : PartialOrder α)) where
   toEquiv :=
     { toFun := freeStar_to_filterSet
       invFun := filterSet_to_freeStar
@@ -420,13 +388,13 @@ lemma not_mem_separatorCoreSet_iff_le_compl [BooleanAlgebra α] (x a : α) :
 
 def separatorCoreFreeStar [BooleanAlgebra α] (a : α) : FreeStar (α := α) where
   elements := separatorCoreSet (α := α) a
-  non_side := by
+  non_univ := by
     intro h_univ
     have hbot_mem : (⊥ : α) ∈ separatorCoreSet (α := α) a := by simp [h_univ]
     have hbot_not_mem : (⊥ : α) ∉ separatorCoreSet (α := α) a := by
       exact (not_mem_separatorCoreSet_iff_le_compl (x := (⊥ : α)) (a := a)).2 bot_le
     exact hbot_not_mem hbot_mem
-  main := by
+  cup_not_elements := by
     intro x y
     constructor
     · intro hxy
@@ -579,143 +547,150 @@ lemma exists_not_mem_of_ne_univ {F : Set α} (hne : F ≠ Set.univ) : ∃ x : α
     by_contra hx
     exact h ⟨x, hx⟩
 
-theorem filter_upperSet [PartialOrder α] {F : Set α} (h : IsFilterSet F) : IsUpperSet F := by
+theorem filter_upperSet [PartialOrder α]
+    (h : PosetFilter.ThroughEquiv (U := (inferInstance : PartialOrder α))) :
+    IsUpperSet h.elements := by
+  let hf : PosetFilter (U := (inferInstance : PartialOrder α)) :=
+    PosetFilter.ThroughEquiv.toPosetFilter h
   intro a b hle ha
-  rcases h.1 with ⟨x, hx⟩
-  rcases (h.2 a x).1 ⟨ha, hx⟩ with ⟨z, hz, hza, hzx⟩
-  have hw : ∃ w : α, w ∈ F ∧ w ≤ b ∧ w ≤ x := ⟨z, hz, le_trans hza hle, hzx⟩
-  exact ((h.2 b x).2 hw).1
+  have ha' : a ∈ hf.carrier := by
+    simpa [hf.carrier_eq_elements] using ha
+  have hb' : b ∈ hf.carrier := hf.upper' hle ha'
+  simpa [hf.carrier_eq_elements] using hb'
 
-theorem ideal_lowerSet [PartialOrder α] {F : Set α} (h : IsIdealSet F) : IsLowerSet F := by
+theorem ideal_lowerSet [PartialOrder α] (h : IdealSet (α := α)) : IsLowerSet h.elements := by
   intro a b hba ha
-  rcases h.1 with ⟨x, hx⟩
-  rcases (h.2 a x).1 ⟨ha, hx⟩ with ⟨z, hz, haz, hxz⟩
-  have hw : ∃ w : α, w ∈ F ∧ b ≤ w ∧ x ≤ w := ⟨z, hz, le_trans hba haz, hxz⟩
-  exact ((h.2 b x).2 hw).1
+  rcases h.non_empty with ⟨x, hx⟩
+  rcases (h.cup_elements (a := a) (b := x)).1 ⟨ha, hx⟩ with ⟨z, hz, haz, hxz⟩
+  have hw : ∃ w : α, w ∈ h.elements ∧ b ≤ w ∧ x ≤ w := ⟨z, hz, le_trans hba haz, hxz⟩
+  exact ((h.cup_elements (a := b) (b := x)).2 hw).1
 
-theorem freeStar_upperSet [PartialOrder α] {F : Set α} (h : IsFreeStar F) : IsUpperSet F := by
+theorem freeStar_upperSet [PartialOrder α] (h : FreeStar (α := α)) : IsUpperSet h.elements := by
   intro a b hle ha
   by_contra hb
-  rcases exists_not_mem_of_ne_univ (hne := h.1) with ⟨x, hx⟩
-  rcases (h.2 x b).1 ⟨hx, hb⟩ with ⟨z, hz, hxz, hbz⟩
+  rcases exists_not_mem_of_ne_univ (hne := h.non_univ) with ⟨x, hx⟩
+  rcases (h.cup_not_elements (a := x) (b := b)).1 ⟨hx, hb⟩ with ⟨z, hz, hxz, hbz⟩
   have haz : a ≤ z := le_trans hle hbz
-  have hw : ∃ w : α, w ∈ F ∧ a ≤ w ∧ x ≤ w := ⟨z, hz, haz, hxz⟩
-  exact ((h.2 a x).2 hw).1 ha
+  have hw : ∃ w : α, w ∉ h.elements ∧ a ≤ w ∧ x ≤ w := ⟨z, hz, haz, hxz⟩
+  exact ((h.cup_not_elements (a := a) (b := x)).2 hw).1 ha
 
-theorem mixer_lowerSet [PartialOrder α] {F : Set α} (h : IsMixer F) : IsLowerSet F := by
+theorem mixer_lowerSet [PartialOrder α] (h : Mixer (α := α)) : IsLowerSet h.elements := by
   intro a b hba ha
   by_contra hb
-  rcases exists_not_mem_of_ne_univ (hne := h.1) with ⟨x, hx⟩
-  rcases (h.2 x b).1 ⟨hx, hb⟩ with ⟨z, hz, hzx, hzb⟩
+  rcases exists_not_mem_of_ne_univ (hne := h.non_univ) with ⟨x, hx⟩
+  rcases (h.cap_not_elements (a := x) (b := b)).1 ⟨hx, hb⟩ with ⟨z, hz, hzx, hzb⟩
   have hza : z ≤ a := le_trans hzb hba
-  have hw : ∃ w : α, w ∈ F ∧ w ≤ a ∧ w ≤ x := ⟨z, hz, hza, hzx⟩
-  exact ((h.2 a x).2 hw).1 ha
+  have hw : ∃ w : α, w ∉ h.elements ∧ w ≤ a ∧ w ≤ x := ⟨z, hz, hza, hzx⟩
+  exact ((h.cap_not_elements (a := a) (b := x)).2 hw).1 ha
 
 section Semilattices
 
-variable {F : Set α}
-
-theorem filter_inf_mem_iff [SemilatticeInf α] (h : IsFilterSet F) (a b : α) :
-    a ⊓ b ∈ F ↔ a ∈ F ∧ b ∈ F := by
-  have hupper : IsUpperSet F := filter_upperSet h
+theorem filter_inf_mem_iff [SemilatticeInf α]
+    (h : PosetFilter.ThroughEquiv (U := (inferInstance : PartialOrder α))) (a b : α) :
+    a ⊓ b ∈ h.elements ↔ a ∈ h.elements ∧ b ∈ h.elements := by
+  have hupper : IsUpperSet h.elements := filter_upperSet h
   constructor
   · intro hab
     exact ⟨hupper inf_le_left hab, hupper inf_le_right hab⟩
   · intro hab
-    rcases (h.2 a b).1 hab with ⟨z, hz, hza, hzb⟩
+    rcases (h.cap_elements (x := a) (y := b)).1 hab with ⟨z, hz, hza, hzb⟩
     exact hupper (le_inf hza hzb) hz
 
-theorem ideal_sup_mem_iff [SemilatticeSup α] (h : IsIdealSet F) (a b : α) :
-    a ⊔ b ∈ F ↔ a ∈ F ∧ b ∈ F := by
-  have hlower : IsLowerSet F := ideal_lowerSet h
+theorem ideal_sup_mem_iff [SemilatticeSup α] (h : IdealSet (α := α)) (a b : α) :
+    a ⊔ b ∈ h.elements ↔ a ∈ h.elements ∧ b ∈ h.elements := by
+  have hlower : IsLowerSet h.elements := ideal_lowerSet h
   constructor
   · intro hab
     exact ⟨hlower (le_sup_left) hab, hlower (le_sup_right) hab⟩
   · intro hab
-    rcases (h.2 a b).1 hab with ⟨z, hz, haz, hbz⟩
+    rcases (h.cup_elements (a := a) (b := b)).1 hab with ⟨z, hz, haz, hbz⟩
     exact hlower (sup_le haz hbz) hz
 
-theorem freeStar_sup_not_mem_iff [SemilatticeSup α] (h : IsFreeStar F) (a b : α) :
-    a ⊔ b ∉ F ↔ a ∉ F ∧ b ∉ F := by
+theorem freeStar_sup_not_mem_iff [SemilatticeSup α] (h : FreeStar (α := α)) (a b : α) :
+    a ⊔ b ∉ h.elements ↔ a ∉ h.elements ∧ b ∉ h.elements := by
   constructor
   · intro hab
-    rcases (h.2 (a ⊔ b) (a ⊔ b)).1 ⟨hab, hab⟩ with ⟨z, hz, hsz, _⟩
-    have hw : ∃ w : α, w ∈ F ∧ a ≤ w ∧ b ≤ w := ⟨z, hz, le_trans le_sup_left hsz, le_trans le_sup_right hsz⟩
-    exact (h.2 a b).2 hw
+    rcases (h.cup_not_elements (a := a ⊔ b) (b := a ⊔ b)).1 ⟨hab, hab⟩ with ⟨z, hz, hsz, _⟩
+    have hw : ∃ w : α, w ∉ h.elements ∧ a ≤ w ∧ b ≤ w :=
+      ⟨z, hz, le_trans le_sup_left hsz, le_trans le_sup_right hsz⟩
+    exact (h.cup_not_elements (a := a) (b := b)).2 hw
   · intro hab
-    rcases (h.2 a b).1 hab with ⟨z, hz, haz, hbz⟩
+    rcases (h.cup_not_elements (a := a) (b := b)).1 hab with ⟨z, hz, haz, hbz⟩
     have hsupz : a ⊔ b ≤ z := sup_le haz hbz
-    have hw : ∃ w : α, w ∈ F ∧ a ⊔ b ≤ w ∧ a ⊔ b ≤ w := ⟨z, hz, hsupz, hsupz⟩
-    exact ((h.2 (a ⊔ b) (a ⊔ b)).2 hw).1
+    have hw : ∃ w : α, w ∉ h.elements ∧ a ⊔ b ≤ w ∧ a ⊔ b ≤ w := ⟨z, hz, hsupz, hsupz⟩
+    exact ((h.cup_not_elements (a := a ⊔ b) (b := a ⊔ b)).2 hw).1
 
-theorem freeStar_sup_mem_iff [SemilatticeSup α] (h : IsFreeStar F) (a b : α) :
-    a ⊔ b ∈ F ↔ a ∈ F ∨ b ∈ F := by
+theorem freeStar_sup_mem_iff [SemilatticeSup α] (h : FreeStar (α := α)) (a b : α) :
+    a ⊔ b ∈ h.elements ↔ a ∈ h.elements ∨ b ∈ h.elements := by
   constructor
   · intro hab
     by_contra h_or
-    have h_not : a ∉ F ∧ b ∉ F := by
+    have h_not : a ∉ h.elements ∧ b ∉ h.elements := by
       simpa [not_or] using h_or
     exact (freeStar_sup_not_mem_iff h a b).2 h_not hab
   · intro hab
     by_contra hsup
-    have h_not : a ∉ F ∧ b ∉ F := (freeStar_sup_not_mem_iff h a b).1 hsup
+    have h_not : a ∉ h.elements ∧ b ∉ h.elements := (freeStar_sup_not_mem_iff h a b).1 hsup
     cases hab with
     | inl ha => exact h_not.1 ha
     | inr hb => exact h_not.2 hb
 
-theorem mixer_inf_not_mem_iff [SemilatticeInf α] (h : IsMixer F) (a b : α) :
-    a ⊓ b ∉ F ↔ a ∉ F ∧ b ∉ F := by
+theorem mixer_inf_not_mem_iff [SemilatticeInf α] (h : Mixer (α := α)) (a b : α) :
+    a ⊓ b ∉ h.elements ↔ a ∉ h.elements ∧ b ∉ h.elements := by
   constructor
   · intro hab
-    rcases (h.2 (a ⊓ b) (a ⊓ b)).1 ⟨hab, hab⟩ with ⟨z, hz, hzs, _⟩
-    have hw : ∃ w : α, w ∈ F ∧ w ≤ a ∧ w ≤ b := ⟨z, hz, le_trans hzs inf_le_left, le_trans hzs inf_le_right⟩
-    exact (h.2 a b).2 hw
+    rcases (h.cap_not_elements (a := a ⊓ b) (b := a ⊓ b)).1 ⟨hab, hab⟩ with ⟨z, hz, hzs, _⟩
+    have hw : ∃ w : α, w ∉ h.elements ∧ w ≤ a ∧ w ≤ b :=
+      ⟨z, hz, le_trans hzs inf_le_left, le_trans hzs inf_le_right⟩
+    exact (h.cap_not_elements (a := a) (b := b)).2 hw
   · intro hab
-    rcases (h.2 a b).1 hab with ⟨z, hz, hza, hzb⟩
+    rcases (h.cap_not_elements (a := a) (b := b)).1 hab with ⟨z, hz, hza, hzb⟩
     have hzinf : z ≤ a ⊓ b := le_inf hza hzb
-    have hw : ∃ w : α, w ∈ F ∧ w ≤ a ⊓ b ∧ w ≤ a ⊓ b := ⟨z, hz, hzinf, hzinf⟩
-    exact ((h.2 (a ⊓ b) (a ⊓ b)).2 hw).1
+    have hw : ∃ w : α, w ∉ h.elements ∧ w ≤ a ⊓ b ∧ w ≤ a ⊓ b := ⟨z, hz, hzinf, hzinf⟩
+    exact ((h.cap_not_elements (a := a ⊓ b) (b := a ⊓ b)).2 hw).1
 
-theorem mixer_inf_mem_iff [SemilatticeInf α] (h : IsMixer F) (a b : α) :
-    a ⊓ b ∈ F ↔ a ∈ F ∨ b ∈ F := by
+theorem mixer_inf_mem_iff [SemilatticeInf α] (h : Mixer (α := α)) (a b : α) :
+    a ⊓ b ∈ h.elements ↔ a ∈ h.elements ∨ b ∈ h.elements := by
   constructor
   · intro hab
     by_contra h_or
-    have h_not : a ∉ F ∧ b ∉ F := by
+    have h_not : a ∉ h.elements ∧ b ∉ h.elements := by
       simpa [not_or] using h_or
     exact (mixer_inf_not_mem_iff h a b).2 h_not hab
   · intro hab
     by_contra hinf
-    have h_not : a ∉ F ∧ b ∉ F := (mixer_inf_not_mem_iff h a b).1 hinf
+    have h_not : a ∉ h.elements ∧ b ∉ h.elements := (mixer_inf_not_mem_iff h a b).1 hinf
     cases hab with
     | inl ha => exact h_not.1 ha
     | inr hb => exact h_not.2 hb
 
 theorem filter_upper_inf_mem_of_pair
-    [SemilatticeInf α] (h : IsFilterSet F) :
-    IsUpperSet F ∧ ∀ a b : α, a ∈ F ∧ b ∈ F → a ⊓ b ∈ F := by
+    [SemilatticeInf α] (h : PosetFilter.ThroughEquiv (U := (inferInstance : PartialOrder α))) :
+    IsUpperSet h.elements ∧ ∀ a b : α, a ∈ h.elements ∧ b ∈ h.elements → a ⊓ b ∈ h.elements := by
   refine ⟨filter_upperSet h, ?_⟩
   intro a b hab
   exact (filter_inf_mem_iff h a b).2 hab
 
 theorem ideal_lower_sup_mem_of_pair
-    [SemilatticeSup α] (h : IsIdealSet F) :
-    IsLowerSet F ∧ ∀ a b : α, a ∈ F ∧ b ∈ F → a ⊔ b ∈ F := by
+    [SemilatticeSup α] (h : IdealSet (α := α)) :
+    IsLowerSet h.elements ∧ ∀ a b : α, a ∈ h.elements ∧ b ∈ h.elements → a ⊔ b ∈ h.elements := by
   refine ⟨ideal_lowerSet h, ?_⟩
   intro a b hab
   exact (ideal_sup_mem_iff h a b).2 hab
 
 theorem freeStar_upper_sup_imp_or
-    [SemilatticeSup α] (h : IsFreeStar F) :
-    IsUpperSet F ∧ F ≠ Set.univ ∧ ∀ a b : α, a ⊔ b ∈ F → a ∈ F ∨ b ∈ F := by
-  refine ⟨freeStar_upperSet h, h.1, ?_⟩
+    [SemilatticeSup α] (h : FreeStar (α := α)) :
+    IsUpperSet h.elements ∧ h.elements ≠ Set.univ ∧
+      ∀ a b : α, a ⊔ b ∈ h.elements → a ∈ h.elements ∨ b ∈ h.elements := by
+  refine ⟨freeStar_upperSet h, h.non_univ, ?_⟩
   intro a b hab
   exact (freeStar_sup_mem_iff h a b).1 hab
 
 theorem mixer_lower_inf_imp_or
-    [SemilatticeInf α] (h : IsMixer F) :
-    IsLowerSet F ∧ F ≠ Set.univ ∧ ∀ a b : α, a ⊓ b ∈ F → a ∈ F ∨ b ∈ F := by
-  refine ⟨mixer_lowerSet h, h.1, ?_⟩
+    [SemilatticeInf α] (h : Mixer (α := α)) :
+    IsLowerSet h.elements ∧ h.elements ≠ Set.univ ∧
+      ∀ a b : α, a ⊓ b ∈ h.elements → a ∈ h.elements ∨ b ∈ h.elements := by
+  refine ⟨mixer_lowerSet h, h.non_univ, ?_⟩
   intro a b hab
   exact (mixer_inf_mem_iff h a b).1 hab
 
