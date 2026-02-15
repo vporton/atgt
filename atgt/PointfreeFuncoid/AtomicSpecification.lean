@@ -201,6 +201,35 @@ theorem corollary1653
   simpa [separator, PointfreeFuncoid.funcoid_rel, meet_comm] using hrelxy
 
 /--
+Destination-side separator bridge from the implication chain used in the proof of Theorem 1650.
+
+This is the `\partial`-of-join step (`d-f-join` in the book): membership in the separator of
+`sSup` of atom-images is equivalent to existence of an atom-image in the separator.
+-/
+theorem atomicSupSeparatorBridge
+    {α : Type u} {β : Type v}
+    [X : PartialOrder α]
+    [OrderBot α] [CompleteDistribLattice β]
+    (f : PointfreeFuncoid X (inferInstance : PartialOrder β))
+    (x : α) :
+    PointfreeFuncoid.atomicSupSeparatorBridge (f := f) x := by
+  intro y
+  let S : Set β := {z : β | ∃ a ∈ atoms x, z = f.fwd a}
+  have hstar : AlternativePrimaryFiltrators.IsCompletelyStarrish β :=
+    AlternativePrimaryFiltrators.completeDistribLattice_isCompletelyStarrish β
+  calc
+    meet y (f.atomicSupImage x) ↔ f.atomicSupImage x ∈ separator y := by
+      simp [separator, meet_comm]
+    _ ↔ ∃ z ∈ S, z ∈ separator y := by
+      simpa [PointfreeFuncoid.atomicSupImage, S] using (hstar y).2 S
+    _ ↔ ∃ a ∈ atoms x, meet y (f.fwd a) := by
+      constructor
+      · rintro ⟨z, ⟨a, ha, rfl⟩, hz⟩
+        exact ⟨a, ha, (meet_comm y (f.fwd a)).2 hz⟩
+      · rintro ⟨a, ha, hyfa⟩
+        exact ⟨f.fwd a, ⟨a, ha, rfl⟩, (meet_comm y (f.fwd a)).1 hyfa⟩
+
+/--
 Theorem 1650 in separator-bridge form:
 once the destination-side `sSup` separator bridge is available, the value equation follows.
 -/
