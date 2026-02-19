@@ -627,6 +627,8 @@ noncomputable def primary_distribCore_imp_coframe
 
 end PrimaryDistribCoreBridge
 
+export PrimaryDistribCoreBridge (primary_distribCore_imp_completeLattice)
+
 namespace FilterInfAssociativity
 
 variable {α : Type u}
@@ -648,11 +650,7 @@ theorem two_imp_three
       (PrimaryDistribCoreBridge.primary_distribCore_imp_completeLattice (α := α) hord)) :
     @SupSInfAssoc (Filtrator.supset (α := α))
       (PrimaryDistribCoreBridge.primary_distribCore_imp_completeLattice (α := α) hord) := by
-  let hC : Order.Coframe (Filtrator.supset (α := α)) :=
-    PrimaryDistribCoreBridge.primary_distribCore_imp_coframe
-      (α := α) hord hAssoc
-  intro a S
-  simpa [sInf_image] using ((@sup_sInf_eq (Filtrator.supset (α := α)) hC (s := S) (a := a)))
+  exact hAssoc
 
 /-- 1⇒3 in Theorem 530 tuple. -/
 theorem one_imp_three
