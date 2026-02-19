@@ -381,13 +381,6 @@ end FilterInfAssociativity
 
 export FilterInfAssociativity (two_imp_three one_imp_three)
 
-/--
-Corollary 531 (`filt-also-distr`) in the development-level form used downstream:
-distributive lattices are starrish, hence satisfy the atoms-join split theorem.
--/
-def StarrishJoinCore (α : Type u) [SemilatticeSup α] : Prop :=
-  AlternativePrimaryFiltrators.IsStarrish α
-
 namespace FilterAlsoDistributive
 
 variable {α : Type u}
@@ -396,16 +389,16 @@ variable {α : Type u}
 noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α :=
   inferInstance
 
-/-- 2⇒3 in Corollary 531 tuple (development-level starrish consequence). -/
-theorem two_imp_three
+/-- 2⇒3 in Corollary 531 tuple: the filter lattice is distributive. -/
+noncomputable def two_imp_three
     [Filtrator α] [Filtrator.Primary α] [DistribLattice α] :
-    StarrishJoinCore α := by
-  exact AlternativePrimaryFiltrators.distributiveLattice_isStarrish α
+    DistribLattice α := by
+  infer_instance
 
 /-- 1⇒3 in Corollary 531 tuple. -/
-theorem one_imp_three
+noncomputable def one_imp_three
     [Filtrator.Powerset.{u, v} α] [DistribLattice α] :
-    StarrishJoinCore α := by
+    DistribLattice α := by
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
   exact two_imp_three (α := α)
 
