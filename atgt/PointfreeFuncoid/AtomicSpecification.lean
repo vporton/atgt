@@ -251,6 +251,63 @@ lemma separable_of_primary_boolean_core
         (α := α) (Bcore := Bcore) (hcoreOrder := hcoreOrder))
   exact stronglySeparable_imp_separable hstrong
 
+lemma filterSet_meet_of_forall_not_compl
+    {δ : Type u}
+    [B : BooleanAlgebra δ]
+    (F G : AlternativePrimaryFiltrators.FilterSet (U := B.toPartialOrder))
+    (hnot : ∀ a ∈ G.elements, aᶜ ∉ F.elements) :
+    meet F G := by
+  let Fp : PosetFilter (U := B.toPartialOrder) := PosetFilter.ThroughEquiv.toPosetFilter F
+  let Gp : PosetFilter (U := B.toPartialOrder) := PosetFilter.ThroughEquiv.toPosetFilter G
+  let Bfg : PosetFilterBase (U := B.toPartialOrder) := {
+    elements := {x : δ | ∃ s ∈ Fp.elements, ∃ t ∈ Gp.elements, x = s ⊓ t}
+    non_empty := by
+      rcases Fp.non_empty with ⟨s, hs⟩
+      rcases Gp.non_empty with ⟨t, ht⟩
+      exact ⟨s ⊓ t, ⟨s, hs, t, ht, rfl⟩⟩
+    cap_elements := by
+      intro x y hx hy
+      rcases hx with ⟨sx, hsx, tx, htx, rfl⟩
+      rcases hy with ⟨sy, hsy, ty, hty, rfl⟩
+      rcases Fp.cap_elements hsx hsy with ⟨s, hs, hs_le_sx, hs_le_sy⟩
+      rcases Gp.cap_elements htx hty with ⟨t, ht, ht_le_tx, ht_le_ty⟩
+      refine ⟨s ⊓ t, ⟨s, hs, t, ht, rfl⟩, ?_, ?_⟩
+      · exact inf_le_inf hs_le_sx ht_le_tx
+      · exact inf_le_inf hs_le_sy ht_le_ty }
+  let Cpf : PosetFilter (U := B.toPartialOrder) := close_filter_base Bfg
+  let C : AlternativePrimaryFiltrators.FilterSet (U := B.toPartialOrder) := PosetFilter.toThroughEquiv Cpf
+  have hC_mem (x : δ) :
+      x ∈ C.elements ↔
+        ∃ s t, (s ∈ F.elements ∧ t ∈ G.elements) ∧ s ⊓ t ≤ x := by
+    simp [C, Cpf, Bfg, Fp, Gp, close_filter_base, PosetFilter.toThroughEquiv,
+      PosetFilter.ThroughEquiv.toPosetFilter]
+  have hC_le_F : C ≤ F := by
+    intro x hxF
+    rcases G.non_empty with ⟨t, ht⟩
+    exact (hC_mem x).2 ⟨x, t, ⟨hxF, ht⟩, inf_le_left⟩
+  have hC_le_G : C ≤ G := by
+    intro x hxG
+    rcases F.non_empty with ⟨s, hs⟩
+    exact (hC_mem x).2 ⟨s, x, ⟨hs, hxG⟩, inf_le_right⟩
+  have hC_not_least : ¬ is_least C := by
+    intro hleastC
+    have hC_le_bot :
+        C ≤ AlternativePrimaryFiltrators.PrincipalConstructions.filterSet_principal
+          δ (⊥ : δ) := hleastC _
+    have hbot_mem : (⊥ : δ) ∈ C.elements := by
+      exact hC_le_bot (by
+        simp [AlternativePrimaryFiltrators.PrincipalConstructions.filterSet_principal,
+          PosetFilter.toThroughEquiv, PosetFilter.principal])
+    rcases (hC_mem (⊥ : δ)).1 hbot_mem with ⟨s, t, hst_mem, hst_le_bot⟩
+    rcases hst_mem with ⟨hsF, htG⟩
+    have hst_eq_bot : s ⊓ t = (⊥ : δ) := le_antisymm hst_le_bot bot_le
+    have hs_disj : Disjoint s t := disjoint_iff.mpr hst_eq_bot
+    have hs_le_compl : s ≤ tᶜ := (le_compl_iff_disjoint_right).2 hs_disj
+    have hupperF : IsUpperSet F.elements := AlternativePrimaryFiltrators.filter_upperSet F
+    have htcompl_mem_F : tᶜ ∈ F.elements := hupperF hs_le_compl hsF
+    exact (hnot t htG) htcompl_mem_F
+  exact ⟨C, hC_le_F, hC_le_G, hC_not_least⟩
+
 /-- `separator_up_property` holds for primary filtrators over boolean lattices.
 This is a consequence of filters on a boolean lattice being determined by their
 upper sets in the core: if `F` meets every principal filter in `G`, then `F` meets `G`. -/
@@ -258,9 +315,108 @@ lemma separator_up_of_primary_boolean_core
     {γ : Type u}
     [F : Filtrator.Primary γ]
     [Bcore : BooleanAlgebra (Filtrator.subset (α := γ))]
-    (_hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ)) :
+    (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ)) :
     F.toFiltrator.separator_up_property := by
-  sorry
+  intro x y
+  constructor
+  · intro hxy z hz
+    exact meet_mono_right hz.2 hxy
+  · intro hall
+    letI : PartialOrder (Filtrator.subset (α := γ)) := Bcore.toPartialOrder
+    let Fx_sub : PosetFilter (U := Filtrator.suborder (α := γ)) :=
+      Filtrator.Primary.to_poset_filter (α := γ) x
+    let Fy_sub : PosetFilter (U := Filtrator.suborder (α := γ)) :=
+      Filtrator.Primary.to_poset_filter (α := γ) y
+    let Fx_core : PosetFilter (U := Bcore.toPartialOrder) :=
+      PosetFilter.castOrderIso (h := hcoreOrder.symm) Fx_sub
+    let Fy_core : PosetFilter (U := Bcore.toPartialOrder) :=
+      PosetFilter.castOrderIso (h := hcoreOrder.symm) Fy_sub
+    let Fx_fs : AlternativePrimaryFiltrators.FilterSet (U := Bcore.toPartialOrder) :=
+      PosetFilter.toThroughEquiv Fx_core
+    let Fy_fs : AlternativePrimaryFiltrators.FilterSet (U := Bcore.toPartialOrder) :=
+      PosetFilter.toThroughEquiv Fy_core
+    have hnot_compl :
+        ∀ a : Filtrator.subset (α := γ), a ∈ Fy_fs.elements → aᶜ ∉ Fx_fs.elements := by
+      intro a haFy
+      have haFy_core : a ∈ Fy_core.elements := by
+        simpa [Fy_fs] using haFy
+      have hle_core :
+          Fy_core ≤ PosetFilter.principal (U := Bcore.toPartialOrder) a :=
+        (le_principal_iff_subset (F := Fy_core) (x := a)).2 haFy_core
+      have hle_sub :
+          Fy_sub ≤ PosetFilter.principal (U := Filtrator.suborder (α := γ)) a := by
+        have hle_core_cast :
+            PosetFilter.castOrderIso (h := hcoreOrder.symm) Fy_sub ≤
+              PosetFilter.castOrderIso (h := hcoreOrder.symm)
+                (PosetFilter.principal (U := Filtrator.suborder (α := γ)) a) := by
+          simpa [Fy_core, PosetFilter.castOrderIso_principal (h := hcoreOrder.symm) a] using hle_core
+        exact (PosetFilter.castOrderIso (h := hcoreOrder.symm)).map_rel_iff.1 hle_core_cast
+      have haFy_sub : a ∈ Fy_sub.elements :=
+        (le_principal_iff_subset (F := Fy_sub) (x := a)).1 hle_sub
+      have hya : y ≤ a.1 := by
+        simpa [Fy_sub, Filtrator.Primary.to_poset_filter, Filtrator.up_suborder] using haFy_sub
+      have hmeet_xa : meet x a.1 := hall a.1 ⟨a.2, hya⟩
+      have hsep_princ_sub :
+          PosetFilter.principal (U := Filtrator.suborder (α := γ)) a ∈
+            separator Fx_sub := by
+        exact (principal_core_separator_iff_meet (b := x) (y := a)).2 hmeet_xa
+      have hsep_princ_core :
+          PosetFilter.principal (U := Bcore.toPartialOrder) a ∈
+            separator Fx_core := by
+        have hcast :=
+          (StrongSeparability.orderIso_mem_separator_iff
+            (e := PosetFilter.castOrderIso (h := hcoreOrder.symm))
+            (x := PosetFilter.principal (U := Filtrator.suborder (α := γ)) a)
+            (a := Fx_sub)).1 hsep_princ_sub
+        simpa [Fx_core, PosetFilter.castOrderIso_principal (h := hcoreOrder.symm) a] using hcast
+      have hsep_princ_fs :
+          AlternativePrimaryFiltrators.PrincipalConstructions.filterSet_principal
+            (Filtrator.subset (α := γ)) a ∈
+              separator Fx_fs := by
+        exact
+          (StrongSeparability.orderIso_mem_separator_iff
+            (e := AlternativePrimaryFiltrators.filterSetOrderIsoPosetFilter
+              (α := Filtrator.subset (α := γ)))
+            (x := AlternativePrimaryFiltrators.PrincipalConstructions.filterSet_principal
+              (Filtrator.subset (α := γ)) a)
+            (a := Fx_fs)).2 (by
+              simpa [Fx_fs,
+                AlternativePrimaryFiltrators.PrincipalConstructions.filterSet_principal,
+                PosetFilter.toThroughEquiv, PosetFilter.principal] using hsep_princ_core)
+      exact
+        (AlternativePrimaryFiltrators.PrincipalConstructions.filterSet_principal_mem_separator_iff_not_compl_mem
+          (α := Filtrator.subset (α := γ)) a Fx_fs).1 hsep_princ_fs
+    have hmeet_fs : meet Fx_fs Fy_fs :=
+      filterSet_meet_of_forall_not_compl (F := Fx_fs) (G := Fy_fs) hnot_compl
+    have hsep_fy_fs : Fy_fs ∈ separator Fx_fs := by
+      simpa [separator, meet_comm] using hmeet_fs
+    have hsep_fy_core : Fy_core ∈ separator Fx_core := by
+      exact
+        (StrongSeparability.orderIso_mem_separator_iff
+          (e := AlternativePrimaryFiltrators.filterSetOrderIsoPosetFilter
+            (α := Filtrator.subset (α := γ)))
+          (x := Fy_fs) (a := Fx_fs)).1 (by
+            simpa [Fy_fs, Fx_fs] using hsep_fy_fs)
+    have hsep_fy_sub : Fy_sub ∈ separator Fx_sub := by
+      exact
+        (StrongSeparability.orderIso_mem_separator_iff
+          (e := PosetFilter.castOrderIso (h := hcoreOrder.symm))
+          (x := Fy_sub) (a := Fx_sub)).2 (by
+            simpa [Fy_core, Fx_core] using hsep_fy_core)
+    have hsep_yx : y ∈ separator x := by
+      have hsep_filters :
+          Filtrator.Primary.to_filters_iso.toRelIso y ∈
+            separator (Filtrator.Primary.to_filters_iso.toRelIso x) := by
+        simpa [Fy_sub, Fx_sub,
+          Filtrator.Primary.to_filters_iso_eq_to_poset_filter (α := γ) y,
+          Filtrator.Primary.to_filters_iso_eq_to_poset_filter (α := γ) x] using hsep_fy_sub
+      exact
+        (StrongSeparability.orderIso_mem_separator_iff
+          (e := Filtrator.Primary.to_filters_iso.toRelIso)
+          (x := y) (a := x)).2 hsep_filters
+    have hmeet_yx : meet y x := by
+      simpa [separator] using hsep_yx
+    exact (meet_comm y x).1 hmeet_yx
 
 /-- Theorem 1654, item `\ref{pf-at-f}`, proof step `2^o` (reverse inequality):
 for an atom `a` that is a core element, the right-hand side of condition (24)
