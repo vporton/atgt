@@ -262,6 +262,52 @@ lemma separator_up_of_primary_boolean_core
     F.toFiltrator.separator_up_property := by
   sorry
 
+/-- Theorem 1654, item `\ref{pf-at-f}`, proof step `2^o` (reverse inequality):
+for an atom `a` that is a core element, the right-hand side of condition (24)
+is bounded above by `A a`. -/
+lemma theorem1654_item1_item2_reverse
+    {α : Type u} {β : Type v}
+    [Filtrator α]
+    [OrderBot α]
+    [CompleteLattice β]
+    (A : α → β)
+    (a : α)
+    (ha_atom : IsAtom a)
+    (ha_core : a ∈ (Filtrator.subset : Set α)) :
+    sInf {z : β | ∃ x ∈ Filtrator.up a,
+      z = sSup {w : β | ∃ u ∈ atoms x, w = A u}} ≤ A a := by
+  let S : Set β := {w : β | ∃ u ∈ atoms a, w = A u}
+  have hS : sSup S = A a := by
+    apply le_antisymm
+    · refine sSup_le ?_
+      intro w hw
+      rcases hw with ⟨u, hu, rfl⟩
+      rcases (IsAtom.le_iff ha_atom).1 hu.1 with hu_bot | hu_eq
+      · exact False.elim (hu.2.ne_bot hu_bot)
+      · simp [hu_eq]
+    · exact le_sSup ⟨a, ⟨le_rfl, ha_atom⟩, rfl⟩
+  refine sInf_le ?_
+  refine ⟨a, ⟨ha_core, le_rfl⟩, ?_⟩
+  simpa [S] using hS.symm
+
+/-- Theorem 1654, item `\ref{pf-at-f}`, proof step `2^o` as an equality:
+combining condition (24) with the reverse inequality on atomic core elements. -/
+lemma theorem1654_item1_atom_core_value
+    {α : Type u} {β : Type v}
+    [Filtrator α]
+    [OrderBot α]
+    [CompleteLattice β]
+    (A : α → β)
+    (hA_cond : PointfreeFuncoid.atomicFunctionCondition1654 (A := A))
+    (a : α)
+    (ha_atom : IsAtom a)
+    (ha_core : a ∈ (Filtrator.subset : Set α)) :
+    A a = sInf {z : β | ∃ x ∈ Filtrator.up a,
+      z = sSup {w : β | ∃ u ∈ atoms x, w = A u}} := by
+  apply le_antisymm
+  · exact hA_cond a ha_atom
+  · exact theorem1654_item1_item2_reverse (A := A) (a := a) ha_atom ha_core
+
 /-- Existence witness for Theorem 1654, item 2 (`\ref{pf-at-r}`):
 construct a funcoid whose relation on atoms matches the given `δ`.
 The construction follows the book proof: lift `δ` to a core relation
@@ -317,6 +363,16 @@ lemma theorem1654_item1_exists
     (hA_cond : PointfreeFuncoid.atomicFunctionCondition1654 (A := A)) :
     ∃ f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
       PointfreeFuncoid.fwdContinuationFromAtoms1654 (A := A) f := by
+  have h_item2 :
+      ∀ a : α, IsAtom a → a ∈ (Filtrator.subset : Set α) →
+        A a =
+          sInf {z : β | ∃ x ∈ Filtrator.up a,
+            z = sSup {w : β | ∃ u ∈ atoms x, w = A u}} := by
+    intro a ha_atom ha_core
+    exact theorem1654_item1_atom_core_value
+      (A := A) (hA_cond := hA_cond) (a := a) ha_atom ha_core
+  -- Item `2^o` from the book proof is formalized above; item `1^o` remains.
+  have _ := h_item2
   sorry
 
 /--
