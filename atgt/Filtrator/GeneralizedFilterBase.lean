@@ -198,4 +198,116 @@ end Prefilteredness
 
 export Prefilteredness (prefiltered_of_primary prefiltered_of_powerset)
 
+section Atomicity
+
+variable {α : Type u}
+
+private theorem posetFilter_isAtomic_of_boolean (δ : Type u) [BooleanAlgebra δ] :
+    let botPF : OrderBot (PosetFilter (U := (inferInstance : PartialOrder δ))) :=
+      { bot := PosetFilter.principal (U := (inferInstance : PartialOrder δ)) (⊥ : δ)
+        bot_le := by
+          intro F x _
+          exact (bot_le : (⊥ : δ) ≤ x) }
+    @IsAtomic (PosetFilter (U := (inferInstance : PartialOrder δ)))
+      (inferInstance : PartialOrder (PosetFilter (U := (inferInstance : PartialOrder δ))))
+      botPF := by
+  let U : PartialOrder δ := (inferInstance : PartialOrder δ)
+  let botPF : OrderBot (PosetFilter (U := U)) := {
+    bot := PosetFilter.principal (U := U) (⊥ : δ)
+    bot_le := by
+      intro F x hx
+      exact (bot_le : (⊥ : δ) ≤ x) }
+  letI : OrderBot (PosetFilter (U := U)) := botPF
+  refine IsAtomic.of_isChain_bounded ?_
+  intro c hc hne hbot
+  let L : PosetFilter (U := U) := {
+    elements := {x : δ | ∃ F ∈ c, x ∈ F.elements}
+    non_empty := by
+      rcases hne with ⟨F, hF⟩
+      rcases F.non_empty with ⟨x, hx⟩
+      exact ⟨x, ⟨F, hF, hx⟩⟩
+    cap_elements := by
+      intro x y hx hy
+      rcases hx with ⟨F, hF, hxF⟩
+      rcases hy with ⟨G, hG, hyG⟩
+      rcases hc.total hF hG with hFG | hGF
+      · have hyF : y ∈ F.elements := hFG hyG
+        rcases F.cap_elements hxF hyF with ⟨z, hz, hzx, hzy⟩
+        exact ⟨z, ⟨F, hF, hz⟩, hzx, hzy⟩
+      · have hxG : x ∈ G.elements := hGF hxF
+        rcases G.cap_elements hxG hyG with ⟨z, hz, hzx, hzy⟩
+        exact ⟨z, ⟨G, hG, hz⟩, hzx, hzy⟩
+    carrier := {x : δ | ∃ F ∈ c, x ∈ F.elements}
+    upper' := by
+      intro x y hxy hx
+      rcases hx with ⟨F, hF, hxF⟩
+      have hxF' : x ∈ F.carrier := by
+        simpa [F.carrier_eq_elements] using hxF
+      have hyF' : y ∈ F.carrier := F.upper' hxy hxF'
+      exact ⟨F, hF, by simpa [F.carrier_eq_elements] using hyF'⟩
+    carrier_eq_elements := rfl }
+  have hL_ne_bot : L ≠ (⊥ : PosetFilter (U := U)) := by
+    intro hLbot
+    have hbot_mem_L : (⊥ : δ) ∈ L.elements := by
+      have hbot_mem_bot : (⊥ : δ) ∈ (⊥ : PosetFilter (U := U)).elements := by
+        change (⊥ : δ) ≤ (⊥ : δ)
+        exact le_rfl
+      simpa [hLbot] using hbot_mem_bot
+    rcases hbot_mem_L with ⟨F, hF, hbotF⟩
+    have hF_eq_bot : F = (⊥ : PosetFilter (U := U)) := by
+      apply PosetFilter.ThroughEquiv.ext
+      ext x
+      constructor
+      · intro hxF
+        change (⊥ : δ) ≤ x
+        exact bot_le
+      · intro _
+        have hbotF' : (⊥ : δ) ∈ F.carrier := by
+          simpa [F.carrier_eq_elements] using hbotF
+        have hxF' : x ∈ F.carrier := F.upper' (bot_le : (⊥ : δ) ≤ x) hbotF'
+        simpa [F.carrier_eq_elements] using hxF'
+    exact hbot (hF_eq_bot ▸ hF)
+  have hL_lower : L ∈ lowerBounds c := by
+    intro F hF x hxF
+    exact ⟨F, hF, hxF⟩
+  exact ⟨L, hL_ne_bot, hL_lower⟩
+
+/-- Core-bottom membership criterion for `up x`, via Corollary 573 (`genbase-corr`). -/
+lemma core_bot_mem_to_poset_filter_iff_eq_bot [Filtrator.Primary α] [OrderBot α]
+    (hbot : (⊥ : α) ∈ subset) (x : α) :
+    (⟨⊥, hbot⟩ : (subset : Set α)) ∈ (Filtrator.Primary.to_poset_filter (α := α) x).elements ↔ x = ⊥ := by
+  let S : GeneralizedFilterBaseOf (α := α) x := {
+    base := (Filtrator.Primary.to_poset_filter (α := α) x).toPosetFilterBase
+    closes_to := by
+      simpa using (PosetFilter.close_filter_base_toPosetFilterBase_eq_self
+        (U := Filtrator.suborder (α := α))
+        (Filtrator.Primary.to_poset_filter (α := α) x)) }
+  simpa [S] using bot_mem_base_iff_eq_bot (hbot := hbot) (S := S)
+
+/-- Theorem 576 (`filt-atomic`): primary filtrator over a boolean core is atomic. -/
+theorem primary_imp_booleanAtomicCore [Filtrator.Primary α]
+    [Bcore : BooleanAlgebra (Filtrator.subset (α := α))]
+    [OrderBot α]
+    (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := α)) :
+    IsAtomic α := by
+  letI : PartialOrder (Filtrator.subset (α := α)) := Bcore.toPartialOrder
+  letI : OrderBot (PosetFilter (U := Bcore.toPartialOrder)) := {
+    bot := PosetFilter.principal (U := Bcore.toPartialOrder) (⊥ : Filtrator.subset (α := α))
+    bot_le := by
+      intro F x hx
+      exact (show @LE.le (Filtrator.subset (α := α)) Bcore.toLE
+        (@Bot.bot (Filtrator.subset (α := α)) Bcore.toBot) x from Bcore.bot_le x) }
+  have hAtomic_core_filters :
+      IsAtomic (PosetFilter (U := Bcore.toPartialOrder)) :=
+    posetFilter_isAtomic_of_boolean (δ := Filtrator.subset (α := α))
+  let e_core :
+      α ≃o PosetFilter (U := Bcore.toPartialOrder) :=
+    ((Filtrator.Primary.to_filters_iso (α := α)).toRelIso.trans
+      (PosetFilter.castOrderIso (h := hcoreOrder.symm)))
+  have hAtomic_core : IsAtomic α := by
+    exact (OrderIso.isAtomic_iff e_core).2 hAtomic_core_filters
+  exact hAtomic_core
+
+end Atomicity
+
 end Filtrator.Primary

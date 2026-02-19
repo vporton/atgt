@@ -1,5 +1,6 @@
 import Mathlib.Data.Ordmap.Ordset
 import Mathlib.Order.Lattice
+import Mathlib.Order.ZornAtoms
 
 universe u
 
@@ -190,6 +191,23 @@ def close_filter_base{α: Type*} {U : PartialOrder α}
   · intro x y hx hxy
     rcases hxy with ⟨z, hz, hzx⟩
     exact ⟨z, hz, le_trans hzx hx⟩
+
+@[simp]
+lemma close_filter_base_toPosetFilterBase_eq_self {α : Type*} {U : PartialOrder α}
+    (F : PosetFilter U) :
+    close_filter_base F.toPosetFilterBase = F := by
+  apply PosetFilter.ext
+  apply PosetFilterBase.ext_elements
+  ext y
+  constructor
+  · intro hy
+    rcases hy with ⟨x, hx, hxy⟩
+    have hx' : x ∈ F.carrier := by
+      simpa [F.carrier_eq_elements] using hx
+    have hy' : y ∈ F.carrier := F.upper' hxy hx'
+    simpa [F.carrier_eq_elements] using hy'
+  · intro hy
+    exact ⟨y, hy, le_rfl⟩
 
 instance {α: Type*}(U : PartialOrder α) : LE (PosetFilter U) :=
   ⟨fun F G => G.elements ⊆ F.elements⟩
