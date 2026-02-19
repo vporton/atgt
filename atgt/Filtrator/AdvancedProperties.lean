@@ -565,6 +565,68 @@ left-sup distributes over arbitrary infimum.
 def SupSInfAssoc (α : Type u) [CompleteLattice α] : Prop :=
   ∀ a : α, ∀ S : Set α, a ⊔ sInf S = sInf ((fun x : α => a ⊔ x) '' S)
 
+namespace PrimaryDistribCoreBridge
+
+variable {α : Type u}
+
+/--
+Theorem 524 bridge route (Lean form): from primary + distributive-core assumptions we construct
+the complete lattice structure on `Filtrator.supset`.
+
+Note: `OrderTop`/`OrderBot` assumptions are Lean-side technical assumptions used to handle the
+empty-family branch in complete-lattice construction; they are not stated explicitly in the
+informal book.
+-/
+noncomputable def primary_distribCore_imp_completeLattice
+    [SemilatticeInf α]
+    [hTop : @OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
+    [hBot : @OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
+    [Filtrator.Primary α]
+    [_Dcore : DistribLattice (Filtrator.subset (α := α))]
+    (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
+      (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) :
+    CompleteLattice (Filtrator.supset (α := α)) := by
+  exact PrimaryMeetTopCompleteLatticeTuple.two_imp_three (α := α) hord
+
+/--
+Package a complete-lattice plus Theorem-530 style law into an explicit coframe structure.
+-/
+noncomputable def coframe_of_supSInfAssoc
+    (α : Type u) [CompleteLattice α]
+    (hAssoc : SupSInfAssoc α) :
+    Order.Coframe α := by
+  refine Order.Coframe.ofMinimalAxioms ?_
+  refine {
+    toCompleteLattice := (inferInstance : CompleteLattice α)
+    iInf_sup_le_sup_sInf := ?_
+  }
+  intro a s
+  have hs :
+      (a ⊔ sInf s) = ⨅ b ∈ s, a ⊔ b := by
+    simpa [sInf_image] using (hAssoc a s)
+  exact hs.ge
+
+/--
+Specialized bridge: under the primary/distributive-core setup, any proof of Theorem 530
+(`SupSInfAssoc`) yields a coframe instance on `Filtrator.supset`.
+-/
+noncomputable def primary_distribCore_imp_coframe
+    [SemilatticeInf α]
+    [hTop : @OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
+    [hBot : @OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
+    [Filtrator.Primary α]
+    [_Dcore : DistribLattice (Filtrator.subset (α := α))]
+    (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
+      (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b)
+    (hAssoc : @SupSInfAssoc (Filtrator.supset (α := α))
+      (primary_distribCore_imp_completeLattice (α := α) hord)) :
+    Order.Coframe (Filtrator.supset (α := α)) := by
+  letI : CompleteLattice (Filtrator.supset (α := α)) :=
+    primary_distribCore_imp_completeLattice (α := α) hord
+  exact coframe_of_supSInfAssoc (Filtrator.supset (α := α)) (by simpa using hAssoc)
+
+end PrimaryDistribCoreBridge
+
 namespace FilterInfAssociativity
 
 variable {α : Type u}
