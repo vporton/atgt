@@ -464,6 +464,27 @@ lemma theorem1654_item1_atom_core_value
   · exact hA_cond a ha_atom
   · exact theorem1654_item1_item2_reverse (A := A) (a := a) ha_atom ha_core
 
+/-- Ambient-atom version of Theorem 496 (`atoms-join`) on core joins, under a
+coercion-to-ambient-join compatibility hypothesis. -/
+lemma atoms_coreJoin_eq_union_ambient
+    {γ : Type u}
+    [DistribLattice γ]
+    [OrderBot γ]
+    {S : Set γ}
+    [Bcore : BooleanAlgebra S]
+    (h_core_sup_coe :
+      ∀ I J : S, ((I ⊔ J).1 : γ) = I.1 ⊔ J.1)
+    (I J : S) :
+    atoms ((I ⊔ J).1 : γ) = atoms I.1 ∪ atoms J.1 := by
+  have hstar : AlternativePrimaryFiltrators.IsStarrish γ :=
+    AlternativePrimaryFiltrators.distributiveLattice_isStarrish γ
+  calc
+    atoms ((I ⊔ J).1 : γ) = atoms (I.1 ⊔ J.1) := by
+      simpa [h_core_sup_coe I J]
+    _ = atoms I.1 ∪ atoms J.1 :=
+      AlternativePrimaryFiltrators.atoms_sup_eq_union
+        (α := γ) hstar I.1 J.1
+
 /-- Existence witness for Theorem 1654, item 2 (`\ref{pf-at-r}`):
 construct a funcoid whose relation on atoms matches the given `δ`.
 The construction follows the book proof: lift `δ` to a core relation
