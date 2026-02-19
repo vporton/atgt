@@ -464,6 +464,111 @@ lemma theorem1654_item1_atom_core_value
   · exact hA_cond a ha_atom
   · exact theorem1654_item1_item2_reverse (A := A) (a := a) ha_atom ha_core
 
+/-- Core-order/ambient-order alignment for core elements under the identified core order. -/
+lemma core_order_le_iff_ambient
+    {γ : Type u}
+    [Filtrator γ]
+    [Bcore : BooleanAlgebra (Filtrator.subset (α := γ))]
+    (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ))
+    (a b : Filtrator.subset (α := γ)) :
+    (@LE.le (Filtrator.subset (α := γ)) Bcore.toPartialOrder.toLE a b) ↔ a.1 ≤ b.1 := by
+  constructor
+  · intro hab
+    have hab_sub :
+        @LE.le (Filtrator.subset (α := γ))
+          (Filtrator.suborder (α := γ)).toLE a b := by
+      simpa [hcoreOrder] using hab
+    exact hab_sub
+  · intro hab
+    have hab_sub :
+        @LE.le (Filtrator.subset (α := γ))
+          (Filtrator.suborder (α := γ)).toLE a b := hab
+    simpa [hcoreOrder] using hab_sub
+
+/-- Coercion behavior of core bottom: for primary filtrators over boolean cores,
+the core bottom coerces to the ambient bottom. -/
+lemma core_bot_coe_eq_bot
+    {γ : Type u}
+    [Filtrator.Primary γ]
+    [Bcore : BooleanAlgebra (Filtrator.subset (α := γ))]
+    [OrderBot γ]
+    (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ)) :
+    ((⊥ : Filtrator.subset (α := γ)).1 : γ) = (⊥ : γ) := by
+  let hFiltered : Filtrator.Filtered γ := Filtrator.primary_imp_filtered (α := γ)
+  let botCore : Filtrator.subset (α := γ) := (⊥ : Filtrator.subset (α := γ))
+  have h_up_sub : Filtrator.up (⊥ : γ) ⊆ Filtrator.up botCore.1 := by
+    intro y hy
+    have hbot_le_sub :
+        @LE.le (Filtrator.subset (α := γ)) Bcore.toPartialOrder.toLE
+          botCore ⟨y, hy.1⟩ := Bcore.bot_le ⟨y, hy.1⟩
+    have hbot_le_ambient : botCore.1 ≤ y :=
+      (core_order_le_iff_ambient (hcoreOrder := hcoreOrder)
+        (a := botCore) (b := ⟨y, hy.1⟩)).1 hbot_le_sub
+    exact ⟨hy.1, hbot_le_ambient⟩
+  have hbotCore_le_bot : botCore.1 ≤ (⊥ : γ) :=
+    hFiltered.is_filtered (⊥ : γ) botCore.1 h_up_sub
+  exact le_antisymm hbotCore_le_bot bot_le
+
+/-- Coercion behavior of core join under join-closed-core alignment:
+if ambient joins exist, coercion of core join equals ambient join. -/
+lemma core_sup_coe_eq_sup
+    {γ : Type u}
+    [Filtrator γ]
+    [Supγ : SemilatticeSup γ]
+    [Bcore : BooleanAlgebra (Filtrator.subset (α := γ))]
+    (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ))
+    (hJoinAligned : Filtrator.CoreJoinAligned γ)
+    (hord :
+      ∀ a b : γ,
+        a ≤ b ↔ @LE.le γ Supγ.toPartialOrder.toLE a b)
+    (I J : Filtrator.subset (α := γ)) :
+    ((I ⊔ J).1 : γ) = I.1 ⊔ J.1 := by
+  have hcore_lub :
+      IsLUB ({I, J} : Set (Filtrator.subset (α := γ))) (I ⊔ J) := by
+    have hcore_lub_B :
+        @IsLUB (Filtrator.subset (α := γ)) Bcore.toPartialOrder.toLE
+          ({I, J} : Set (Filtrator.subset (α := γ))) (I ⊔ J) := by
+      simpa using (isLUB_pair (a := I) (b := J))
+    simpa [hcoreOrder] using hcore_lub_B
+  have hamb_lub :
+      IsLUB (Subtype.val '' ({I, J} : Set (Filtrator.subset (α := γ))) : Set γ)
+        ((I ⊔ J).1 : γ) :=
+    hJoinAligned ({I, J} : Set (Filtrator.subset (α := γ))) (I ⊔ J) hcore_lub
+  have himage_pair :
+      (Subtype.val '' ({I, J} : Set (Filtrator.subset (α := γ))) : Set γ) = {I.1, J.1} := by
+    ext x
+    constructor
+    · rintro ⟨s, hs, rfl⟩
+      rcases hs with rfl | rfl <;> simp
+    · intro hx
+      rcases hx with rfl | rfl
+      · exact ⟨I, by simp, rfl⟩
+      · exact ⟨J, by simp, rfl⟩
+  have hsup_lub :
+      IsLUB (Subtype.val '' ({I, J} : Set (Filtrator.subset (α := γ))) : Set γ)
+        (I.1 ⊔ J.1) := by
+    refine ⟨?_, ?_⟩
+    · intro x hx
+      have hx' : x = I.1 ∨ x = J.1 := by
+        simpa [himage_pair] using hx
+      rcases hx' with rfl | rfl
+      · exact (hord I.1 (I.1 ⊔ J.1)).2 (@le_sup_left γ Supγ I.1 J.1)
+      · exact (hord J.1 (I.1 ⊔ J.1)).2 (@le_sup_right γ Supγ I.1 J.1)
+    · intro z hz
+      have hI : I.1 ≤ z := hz (himage_pair.symm ▸ (by simp : I.1 ∈ ({I.1, J.1} : Set γ)))
+      have hJ : J.1 ≤ z := hz (himage_pair.symm ▸ (by simp : J.1 ∈ ({I.1, J.1} : Set γ)))
+      have hI' :
+          @LE.le γ Supγ.toPartialOrder.toLE I.1 z :=
+        (hord I.1 z).1 hI
+      have hJ' :
+          @LE.le γ Supγ.toPartialOrder.toLE J.1 z :=
+        (hord J.1 z).1 hJ
+      have hsup' :
+          @LE.le γ Supγ.toPartialOrder.toLE (I.1 ⊔ J.1) z :=
+        @sup_le γ Supγ I.1 J.1 z hI' hJ'
+      exact (hord (I.1 ⊔ J.1) z).2 hsup'
+  exact hamb_lub.unique hsup_lub
+
 /-- Ambient-atom version of Theorem 496 (`atoms-join`) on core joins, under a
 coercion-to-ambient-join compatibility hypothesis. -/
 lemma atoms_coreJoin_eq_union_ambient

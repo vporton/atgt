@@ -1,6 +1,8 @@
 import atgt.Filtrator.Primary
 import atgt.Filtrator.Powerset
+import atgt.AlternativePrimaryFiltrators
 import Mathlib.Order.CompleteLattice.Basic
+import Mathlib.Order.CompleteBooleanAlgebra
 
 /-!
 # More advanced properties of filters (Section 5.8)
@@ -345,3 +347,122 @@ noncomputable def one_imp_three
 end PrimaryMeetTopCompleteLatticeTuple
 
 export PrimaryMeetTopCompleteLatticeTuple (two_imp_three one_imp_three)
+
+/--
+Theorem 530 (`f-inf-assc`) rendered in the current vocabulary:
+left-sup distributes over arbitrary infimum.
+-/
+def SupSInfAssoc (α : Type u) [CompleteLattice α] : Prop :=
+  ∀ a : α, ∀ S : Set α, a ⊔ sInf S = sInf ((fun x : α => a ⊔ x) '' S)
+
+namespace FilterInfAssociativity
+
+variable {α : Type u}
+
+/-- 1⇒2 in Theorem 530 tuple. -/
+noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α :=
+  inferInstance
+
+/-- 2⇒3 in Theorem 530 tuple (development-level complete-distributive form). -/
+theorem two_imp_three
+    [Filtrator α] [Filtrator.Primary α] [CompleteDistribLattice α] :
+    SupSInfAssoc α := by
+  intro a S
+  simpa [sInf_image] using (sup_sInf_eq (a := a) (s := S))
+
+/-- 1⇒3 in Theorem 530 tuple. -/
+theorem one_imp_three
+    [Filtrator.Powerset.{u, v} α] [CompleteDistribLattice α] :
+    SupSInfAssoc α := by
+  letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
+  exact two_imp_three (α := α)
+
+end FilterInfAssociativity
+
+export FilterInfAssociativity (two_imp_three one_imp_three)
+
+/--
+Corollary 531 (`filt-also-distr`) in the development-level form used downstream:
+distributive lattices are starrish, hence satisfy the atoms-join split theorem.
+-/
+def StarrishJoinCore (α : Type u) [SemilatticeSup α] : Prop :=
+  AlternativePrimaryFiltrators.IsStarrish α
+
+namespace FilterAlsoDistributive
+
+variable {α : Type u}
+
+/-- 1⇒2 in Corollary 531 tuple. -/
+noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α :=
+  inferInstance
+
+/-- 2⇒3 in Corollary 531 tuple (development-level starrish consequence). -/
+theorem two_imp_three
+    [Filtrator α] [Filtrator.Primary α] [DistribLattice α] :
+    StarrishJoinCore α := by
+  exact AlternativePrimaryFiltrators.distributiveLattice_isStarrish α
+
+/-- 1⇒3 in Corollary 531 tuple. -/
+theorem one_imp_three
+    [Filtrator.Powerset.{u, v} α] [DistribLattice α] :
+    StarrishJoinCore α := by
+  letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
+  exact two_imp_three (α := α)
+
+end FilterAlsoDistributive
+
+export FilterAlsoDistributive (two_imp_three one_imp_three)
+
+/--
+Core-join alignment (`correct joining` style): if `d` is a least upper bound of a family of
+core elements (with the core/suborder order), then `d.1` is a least upper bound of the
+corresponding family in the ambient order.
+-/
+def Filtrator.CoreJoinAligned (α : Type u) [Filtrator α] : Prop :=
+  ∀ S : Set (subset : Set α), ∀ d : (subset : Set α),
+    IsLUB S d → IsLUB (Subtype.val '' S) d.1
+
+namespace FilteredJoinClosedCore
+
+variable {α : Type u}
+
+/-- 1⇒2 in Theorem 534 tuple. -/
+noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α :=
+  inferInstance
+
+/-- 2⇒3 in Theorem 534 tuple. -/
+lemma two_imp_three [Filtrator.Primary α] : Filtrator.Filtered α :=
+  Filtrator.primary_imp_filtered (α := α)
+
+/-- 3⇒4 in Theorem 534 tuple. -/
+lemma three_imp_four [Filtrator α] [Filtrator.Filtered α] : Filtrator.CoreJoinAligned α := by
+  intro S d hd
+  refine ⟨?_, ?_⟩
+  · intro x hx
+    rcases hx with ⟨s, hs, rfl⟩
+    exact hd.1 hs
+  · intro a ha
+    have h_up_sub : Filtrator.up a ⊆ Filtrator.up d.1 := by
+      intro c hc
+      have hc_upper_core : ∀ s ∈ S, s ≤ (⟨c, hc.1⟩ : (subset : Set α)) := by
+        intro s hs
+        have hs_le_a : s.1 ≤ a := ha ⟨s, hs, rfl⟩
+        exact show s.1 ≤ c from le_trans hs_le_a hc.2
+      have hd_le_c : d ≤ (⟨c, hc.1⟩ : (subset : Set α)) := hd.2 hc_upper_core
+      exact ⟨hc.1, hd_le_c⟩
+    exact (Filtrator.Filtered.is_filtered (α := α) a d.1 h_up_sub)
+
+/-- 2⇒4 in Theorem 534 tuple. -/
+theorem two_imp_four [Filtrator.Primary α] : Filtrator.CoreJoinAligned α := by
+  letI : Filtrator.Filtered α := two_imp_three (α := α)
+  exact three_imp_four (α := α)
+
+/-- 1⇒4 in Theorem 534 tuple. -/
+theorem one_imp_four [Filtrator.Powerset.{u, v} α] : Filtrator.CoreJoinAligned α := by
+  letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
+  exact two_imp_four (α := α)
+
+end FilteredJoinClosedCore
+
+export FilteredJoinClosedCore
+  (three_imp_four two_imp_four one_imp_four)
