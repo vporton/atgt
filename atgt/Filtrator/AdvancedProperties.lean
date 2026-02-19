@@ -55,7 +55,7 @@ theorem theorem515 {α : Type u}
     [SemilatticeInf α] [Filtrator.Primary α] :
     (∀ a b : α, a ≤ b ↔ @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) →
     Filtrator.binary_meet_closed (α := α) →
-    ∀ S : Set α, S.Nonempty → BddAbove S →
+    ∀ S : Set (Filtrator.supset (α := α)), S.Nonempty → BddAbove S →
       ∃ d : α, IsLUB S d ∧ Filtrator.up d = {x : α | ∀ s ∈ S, x ∈ Filtrator.up s} := by
   intro hord h_closed S hS hBdd
   have h_nonempty : ∀ a : α, Set.Nonempty (Filtrator.up a) := by
@@ -159,7 +159,7 @@ theorem theorem516 {α : Type u}
     [hTop : @OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
     [Filtrator.Primary α] :
     (∀ a b : α, a ≤ b ↔ @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) →
-    NonemptyInfUpInter α := by
+    NonemptyInfUpInter (Filtrator.supset (α := α)) := by
   intro hord S hS
   have hTopSub : (⊤ : α) ∈ subset := by
     rcases Filtrator.Primary.exists_up_in_subset (α := α) (⊤ : α) with ⟨y, hy⟩
@@ -266,7 +266,7 @@ theorem two_imp_three
     [@OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
     [Filtrator.Primary α]
     (hord : ∀ a b : α, a ≤ b ↔ @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) :
-    NonemptyInfUpInter α := by
+    NonemptyInfUpInter (Filtrator.supset (α := α)) := by
   exact theorem516 (α := α) hord
 
 /-- 1⇒3 in Corollary 517 tuple. -/
@@ -275,7 +275,7 @@ theorem one_imp_three
     [@OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
     [Filtrator.Powerset.{u, v} α] :
     (∀ a b : α, a ≤ b ↔ @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) →
-    NonemptyInfUpInter α := by
+    NonemptyInfUpInter (Filtrator.supset (α := α)) := by
   intro hord
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
   exact two_imp_three (α := α) hord
@@ -301,7 +301,7 @@ noncomputable def two_imp_three
     [hBot : @OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
     [Filtrator.Primary α] :
     (∀ a b : α, a ≤ b ↔ @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) →
-    CompleteLattice α := by
+    CompleteLattice (Filtrator.supset (α := α)) := by
   intro hord
   classical
   let sSupFun : Set α → α := fun S =>
@@ -341,7 +341,7 @@ noncomputable def one_imp_three
     [@OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
     [Filtrator.Powerset.{u, v} α] :
     (∀ a b : α, a ≤ b ↔ @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) →
-    CompleteLattice α := by
+    CompleteLattice (Filtrator.supset (α := α)) := by
   intro hord
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
   exact two_imp_three (α := α) hord
