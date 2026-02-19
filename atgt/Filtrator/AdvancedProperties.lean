@@ -637,19 +637,38 @@ noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary
 
 /-- 2⇒3 in Theorem 530 tuple (development-level complete-distributive form). -/
 theorem two_imp_three
-    [Filtrator α] [Filtrator.Primary α]
-    [CompleteDistribLattice (Filtrator.supset (α := α))] :
-    SupSInfAssoc (Filtrator.supset (α := α)) := by
+    [SemilatticeInf α]
+    [hTop : @OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
+    [hBot : @OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
+    [Filtrator.Primary α]
+    [Dcore : DistribLattice (Filtrator.subset (α := α))]
+    (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
+      (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b)
+    (hAssoc : @SupSInfAssoc (Filtrator.supset (α := α))
+      (PrimaryDistribCoreBridge.primary_distribCore_imp_completeLattice (α := α) hord)) :
+    @SupSInfAssoc (Filtrator.supset (α := α))
+      (PrimaryDistribCoreBridge.primary_distribCore_imp_completeLattice (α := α) hord) := by
+  let hC : Order.Coframe (Filtrator.supset (α := α)) :=
+    PrimaryDistribCoreBridge.primary_distribCore_imp_coframe
+      (α := α) hord hAssoc
   intro a S
-  simpa [sInf_image] using (sup_sInf_eq (a := a) (s := S))
+  simpa [sInf_image] using ((@sup_sInf_eq (Filtrator.supset (α := α)) hC (s := S) (a := a)))
 
 /-- 1⇒3 in Theorem 530 tuple. -/
 theorem one_imp_three
+    [SemilatticeInf α]
+    [@OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
+    [@OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
     [Filtrator.Powerset.{u, v} α]
-    [CompleteDistribLattice (Filtrator.supset (α := α))] :
-    SupSInfAssoc (Filtrator.supset (α := α)) := by
+    [Dcore : DistribLattice (Filtrator.subset (α := α))]
+    (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
+      (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b)
+    (hAssoc : @SupSInfAssoc (Filtrator.supset (α := α))
+      (PrimaryDistribCoreBridge.primary_distribCore_imp_completeLattice (α := α) hord)) :
+    @SupSInfAssoc (Filtrator.supset (α := α))
+      (PrimaryDistribCoreBridge.primary_distribCore_imp_completeLattice (α := α) hord) := by
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
-  exact two_imp_three (α := α)
+  exact two_imp_three (α := α) hord hAssoc
 
 end FilterInfAssociativity
 
