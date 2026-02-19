@@ -665,18 +665,35 @@ noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary
 
 /-- 2⇒3 in Corollary 531 tuple: the filter lattice is distributive. -/
 noncomputable def two_imp_three
-    [Filtrator α] [Filtrator.Primary α]
-    [DistribLattice (Filtrator.supset (α := α))] :
+    [SemilatticeInf α]
+    [hTop : @OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
+    [hBot : @OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
+    [Filtrator.Primary α]
+    [Dcore : DistribLattice (Filtrator.subset (α := α))]
+    (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
+      (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b)
+    (hAssoc : @SupSInfAssoc (Filtrator.supset (α := α))
+      (PrimaryDistribCoreBridge.primary_distribCore_imp_completeLattice (α := α) hord)) :
     DistribLattice (Filtrator.supset (α := α)) := by
-  infer_instance
+  let hC : Order.Coframe (Filtrator.supset (α := α)) :=
+    PrimaryDistribCoreBridge.primary_distribCore_imp_coframe
+      (α := α) hord hAssoc
+  exact hC.toCoheytingAlgebra.toDistribLattice
 
 /-- 1⇒3 in Corollary 531 tuple. -/
 noncomputable def one_imp_three
+    [SemilatticeInf α]
+    [@OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
+    [@OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
     [Filtrator.Powerset.{u, v} α]
-    [DistribLattice (Filtrator.supset (α := α))] :
+    [Dcore : DistribLattice (Filtrator.subset (α := α))]
+    (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
+      (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b)
+    (hAssoc : @SupSInfAssoc (Filtrator.supset (α := α))
+      (PrimaryDistribCoreBridge.primary_distribCore_imp_completeLattice (α := α) hord)) :
     DistribLattice (Filtrator.supset (α := α)) := by
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
-  exact two_imp_three (α := α)
+  exact two_imp_three (α := α) hord hAssoc
 
 end FilterAlsoDistributive
 
