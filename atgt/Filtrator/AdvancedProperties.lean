@@ -3,6 +3,8 @@ import atgt.Filtrator.Powerset
 import atgt.AlternativePrimaryFiltrators
 import Mathlib.Order.CompleteLattice.Basic
 import Mathlib.Order.CompleteBooleanAlgebra
+import Mathlib.Data.Finset.Lattice.Fold
+import Mathlib.Data.Fintype.Basic
 
 /-!
 # More advanced properties of filters (Section 5.8)
@@ -348,6 +350,214 @@ end PrimaryMeetTopCompleteLatticeTuple
 
 export PrimaryMeetTopCompleteLatticeTuple (two_imp_three one_imp_three)
 
+namespace FiniteFilterInfimum
+
+variable {α : Type u} [DistribLattice α]
+
+/--
+The right-hand side in Theorem 522 item `1^o`:
+finite meets of one chosen element from each input filter.
+-/
+def finiteMeetSet (m : ℕ)
+    (Fs : Fin (m + 1) → PosetFilter (U := (inferInstance : PartialOrder α))) : Set α :=
+  { x : α |
+      ∃ K : Fin (m + 1) → α,
+        (∀ i, K i ∈ (Fs i).elements) ∧
+        x = (Finset.univ.inf'
+          (by
+            classical
+            simpa using (Finset.univ_nonempty :
+              (Finset.univ : Finset (Fin (m + 1))).Nonempty)) K) }
+
+/--
+Theorem 522 item `1^o` (`chap-filt.tex`):
+for a finite family of filters over a distributive lattice, the finite infimum filter is exactly
+the set of finite meets of one chosen element from each filter.
+Formalized as an explicit `IsGLB` witness with the described carrier.
+-/
+theorem theorem522_item1
+    (m : ℕ) (Fs : Fin (m + 1) → PosetFilter (U := (inferInstance : PartialOrder α))) :
+    ∃ R : PosetFilter (U := (inferInstance : PartialOrder α)),
+      R.elements = finiteMeetSet (α := α) m Fs ∧
+      IsGLB (Set.range Fs) R := by
+  classical
+  let hneFin : (Finset.univ : Finset (Fin (m + 1))).Nonempty := by
+    simpa using (Finset.univ_nonempty :
+      (Finset.univ : Finset (Fin (m + 1))).Nonempty)
+  let setR : Set α := finiteMeetSet (α := α) m Fs
+  have hR_nonempty : Set.Nonempty setR := by
+    let K0 : Fin (m + 1) → α := fun i => Classical.choose (Fs i).non_empty
+    have hK0 : ∀ i, K0 i ∈ (Fs i).elements := by
+      intro i
+      exact Classical.choose_spec (Fs i).non_empty
+    refine ⟨(Finset.univ.inf' hneFin K0), ?_⟩
+    exact ⟨K0, hK0, rfl⟩
+  let R : PosetFilter (U := (inferInstance : PartialOrder α)) := {
+    elements := setR
+    non_empty := hR_nonempty
+    cap_elements := by
+      intro a b ha hb
+      rcases ha with ⟨X, hX, rfl⟩
+      rcases hb with ⟨Y, hY, rfl⟩
+      let Z : Fin (m + 1) → α := fun i => X i ⊓ Y i
+      have hZ : ∀ i, Z i ∈ (Fs i).elements := by
+        intro i
+        let Fi : AlternativePrimaryFiltrators.FilterSet (U := (inferInstance : PartialOrder α)) :=
+          PosetFilter.toThroughEquiv (Fs i)
+        have hXi : X i ∈ Fi.elements := by simpa [Fi] using hX i
+        have hYi : Y i ∈ Fi.elements := by simpa [Fi] using hY i
+        have hZi : X i ⊓ Y i ∈ Fi.elements :=
+          (AlternativePrimaryFiltrators.filter_inf_mem_iff (h := Fi) (X i) (Y i)).2 ⟨hXi, hYi⟩
+        simpa [Fi, Z] using hZi
+      refine ⟨(Finset.univ.inf' hneFin Z), ⟨Z, hZ, rfl⟩, ?_, ?_⟩
+      · have hz_le_X : ∀ i, (Finset.univ.inf' hneFin Z) ≤ X i := by
+          intro i
+          have hz_le_Zi : (Finset.univ.inf' hneFin Z) ≤ Z i := by
+            simpa using (Finset.inf'_le (s := Finset.univ) (f := Z)
+              (h := (by simp : i ∈ (Finset.univ : Finset (Fin (m + 1))))))
+          exact le_trans hz_le_Zi inf_le_left
+        exact Finset.le_inf' (s := Finset.univ) (H := hneFin) (f := X) (by
+          intro i hi
+          exact hz_le_X i)
+      · have hz_le_Y : ∀ i, (Finset.univ.inf' hneFin Z) ≤ Y i := by
+          intro i
+          have hz_le_Zi : (Finset.univ.inf' hneFin Z) ≤ Z i := by
+            simpa using (Finset.inf'_le (s := Finset.univ) (f := Z)
+              (h := (by simp : i ∈ (Finset.univ : Finset (Fin (m + 1))))))
+          exact le_trans hz_le_Zi inf_le_right
+        exact Finset.le_inf' (s := Finset.univ) (H := hneFin) (f := Y) (by
+          intro i hi
+          exact hz_le_Y i)
+    carrier := setR
+    upper' := by
+      intro a b hab ha
+      rcases ha with ⟨X, hX, rfl⟩
+      let K : Fin (m + 1) → α := fun i => b ⊔ X i
+      have hK : ∀ i, K i ∈ (Fs i).elements := by
+        intro i
+        have hXi_car : X i ∈ (Fs i).carrier := by
+          simpa [(Fs i).carrier_eq_elements] using hX i
+        have hKi_car : K i ∈ (Fs i).carrier :=
+          (Fs i).upper' (by simpa [K] using (le_sup_right : X i ≤ b ⊔ X i)) hXi_car
+        simpa [K, (Fs i).carrier_eq_elements] using hKi_car
+      refine ⟨K, hK, ?_⟩
+      have hdistrib :
+          b ⊔ (Finset.univ.inf' hneFin X) =
+            Finset.univ.inf' hneFin K := by
+        simpa [K] using
+          (Finset.inf'_sup_distrib_left
+            (s := Finset.univ) (hs := hneFin) (f := X) (a := b))
+      have hsup : b ⊔ (Finset.univ.inf' hneFin X) = b :=
+        sup_eq_left.2 hab
+      exact (hdistrib.symm.trans hsup).symm
+    carrier_eq_elements := rfl
+  }
+  refine ⟨R, rfl, ?_⟩
+  refine ⟨?_, ?_⟩
+  · intro G hG
+    rcases hG with ⟨i, rfl⟩
+    intro p hp
+    let base : Fin (m + 1) → α := fun j =>
+      if hji : j = i then p else Classical.choose (Fs j).non_empty
+    have hbase : ∀ j, base j ∈ (Fs j).elements := by
+      intro j
+      by_cases hji : j = i
+      · subst hji
+        simpa [base]
+      · simp [base, hji, Classical.choose_spec (Fs j).non_empty]
+    let K : Fin (m + 1) → α := fun j => p ⊔ base j
+    have hK : ∀ j, K j ∈ (Fs j).elements := by
+      intro j
+      have hbj_car : base j ∈ (Fs j).carrier := by
+        simpa [(Fs j).carrier_eq_elements] using hbase j
+      have hKj_car : K j ∈ (Fs j).carrier :=
+        (Fs j).upper' (by simpa [K] using (le_sup_right : base j ≤ p ⊔ base j)) hbj_car
+      simpa [K, (Fs j).carrier_eq_elements] using hKj_car
+    have hInfEq : (Finset.univ.inf' hneFin K) = p := by
+      have hdistrib :
+          p ⊔ (Finset.univ.inf' hneFin base) =
+            Finset.univ.inf' hneFin K := by
+        simpa [K] using
+          (Finset.inf'_sup_distrib_left
+            (s := Finset.univ) (hs := hneFin) (f := base) (a := p))
+      have hInfLe : (Finset.univ.inf' hneFin base) ≤ p := by
+        have hle : (Finset.univ.inf' hneFin base) ≤ base i := by
+          simpa using (Finset.inf'_le (s := Finset.univ) (f := base)
+            (h := (by simp : i ∈ (Finset.univ : Finset (Fin (m + 1))))))
+        simpa [base] using hle
+      have hsup : p ⊔ (Finset.univ.inf' hneFin base) = p :=
+        sup_eq_left.2 hInfLe
+      exact hdistrib.symm.trans hsup
+    exact ⟨K, hK, hInfEq.symm⟩
+  · intro B hB
+    intro x hx
+    rcases hx with ⟨K, hK, rfl⟩
+    have hKB : ∀ i, K i ∈ B.elements := by
+      intro i
+      have hBi : B ≤ Fs i := hB (by exact ⟨i, rfl⟩)
+      exact hBi (hK i)
+    have hw : (∀ᵉ (x ∈ B.elements) (y ∈ B.elements), x ⊓ y ∈ B.elements) := by
+      intro x hx y hy
+      let hBt : AlternativePrimaryFiltrators.FilterSet (U := (inferInstance : PartialOrder α)) :=
+        PosetFilter.toThroughEquiv B
+      have hx' : x ∈ hBt.elements := by simpa [hBt] using hx
+      have hy' : y ∈ hBt.elements := by simpa [hBt] using hy
+      have hxy : x ⊓ y ∈ hBt.elements :=
+        (AlternativePrimaryFiltrators.filter_inf_mem_iff (h := hBt) x y).2 ⟨hx', hy'⟩
+      simpa [hBt] using hxy
+    exact Finset.inf'_mem (s := B.elements) hw (t := Finset.univ) (H := hneFin) (p := K) (by
+      intro i hi
+      exact hKB i)
+
+end FiniteFilterInfimum
+
+namespace FiniteFilterMeetCoreTuple
+
+variable {α : Type u}
+
+/--
+Corollary 523 (`f-fin-filt-meet`) in development-level core-filter-lattice form:
+finite infimums of core filters are exactly generated by finite meets of chosen members.
+-/
+def FiniteFilterMeetFormula (α : Type u) [Filtrator α]
+    [Dcore : DistribLattice (Filtrator.subset (α := α))] : Prop :=
+  ∀ m : ℕ,
+    ∀ Fs : Fin (m + 1) →
+      PosetFilter (U := Dcore.toLattice.toSemilatticeInf.toPartialOrder),
+    ∃ R : PosetFilter (U := Dcore.toLattice.toSemilatticeInf.toPartialOrder),
+      R.elements =
+        FiniteFilterInfimum.finiteMeetSet
+          (α := Filtrator.subset (α := α)) m Fs ∧
+      IsGLB (Set.range Fs) R
+
+/-- 1⇒2 in Corollary 523 tuple. -/
+noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α :=
+  inferInstance
+
+/-- 2⇒3 in Corollary 523 tuple (core filter-lattice form). -/
+theorem two_imp_three
+    [Filtrator α]
+    [Filtrator.Primary α]
+    [Dcore : DistribLattice (Filtrator.subset (α := α))] :
+    FiniteFilterMeetFormula α := by
+  intro m Fs
+  simpa [FiniteFilterMeetFormula] using
+    (FiniteFilterInfimum.theorem522_item1
+      (α := Filtrator.subset (α := α)) m Fs)
+
+/-- 1⇒3 in Corollary 523 tuple. -/
+theorem one_imp_three
+    [Filtrator.Powerset.{u, v} α]
+    [Dcore : DistribLattice (Filtrator.subset (α := α))] :
+    FiniteFilterMeetFormula α := by
+  letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
+  exact two_imp_three (α := α)
+
+end FiniteFilterMeetCoreTuple
+
+export FiniteFilterInfimum (theorem522_item1)
+export FiniteFilterMeetCoreTuple (two_imp_three one_imp_three)
+
 /--
 Theorem 530 (`f-inf-assc`) rendered in the current vocabulary:
 left-sup distributes over arbitrary infimum.
@@ -365,15 +575,17 @@ noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary
 
 /-- 2⇒3 in Theorem 530 tuple (development-level complete-distributive form). -/
 theorem two_imp_three
-    [Filtrator α] [Filtrator.Primary α] [CompleteDistribLattice α] :
-    SupSInfAssoc α := by
+    [Filtrator α] [Filtrator.Primary α]
+    [CompleteDistribLattice (Filtrator.supset (α := α))] :
+    SupSInfAssoc (Filtrator.supset (α := α)) := by
   intro a S
   simpa [sInf_image] using (sup_sInf_eq (a := a) (s := S))
 
 /-- 1⇒3 in Theorem 530 tuple. -/
 theorem one_imp_three
-    [Filtrator.Powerset.{u, v} α] [CompleteDistribLattice α] :
-    SupSInfAssoc α := by
+    [Filtrator.Powerset.{u, v} α]
+    [CompleteDistribLattice (Filtrator.supset (α := α))] :
+    SupSInfAssoc (Filtrator.supset (α := α)) := by
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
   exact two_imp_three (α := α)
 
@@ -391,14 +603,16 @@ noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary
 
 /-- 2⇒3 in Corollary 531 tuple: the filter lattice is distributive. -/
 noncomputable def two_imp_three
-    [Filtrator α] [Filtrator.Primary α] [DistribLattice α] :
-    DistribLattice α := by
+    [Filtrator α] [Filtrator.Primary α]
+    [DistribLattice (Filtrator.supset (α := α))] :
+    DistribLattice (Filtrator.supset (α := α)) := by
   infer_instance
 
 /-- 1⇒3 in Corollary 531 tuple. -/
 noncomputable def one_imp_three
-    [Filtrator.Powerset.{u, v} α] [DistribLattice α] :
-    DistribLattice α := by
+    [Filtrator.Powerset.{u, v} α]
+    [DistribLattice (Filtrator.supset (α := α))] :
+    DistribLattice (Filtrator.supset (α := α)) := by
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
   exact two_imp_three (α := α)
 
