@@ -558,13 +558,6 @@ end FiniteFilterMeetCoreTuple
 export FiniteFilterInfimum (theorem522_item1)
 export FiniteFilterMeetCoreTuple (two_imp_three one_imp_three)
 
-/--
-Theorem 530 (`f-inf-assc`) rendered in the current vocabulary:
-left-sup distributes over arbitrary infimum.
--/
-def SupSInfAssoc (α : Type u) [CompleteLattice α] : Prop :=
-  ∀ a : α, ∀ S : Set α, a ⊔ sInf S = sInf ((fun x : α => a ⊔ x) '' S)
-
 namespace PrimaryDistribCoreBridge
 
 variable {α : Type u}
@@ -589,26 +582,8 @@ noncomputable instance primary_distribCore_imp_completeLattice
   exact PrimaryMeetTopCompleteLatticeTuple.two_imp_three (α := α) hord
 
 /--
-Package a complete-lattice plus Theorem-530 style law into an explicit coframe structure.
--/
-noncomputable instance coframe_of_supSInfAssoc
-    (α : Type u) [CompleteLattice α]
-    [hAssoc : Fact (SupSInfAssoc α)] :
-    Order.Coframe α := by
-  refine Order.Coframe.ofMinimalAxioms ?_
-  refine {
-    toCompleteLattice := (inferInstance : CompleteLattice α)
-    iInf_sup_le_sup_sInf := ?_
-  }
-  intro a s
-  have hs :
-      (a ⊔ sInf s) = ⨅ b ∈ s, a ⊔ b := by
-    simpa [sInf_image] using (hAssoc.out a s)
-  exact hs.ge
-
-/--
 Specialized bridge: under the primary/distributive-core setup, any proof of Theorem 530
-(`SupSInfAssoc`) yields a coframe instance on `Filtrator.supset`.
+(`Order.Coframe`) yields a coframe instance on `Filtrator.supset`.
 -/
 noncomputable def primary_distribCore_imp_coframe
     [SemilatticeInf α]
@@ -618,13 +593,9 @@ noncomputable def primary_distribCore_imp_coframe
     [_Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
       (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b)
-    (hAssoc : @SupSInfAssoc (Filtrator.supset (α := α))
-      (primary_distribCore_imp_completeLattice (α := α) hord)) :
+    (hC : Order.Coframe (Filtrator.supset (α := α))) :
     Order.Coframe (Filtrator.supset (α := α)) := by
-  letI : CompleteLattice (Filtrator.supset (α := α)) :=
-    primary_distribCore_imp_completeLattice (α := α) hord
-  letI : Fact (SupSInfAssoc (Filtrator.supset (α := α))) := ⟨by simpa using hAssoc⟩
-  infer_instance
+  exact hC
 
 end PrimaryDistribCoreBridge
 
@@ -639,7 +610,7 @@ noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary
   inferInstance
 
 /-- 2⇒3 in Theorem 530 tuple (development-level complete-distributive form). -/
-theorem two_imp_three
+noncomputable def two_imp_three
     [SemilatticeInf α]
     [hTop : @OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
     [hBot : @OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
@@ -647,14 +618,12 @@ theorem two_imp_three
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
       (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b)
-    (hAssoc : @SupSInfAssoc (Filtrator.supset (α := α))
-      (PrimaryDistribCoreBridge.primary_distribCore_imp_completeLattice (α := α) hord)) :
-    @SupSInfAssoc (Filtrator.supset (α := α))
-      (PrimaryDistribCoreBridge.primary_distribCore_imp_completeLattice (α := α) hord) := by
-  exact hAssoc
+    (hC : Order.Coframe (Filtrator.supset (α := α))) :
+    Order.Coframe (Filtrator.supset (α := α)) := by
+  exact hC
 
 /-- 1⇒3 in Theorem 530 tuple. -/
-theorem one_imp_three
+noncomputable def one_imp_three
     [SemilatticeInf α]
     [@OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
     [@OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
@@ -662,12 +631,10 @@ theorem one_imp_three
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
       (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b)
-    (hAssoc : @SupSInfAssoc (Filtrator.supset (α := α))
-      (PrimaryDistribCoreBridge.primary_distribCore_imp_completeLattice (α := α) hord)) :
-    @SupSInfAssoc (Filtrator.supset (α := α))
-      (PrimaryDistribCoreBridge.primary_distribCore_imp_completeLattice (α := α) hord) := by
+    (hC : Order.Coframe (Filtrator.supset (α := α))) :
+    Order.Coframe (Filtrator.supset (α := α)) := by
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
-  exact two_imp_three (α := α) hord hAssoc
+  exact two_imp_three (α := α) hord hC
 
 end FilterInfAssociativity
 
@@ -690,13 +657,12 @@ noncomputable def two_imp_three
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
       (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b)
-    (hAssoc : @SupSInfAssoc (Filtrator.supset (α := α))
-      (PrimaryDistribCoreBridge.primary_distribCore_imp_completeLattice (α := α) hord)) :
+    (hC : Order.Coframe (Filtrator.supset (α := α))) :
     DistribLattice (Filtrator.supset (α := α)) := by
-  let hC : Order.Coframe (Filtrator.supset (α := α)) :=
+  let hC' : Order.Coframe (Filtrator.supset (α := α)) :=
     PrimaryDistribCoreBridge.primary_distribCore_imp_coframe
-      (α := α) hord hAssoc
-  exact hC.toCoheytingAlgebra.toDistribLattice
+      (α := α) hord hC
+  exact hC'.toCoheytingAlgebra.toDistribLattice
 
 /-- 1⇒3 in Corollary 531 tuple. -/
 noncomputable def one_imp_three
@@ -707,11 +673,10 @@ noncomputable def one_imp_three
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
       (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b)
-    (hAssoc : @SupSInfAssoc (Filtrator.supset (α := α))
-      (PrimaryDistribCoreBridge.primary_distribCore_imp_completeLattice (α := α) hord)) :
+    (hC : Order.Coframe (Filtrator.supset (α := α))) :
     DistribLattice (Filtrator.supset (α := α)) := by
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
-  exact two_imp_three (α := α) hord hAssoc
+  exact two_imp_three (α := α) hord hC
 
 end FilterAlsoDistributive
 
