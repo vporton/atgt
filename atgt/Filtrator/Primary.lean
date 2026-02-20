@@ -523,4 +523,32 @@ noncomputable instance BotOfPrimaryFiltrator [F: Filtrator.Primary α] [OrderBot
     (e.symm.map_rel_iff).2 hbot_filter
   simpa using hbot_pullback
 
+noncomputable instance TopOfPrimaryFiltrator [F: Filtrator.Primary α] [OrderTop F.subset] :
+    OrderTop F.supset := by
+  letI : OrderTop (PosetFilter (U := Filtrator.suborder (α := α))) := {
+    -- Top filter `{⊤}` in the core order.
+    top := PosetFilter.principal (U := Filtrator.suborder (α := α))
+      (⊤ : Filtrator.subset (α := α))
+    le_top := by
+      intro G x hx
+      rcases G.non_empty with ⟨y, hy⟩
+      have hy' : y ∈ G.carrier := by
+        simpa [G.carrier_eq_elements] using hy
+      have htop_mem : (⊤ : Filtrator.subset (α := α)) ∈ G.carrier :=
+        G.upper' (show y ≤ (⊤ : Filtrator.subset (α := α)) from le_top) hy'
+      have hx_eq_top : x = (⊤ : Filtrator.subset (α := α)) := le_antisymm le_top hx
+      have hx' : x ∈ G.carrier := hx_eq_top ▸ htop_mem
+      simpa [G.carrier_eq_elements] using hx'
+  }
+  let e := (to_filters_iso (α := α)).toRelIso
+  refine {
+    top := e.symm ⊤
+    le_top := ?_
+  }
+  intro x
+  have htop_filter : e x ≤ (⊤ : PosetFilter (U := Filtrator.suborder (α := α))) := le_top
+  have htop_pullback : e.symm (e x) ≤ e.symm (⊤ : PosetFilter (U := Filtrator.suborder (α := α))) :=
+    (e.symm.map_rel_iff).2 htop_filter
+  simpa using htop_pullback
+
 end Filtrator.Primary

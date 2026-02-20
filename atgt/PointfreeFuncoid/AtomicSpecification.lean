@@ -670,6 +670,9 @@ lemma atoms_coreJoin_eq_union_ambient
       @atoms γ D.toLattice.toSemilatticeInf.toPartialOrder hBot (I.1 ⊔ J.1) =
         @atoms γ D.toLattice.toSemilatticeInf.toPartialOrder hBot I.1 ∪
           @atoms γ D.toLattice.toSemilatticeInf.toPartialOrder hBot J.1 := by
+    letI : PartialOrder γ := D.toLattice.toSemilatticeInf.toPartialOrder
+    letI : OrderBot γ := hBot
+    letI : DistribLattice γ := D
     simpa using
       (AlternativePrimaryFiltrators.atoms_sup_eq_union
         (α := γ)
