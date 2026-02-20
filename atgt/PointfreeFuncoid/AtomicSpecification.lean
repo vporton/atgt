@@ -596,8 +596,7 @@ lemma atoms_coreJoin_eq_union_ambient
     -- FIXME: The following two conditions were unjustly added by AI:
     (h_core_sup_coe : ((I ⊔ J).1 : γ) = I.1 ⊔ J.1)
     (h_atoms_sup_eq_union : atoms (I.1 ⊔ J.1) = atoms I.1 ∪ atoms J.1) :
-    atoms_ambient (I ⊔ J)
-      = atoms_ambient I ∪ atoms_ambient J := by
+    atoms_ambient (I ⊔ J) = atoms_ambient I ∪ atoms_ambient J := by
   let _ := hCL
   calc
     atoms ((I ⊔ J).1 : γ) = atoms (I.1 ⊔ J.1) := by
