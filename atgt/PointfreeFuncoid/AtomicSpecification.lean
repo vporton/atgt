@@ -512,7 +512,7 @@ lemma core_bot_coe_eq_bot
 
 noncomputable def atoms_ambient
     [F: Filtrator α]
-    [OrderBot α]
+    [bot: OrderBot α]
     (X : Filtrator.subset (α := α)) :
     Set (Filtrator.supset (α := α)) :=
   atoms (ord := Filtrator.suporder (F := F)) X
@@ -577,26 +577,25 @@ lemma core_sup_coe_eq_sup
       exact (hord (I.1 ⊔ J.1) z).2 hsup'
   exact hamb_lub.unique hsup_lub
 
-/-- Ambient-atom version of Theorem 496 (`atoms-join`) on core joins, under a
-coercion-to-ambient-join compatibility hypothesis. -/
-lemma atoms_coreJoin_eq_union_ambient
-    {γ : Type u}
-    [DistribLattice γ]
-    [OrderBot γ]
-    {S : Set γ}
-    [Bcore : BooleanAlgebra S]
-    (h_core_sup_coe :
-      ∀ I J : S, ((I ⊔ J).1 : γ) = I.1 ⊔ J.1)
-    (I J : S) :
-    atoms ((I ⊔ J).1 : γ) = atoms I.1 ∪ atoms J.1 := by
-  have hstar : AlternativePrimaryFiltrators.IsStarrish γ :=
-    AlternativePrimaryFiltrators.distributiveLattice_isStarrish γ
-  calc
-    atoms ((I ⊔ J).1 : γ) = atoms (I.1 ⊔ J.1) := by
-      simpa [h_core_sup_coe I J]
-    _ = atoms I.1 ∪ atoms J.1 :=
-      AlternativePrimaryFiltrators.atoms_sup_eq_union
-        (α := γ) hstar I.1 J.1
+-- /-- Ambient-atom version of Theorem 496 (`atoms-join`) on core joins, under a
+-- coercion-to-ambient-join compatibility hypothesis. -/
+-- lemma atoms_coreJoin_eq_union_ambient
+--     {γ : Type u}
+--     [DistribLattice γ]
+--     [bot: OrderBot γ]
+--     [Bcore : BooleanAlgebra S]
+--     (F: Filtrator.Primary γ)
+--     (I J : F.subset) :
+--     atoms_ambient (bot := bot) (@Max (primary_distribCore_imp_completeLattice α) I J)
+--       = atoms_ambient (bot := bot) I ∪ atoms_ambient (bot := bot) J := by
+--   have hstar : AlternativePrimaryFiltrators.IsStarrish γ :=
+--     AlternativePrimaryFiltrators.distributiveLattice_isStarrish γ
+--   calc
+--     atoms ((I ⊔ J).1 : γ) = atoms (I.1 ⊔ J.1) := by
+--       simpa [h_core_sup_coe I J]
+--     _ = atoms I.1 ∪ atoms J.1 :=
+--       AlternativePrimaryFiltrators.atoms_sup_eq_union
+--         (α := γ) hstar I.1 J.1
 
 /-- Existence witness for Theorem 1654, item 2 (`\ref{pf-at-r}`):
 construct a funcoid whose relation on atoms matches the given `δ`.
