@@ -1,6 +1,8 @@
 import atgt.Filtrator.Primary
 import atgt.Filtrator.Powerset
 
+set_option linter.unnecessarySimpa false
+
 /-!
 # Generalized filter bases
 

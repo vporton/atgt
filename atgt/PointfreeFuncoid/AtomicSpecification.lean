@@ -3,6 +3,8 @@ import atgt.AlternativePrimaryFiltrators
 import atgt.Filtrator.AdvancedProperties
 import atgt.Filtrator.GeneralizedFilterBase
 
+set_option linter.unnecessarySimpa false
+
 /-!
 Section 20.6 (Specifying funcoids by functions or relations on atomic filters),
 items 1650--1654 in the current development style.
@@ -512,11 +514,11 @@ lemma core_bot_coe_eq_bot
   exact le_antisymm hbotCore_le_bot bot_le
 
 noncomputable def atoms_ambient
-    [F: Filtrator α]
+    [Filtrator α]
     [bot: OrderBot α]
     (X : Filtrator.subset (α := α)) :
     Set (Filtrator.supset (α := α)) :=
-  atoms (ord := Filtrator.suporder (F := F)) X
+  atoms (ord := Filtrator.suporder (α := α)) X
 
 /-- Coercion behavior of core join under join-closed-core alignment:
 if ambient joins exist, coercion of core join equals ambient join. -/
@@ -598,6 +600,7 @@ lemma atoms_coreJoin_eq_union_ambient
       (SemilatticeSup.toMax (α := Filtrator.subset (α := γ))) I J) =
       atoms_ambient I ∪ atoms_ambient J := by
   let _ := hCL
+  let _ := hTop
   let IJ : Filtrator.subset (α := γ) := @Max.max (Filtrator.subset (α := γ))
     (SemilatticeSup.toMax (α := Filtrator.subset (α := γ))) I J
   have hFiltered : Filtrator.Filtered γ := Filtrator.primary_imp_filtered (α := γ)

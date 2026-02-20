@@ -7,6 +7,8 @@ import Mathlib.Order.Bounds.OrderIso
 import Mathlib.Data.Finset.Lattice.Fold
 import Mathlib.Data.Fintype.Basic
 
+set_option linter.unnecessarySimpa false
+
 /-!
 # More advanced properties of filters (Section 5.8)
 
@@ -488,8 +490,7 @@ theorem theorem522_item1
         sup_eq_left.2 hInfLe
       exact hdistrib.symm.trans hsup
     exact ⟨K, hK, hInfEq.symm⟩
-  · intro B hB
-    intro x hx
+  · intro B hB x hx
     rcases hx with ⟨K, hK, rfl⟩
     have hKB : ∀ i, K i ∈ B.elements := by
       intro i
@@ -687,15 +688,13 @@ theorem theorem_distr_meet
   }
   refine ⟨R, rfl, ?_⟩
   refine ⟨?_, ?_⟩
-  · intro F hF
-    intro p hp
+  · intro F hF p hp
     refine ⟨{p}, by simp, ?_, by simp⟩
     intro y hy
     have hy_p : y = p := by simpa using hy
     subst hy_p
     exact Set.mem_iUnion.2 ⟨F, Set.mem_iUnion.2 ⟨hF, hp⟩⟩
-  · intro B hB
-    intro x hx
+  · intro B hB x hx
     rcases hx with ⟨t, ht, ht_sub, rfl⟩
     have htB : ∀ z ∈ t, z ∈ B.elements := by
       intro z hz
