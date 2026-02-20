@@ -582,12 +582,12 @@ lemma core_sup_coe_eq_sup
 -- lemma atoms_coreJoin_eq_union_ambient
 --     {γ : Type u}
 --     [DistribLattice γ]
---     [bot: OrderBot γ]
 --     [Bcore : BooleanAlgebra S]
---     (F: Filtrator.Primary γ)
+--     [F: Filtrator.Primary γ]
+--     [bot: OrderBot F.subset]
 --     (I J : F.subset) :
---     atoms_ambient (bot := bot) (@Max (primary_distribCore_imp_completeLattice α) I J)
---       = atoms_ambient (bot := bot) I ∪ atoms_ambient (bot := bot) J := by
+--     atoms_ambient (I ⊔ J)
+--       = atoms_ambient I ∪ atoms_ambient J := by
 --   have hstar : AlternativePrimaryFiltrators.IsStarrish γ :=
 --     AlternativePrimaryFiltrators.distributiveLattice_isStarrish γ
 --   calc

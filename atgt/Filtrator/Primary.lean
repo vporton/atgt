@@ -502,6 +502,25 @@ theorem exists_to_poset_filter_eq (F : PosetFilter (Filtrator.suborder (α := α
     _ = F := hx
 end primary_other
 
-instance BotOfPrimaryFiltrator (F: Filtrator.Primary α) [Bot α] : Bot F.supset := inferInstance
+noncomputable instance BotOfPrimaryFiltrator [F: Filtrator.Primary α] [OrderBot F.subset] :
+    OrderBot F.supset := by
+  letI : OrderBot (PosetFilter (U := Filtrator.suborder (α := α))) := {
+    -- Bottom filter `{⊥}` in the core order.
+    bot := PosetFilter.principal (U := Filtrator.suborder (α := α))
+      (⊥ : Filtrator.subset (α := α))
+    bot_le := by
+      intro G x hx
+      exact (show (⊥ : Filtrator.subset (α := α)) ≤ x from bot_le)
+  }
+  let e := (to_filters_iso (α := α)).toRelIso
+  refine {
+    bot := e.symm ⊥
+    bot_le := ?_
+  }
+  intro x
+  have hbot_filter : (⊥ : PosetFilter (U := Filtrator.suborder (α := α))) ≤ e x := bot_le
+  have hbot_pullback : e.symm (⊥ : PosetFilter (U := Filtrator.suborder (α := α))) ≤ e.symm (e x) :=
+    (e.symm.map_rel_iff).2 hbot_filter
+  simpa using hbot_pullback
 
 end Filtrator.Primary
