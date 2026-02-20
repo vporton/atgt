@@ -523,7 +523,7 @@ lemma core_sup_coe_eq_sup
     {γ : Type u}
     [Filtrator γ]
     [Supγ : SemilatticeSup γ]
-    [Bcore : BooleanAlgebra (Filtrator.subset (α := γ))]
+    [Bcore : DistribLattice (Filtrator.subset (α := γ))]
     (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ))
     (hJoinAligned : Filtrator.CoreJoinAligned γ)
     (hord :
@@ -585,7 +585,7 @@ lemma atoms_coreJoin_eq_union_ambient
     [hTop : @OrderTop γ D.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
     [hBot : @OrderBot γ D.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
     [F : Filtrator.Primary γ]
-    [Bcore : BooleanAlgebra (Filtrator.subset (α := γ))]
+    [Bcore : DistribLattice (Filtrator.subset (α := γ))]
     [OrderBot γ]
     (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ))
     (hord : ∀ a b : γ, a ≤ b ↔ @LE.le γ
@@ -604,7 +604,7 @@ lemma atoms_coreJoin_eq_union_ambient
     FilteredJoinClosedCore.three_imp_four (α := γ)
   have h_core_sup_coe : (IJ.1 : γ) = I.1 ⊔ J.1 := by
     simpa [IJ] using (core_sup_coe_eq_sup
-      (γ := γ) (Supγ := D.toLattice.toSemilatticeSup) (Bcore := Bcore)
+      (γ := γ) (Supγ := D.toSemilatticeSup) (Bcore := Bcore)
       (hcoreOrder := hcoreOrder) (hJoinAligned := hJoinAligned) (hord := hord)
       I J)
   have hbot_eq : (⊥ : γ) = hBot.bot := by
