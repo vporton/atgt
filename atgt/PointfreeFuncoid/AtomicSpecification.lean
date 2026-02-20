@@ -511,15 +511,11 @@ lemma core_bot_coe_eq_bot
   exact le_antisymm hbotCore_le_bot bot_le
 
 noncomputable def atoms_ambient
-    {γ : Type u}
-    [Filtrator.Primary γ]
-    [OrderBot γ]
-    (X : Filtrator.subset (α := γ)) :
-    Set (Filtrator.supset (α := γ)) :=
-  atoms (
-    (Filtrator.Primary.to_filters_iso (α := γ)).toRelIso.symm
-      (PosetFilter.principal (U := Filtrator.suborder (α := γ)) X)
-  )
+    [F: Filtrator α]
+    [OrderBot α]
+    (X : Filtrator.subset (α := α)) :
+    Set (Filtrator.supset (α := α)) :=
+  atoms (ord := Filtrator.suporder (F := F)) X
 
 /-- Coercion behavior of core join under join-closed-core alignment:
 if ambient joins exist, coercion of core join equals ambient join. -/

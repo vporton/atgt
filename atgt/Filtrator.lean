@@ -11,12 +11,17 @@ class Filtrator (α : Type*) extends PartialOrder α where
 
 export Filtrator (subset)
 
-def Filtrator.suporder {α : Type*} [Filtrator α] : PartialOrder α := inferInstance
+def Filtrator.suporder {α : Type*} [F: Filtrator α] : PartialOrder α := inferInstance
 
-def Filtrator.suborder {α : Type*} [Filtrator α] : PartialOrder (subset : Set α) :=
+def Filtrator.suborder {α : Type*} [F: Filtrator α] : PartialOrder (subset : Set α) :=
   Subtype.partialOrder (· ∈ (subset : Set α))
 
-abbrev Filtrator.supset {α : Type u} [Filtrator α] := α
+abbrev Filtrator.supset {α : Type u} [F: Filtrator α] := α
+
+-- TODO: Delete?
+def Filtrator.subset_to_suporder {α : Type u} [Filtrator α]
+    (x : Filtrator.subset (α := α)) : α :=
+  x.1
 
 -- variable {α : Type*} [Filtrator α]
 
