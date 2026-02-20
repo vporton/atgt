@@ -296,14 +296,13 @@ noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary
   inferInstance
 
 /-- 2⇒3 in Corollary 518 tuple. -/
-noncomputable def two_imp_three
+noncomputable instance two_imp_three
     [SemilatticeInf α]
     [hTop : @OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
     [hBot : @OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
-    [Filtrator.Primary α] :
-    (∀ a b : α, a ≤ b ↔ @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) →
+    [Filtrator.Primary α]
+    (hord : ∀ a b : α, a ≤ b ↔ @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) :
     CompleteLattice (Filtrator.supset (α := α)) := by
-  intro hord
   classical
   let sSupFun : Set α → α := fun S =>
     if hS : S.Nonempty then
@@ -336,14 +335,13 @@ noncomputable def two_imp_three
     exact hsSupEmpty ▸ hIsLubEmpty
 
 /-- 1⇒3 in Corollary 518 tuple. -/
-noncomputable def one_imp_three
+noncomputable instance one_imp_three
     [SemilatticeInf α]
     [@OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
     [@OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
-    [Filtrator.Powerset.{u, v} α] :
-    (∀ a b : α, a ≤ b ↔ @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) →
+    [Filtrator.Powerset.{u, v} α]
+    (hord : ∀ a b : α, a ≤ b ↔ @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) :
     CompleteLattice (Filtrator.supset (α := α)) := by
-  intro hord
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
   exact two_imp_three (α := α) hord
 
@@ -1122,7 +1120,7 @@ noncomputable instance primary_distribCore_imp_completeLattice
 Specialized bridge (Theorem 530 route): under the primary/distributive-core setup with
 core-order alignment, we construct a coframe instance on `Filtrator.supset`.
 -/
-noncomputable def primary_distribCore_imp_coframe
+noncomputable instance primary_distribCore_imp_coframe
     [SemilatticeInf α]
     [hTop : @OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
     [hBot : @OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
@@ -1166,7 +1164,7 @@ noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary
   inferInstance
 
 /-- 2⇒3 in Theorem 530 tuple (development-level complete-distributive form). -/
-noncomputable def two_imp_three
+noncomputable instance two_imp_three
     [SemilatticeInf α]
     [hTop : @OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
     [hBot : @OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
@@ -1181,7 +1179,7 @@ noncomputable def two_imp_three
     (α := α) hord hcoreord
 
 /-- 1⇒3 in Theorem 530 tuple. -/
-noncomputable def one_imp_three
+noncomputable instance one_imp_three
     [SemilatticeInf α]
     [@OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
     [@OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
@@ -1208,7 +1206,7 @@ noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary
   inferInstance
 
 /-- 2⇒3 in Corollary 531 tuple: the filter lattice is distributive. -/
-noncomputable def two_imp_three
+noncomputable instance two_imp_three
     [SemilatticeInf α]
     [hTop : @OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
     [hBot : @OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
@@ -1225,7 +1223,7 @@ noncomputable def two_imp_three
   exact hC'.toCoheytingAlgebra.toDistribLattice
 
 /-- 1⇒3 in Corollary 531 tuple. -/
-noncomputable def one_imp_three
+noncomputable instance one_imp_three
     [SemilatticeInf α]
     [@OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
     [@OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
@@ -1265,7 +1263,7 @@ lemma two_imp_three [Filtrator.Primary α] : Filtrator.Filtered α :=
   Filtrator.primary_imp_filtered (α := α)
 
 /-- 3⇒4 in Theorem 534 tuple. -/
-lemma three_imp_four [Filtrator α] [Filtrator.Filtered α] : Filtrator.CoreJoinAligned α := by
+instance three_imp_four [Filtrator α] [Filtrator.Filtered α] : Filtrator.CoreJoinAligned α := by
   intro S d hd
   refine ⟨?_, ?_⟩
   · intro x hx
@@ -1283,12 +1281,12 @@ lemma three_imp_four [Filtrator α] [Filtrator.Filtered α] : Filtrator.CoreJoin
     exact (Filtrator.Filtered.is_filtered (α := α) a d.1 h_up_sub)
 
 /-- 2⇒4 in Theorem 534 tuple. -/
-theorem two_imp_four [Filtrator.Primary α] : Filtrator.CoreJoinAligned α := by
+instance two_imp_four [Filtrator.Primary α] : Filtrator.CoreJoinAligned α := by
   letI : Filtrator.Filtered α := two_imp_three (α := α)
   exact three_imp_four (α := α)
 
 /-- 1⇒4 in Theorem 534 tuple. -/
-theorem one_imp_four [Filtrator.Powerset.{u, v} α] : Filtrator.CoreJoinAligned α := by
+instance one_imp_four [Filtrator.Powerset.{u, v} α] : Filtrator.CoreJoinAligned α := by
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
   exact two_imp_four (α := α)
 
