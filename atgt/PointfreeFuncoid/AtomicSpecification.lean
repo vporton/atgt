@@ -581,27 +581,114 @@ lemma core_sup_coe_eq_sup
 coercion-to-ambient-join compatibility hypothesis. -/
 lemma atoms_coreJoin_eq_union_ambient
     {γ : Type u}
-    [SemilatticeInf γ]
-    [hTop : @OrderTop γ (inferInstance : SemilatticeInf γ).toPartialOrder.toPreorder.toLE]
-    [hBot : @OrderBot γ (inferInstance : SemilatticeInf γ).toPartialOrder.toPreorder.toLE]
+    [D : DistribLattice γ]
+    [hTop : @OrderTop γ D.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
+    [hBot : @OrderBot γ D.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
     [F : Filtrator.Primary γ]
     [Bcore : BooleanAlgebra (Filtrator.subset (α := γ))]
-    [DistribLattice γ]
     [OrderBot γ]
+    (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ))
     (hord : ∀ a b : γ, a ≤ b ↔ @LE.le γ
-      (inferInstance : SemilatticeInf γ).toPartialOrder.toLE a b)
+      D.toPartialOrder.toLE a b)
     (hCL : Nonempty (CompleteLattice (Filtrator.supset (α := γ))) :=
       ⟨primary_distribCore_imp_completeLattice (α := γ) hord⟩)
-    (I J : Filtrator.subset (α := γ))
-    -- FIXME: The following two conditions were unjustly added by AI:
-    (h_core_sup_coe : ((I ⊔ J).1 : γ) = I.1 ⊔ J.1)
-    (h_atoms_sup_eq_union : atoms (I.1 ⊔ J.1) = atoms I.1 ∪ atoms J.1) :
-    atoms_ambient (I ⊔ J) = atoms_ambient I ∪ atoms_ambient J := by
+    (I J : Filtrator.subset (α := γ)) :
+    atoms_ambient (@Max.max (Filtrator.subset (α := γ))
+      (SemilatticeSup.toMax (α := Filtrator.subset (α := γ))) I J) =
+      atoms_ambient I ∪ atoms_ambient J := by
   let _ := hCL
+  let IJ : Filtrator.subset (α := γ) := @Max.max (Filtrator.subset (α := γ))
+    (SemilatticeSup.toMax (α := Filtrator.subset (α := γ))) I J
+  have hFiltered : Filtrator.Filtered γ := Filtrator.primary_imp_filtered (α := γ)
+  have hJoinAligned : Filtrator.CoreJoinAligned γ :=
+    FilteredJoinClosedCore.three_imp_four (α := γ)
+  have h_core_sup_coe : (IJ.1 : γ) = I.1 ⊔ J.1 := by
+    simpa [IJ] using (core_sup_coe_eq_sup
+      (γ := γ) (Supγ := D.toLattice.toSemilatticeSup) (Bcore := Bcore)
+      (hcoreOrder := hcoreOrder) (hJoinAligned := hJoinAligned) (hord := hord)
+      I J)
+  have hbot_eq : (⊥ : γ) = hBot.bot := by
+    apply le_antisymm
+    · exact bot_le
+    · exact (hord hBot.bot (⊥ : γ)).2 (hBot.bot_le (⊥ : γ))
+  have hAtom_iff :
+      ∀ x : γ, IsAtom x ↔ @IsAtom γ
+        D.toLattice.toSemilatticeInf.toPartialOrder.toPreorder hBot x := by
+    intro x
+    constructor
+    · intro hx
+      have hx' :
+          x ≠ (⊥ : γ) ∧ ∀ b : γ, b ≠ (⊥ : γ) → b ≤ x → x ≤ b :=
+        (isAtom_iff_le_of_ge (a := x)).1 hx
+      refine
+        (@isAtom_iff_le_of_ge γ
+          D.toLattice.toSemilatticeInf.toPartialOrder.toPreorder hBot x).2 ?_
+      refine ⟨?_, ?_⟩
+      · intro hxbot
+        apply hx'.1
+        simpa [hbot_eq] using hxbot
+      · intro b hb_ne hbx
+        have hb_ne' : b ≠ (⊥ : γ) := by
+          intro hb0
+          apply hb_ne
+          simpa [hbot_eq] using hb0
+        have hbx' : b ≤ x := (hord b x).2 hbx
+        exact (hord x b).1 (hx'.2 b hb_ne' hbx')
+    · intro hx
+      have hx' :
+          x ≠ hBot.bot ∧
+            ∀ b : γ, b ≠ hBot.bot →
+              @LE.le γ D.toLattice.toSemilatticeInf.toPartialOrder.toLE b x →
+              @LE.le γ D.toLattice.toSemilatticeInf.toPartialOrder.toLE x b :=
+        (@isAtom_iff_le_of_ge γ
+          D.toLattice.toSemilatticeInf.toPartialOrder.toPreorder hBot x).1 hx
+      refine (isAtom_iff_le_of_ge (a := x)).2 ?_
+      refine ⟨?_, ?_⟩
+      · intro hxbot
+        apply hx'.1
+        simpa [hbot_eq] using hxbot
+      · intro b hb_ne hbx
+        have hb_ne' : b ≠ hBot.bot := by
+          intro hb0
+          apply hb_ne
+          simpa [hbot_eq] using hb0
+        have hbx' :
+            @LE.le γ D.toLattice.toSemilatticeInf.toPartialOrder.toLE b x :=
+          (hord b x).1 hbx
+        exact (hord x b).2 (hx'.2 b hb_ne' hbx')
+  have hatoms_eq :
+      ∀ a : γ, atoms a =
+        @atoms γ D.toLattice.toSemilatticeInf.toPartialOrder hBot a := by
+    intro a
+    ext x
+    constructor
+    · intro hx
+      exact ⟨(hord x a).1 hx.1, (hAtom_iff x).1 hx.2⟩
+    · intro hx
+      exact ⟨(hord x a).2 hx.1, (hAtom_iff x).2 hx.2⟩
+  have h_atoms_sup_eq_union :
+      @atoms γ D.toLattice.toSemilatticeInf.toPartialOrder hBot (I.1 ⊔ J.1) =
+        @atoms γ D.toLattice.toSemilatticeInf.toPartialOrder hBot I.1 ∪
+          @atoms γ D.toLattice.toSemilatticeInf.toPartialOrder hBot J.1 := by
+    simpa using
+      (AlternativePrimaryFiltrators.atoms_sup_eq_union
+        (α := γ)
+        (AlternativePrimaryFiltrators.distributiveLattice_isStarrish γ)
+        I.1 J.1)
   calc
-    atoms ((I ⊔ J).1 : γ) = atoms (I.1 ⊔ J.1) := by
+    atoms_ambient IJ = atoms (IJ.1 : γ) := by
+      simp [atoms_ambient]
+    _ = atoms (I.1 ⊔ J.1) := by
       simpa [h_core_sup_coe]
-    _ = atoms I.1 ∪ atoms J.1 := h_atoms_sup_eq_union
+    _ = @atoms γ D.toLattice.toSemilatticeInf.toPartialOrder hBot (I.1 ⊔ J.1) := by
+      simpa using (hatoms_eq (I.1 ⊔ J.1))
+    _ = @atoms γ D.toLattice.toSemilatticeInf.toPartialOrder hBot I.1 ∪
+          @atoms γ D.toLattice.toSemilatticeInf.toPartialOrder hBot J.1 :=
+      h_atoms_sup_eq_union
+    _ = atoms I.1 ∪ atoms J.1 := by
+      simpa [hatoms_eq I.1, hatoms_eq J.1]
+    _ = atoms_ambient I ∪ atoms_ambient J := by
+      simp [atoms_ambient]
 
 /-- Existence witness for Theorem 1654, item 2 (`\ref{pf-at-r}`):
 construct a funcoid whose relation on atoms matches the given `δ`.
