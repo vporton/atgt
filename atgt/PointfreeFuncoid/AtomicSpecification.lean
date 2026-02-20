@@ -577,25 +577,32 @@ lemma core_sup_coe_eq_sup
       exact (hord (I.1 ⊔ J.1) z).2 hsup'
   exact hamb_lub.unique hsup_lub
 
--- /-- Ambient-atom version of Theorem 496 (`atoms-join`) on core joins, under a
--- coercion-to-ambient-join compatibility hypothesis. -/
--- lemma atoms_coreJoin_eq_union_ambient
---     {γ : Type u}
---     [DistribLattice γ]
---     [Bcore : BooleanAlgebra S]
---     [F: Filtrator.Primary γ]
---     [bot: OrderBot F.subset]
---     (I J : F.subset) :
---     atoms_ambient (I ⊔ J)
---       = atoms_ambient I ∪ atoms_ambient J := by
---   have hstar : AlternativePrimaryFiltrators.IsStarrish γ :=
---     AlternativePrimaryFiltrators.distributiveLattice_isStarrish γ
---   calc
---     atoms ((I ⊔ J).1 : γ) = atoms (I.1 ⊔ J.1) := by
---       simpa [h_core_sup_coe I J]
---     _ = atoms I.1 ∪ atoms J.1 :=
---       AlternativePrimaryFiltrators.atoms_sup_eq_union
---         (α := γ) hstar I.1 J.1
+/-- Ambient-atom version of Theorem 496 (`atoms-join`) on core joins, under a
+coercion-to-ambient-join compatibility hypothesis. -/
+lemma atoms_coreJoin_eq_union_ambient
+    {γ : Type u}
+    [SemilatticeInf γ]
+    [hTop : @OrderTop γ (inferInstance : SemilatticeInf γ).toPartialOrder.toPreorder.toLE]
+    [hBot : @OrderBot γ (inferInstance : SemilatticeInf γ).toPartialOrder.toPreorder.toLE]
+    [F : Filtrator.Primary γ]
+    [Bcore : BooleanAlgebra (Filtrator.subset (α := γ))]
+    [DistribLattice γ]
+    [OrderBot γ]
+    (hord : ∀ a b : γ, a ≤ b ↔ @LE.le γ
+      (inferInstance : SemilatticeInf γ).toPartialOrder.toLE a b)
+    (hCL : Nonempty (CompleteLattice (Filtrator.supset (α := γ))) :=
+      ⟨primary_distribCore_imp_completeLattice (α := γ) hord⟩)
+    (I J : Filtrator.subset (α := γ))
+    -- FIXME: The following two conditions were unjustly added by AI:
+    (h_core_sup_coe : ((I ⊔ J).1 : γ) = I.1 ⊔ J.1)
+    (h_atoms_sup_eq_union : atoms (I.1 ⊔ J.1) = atoms I.1 ∪ atoms J.1) :
+    atoms_ambient (I ⊔ J)
+      = atoms_ambient I ∪ atoms_ambient J := by
+  let _ := hCL
+  calc
+    atoms ((I ⊔ J).1 : γ) = atoms (I.1 ⊔ J.1) := by
+      simpa [h_core_sup_coe]
+    _ = atoms I.1 ∪ atoms J.1 := h_atoms_sup_eq_union
 
 /-- Existence witness for Theorem 1654, item 2 (`\ref{pf-at-r}`):
 construct a funcoid whose relation on atoms matches the given `δ`.
