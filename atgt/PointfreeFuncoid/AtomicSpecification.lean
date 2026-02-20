@@ -706,13 +706,16 @@ lemma theorem1654_item2_exists
     [X : Filtrator.Primary α] [Y : Filtrator.Primary β]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
+    [Dsrc : DistribLattice α] [Ddst : DistribLattice β]
+    [hTopSrc : @OrderTop α Dsrc.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
+    [hTopDst : @OrderTop β Ddst.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
+    [hBotSrc : @OrderBot α Dsrc.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
+    [hBotDst : @OrderBot β Ddst.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
     [OrderBot α] [OrderBot β]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
-    (h_atoms_sup_src : ∀ I J : Filtrator.subset (α := α),
-      atoms ((I ⊔ J).1 : α) = atoms I.1 ∪ atoms J.1)
-    (h_atoms_sup_dst : ∀ I J : Filtrator.subset (α := β),
-      atoms ((I ⊔ J).1 : β) = atoms I.1 ∪ atoms J.1)
+    (hord_src : ∀ a b : α, a ≤ b ↔ @LE.le α Dsrc.toPartialOrder.toLE a b)
+    (hord_dst : ∀ a b : β, a ≤ b ↔ @LE.le β Ddst.toPartialOrder.toLE a b)
     (δ : α → β → Prop)
     (hδ_cond : PointfreeFuncoid.atomicRelationCondition1654 (δ := δ)) :
     ∃ f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
@@ -724,6 +727,18 @@ lemma theorem1654_item2_exists
   have h_sep_up_dst : (Y.toFiltrator).separator_up_property :=
     separator_up_of_primary_boolean_core
       (γ := β) (F := Y) (Bcore := Bdst) h_dst_core_order
+  letI : SemilatticeSup (Filtrator.subset (α := α)) :=
+    Bsrc.toDistribLattice.toSemilatticeSup
+  letI : SemilatticeSup (Filtrator.subset (α := β)) :=
+    Bdst.toDistribLattice.toSemilatticeSup
+  let supSrc : Filtrator.subset (α := α) → Filtrator.subset (α := α) →
+      Filtrator.subset (α := α) :=
+    @Max.max (Filtrator.subset (α := α))
+      (SemilatticeSup.toMax (α := Filtrator.subset (α := α)))
+  let supDst : Filtrator.subset (α := β) → Filtrator.subset (α := β) →
+      Filtrator.subset (α := β) :=
+    @Max.max (Filtrator.subset (α := β))
+      (SemilatticeSup.toMax (α := Filtrator.subset (α := β)))
   have hδ_bot_left :
       ∀ I' : Filtrator.subset (α := β), ¬ δCore (⊥ : Filtrator.subset (α := α)).1 I'.1 := by
     intro I' h
@@ -744,13 +759,22 @@ lemma theorem1654_item2_exists
     exact hb.2.ne_bot (le_antisymm hb_le_bot bot_le)
   have hδ_sup_left :
       ∀ I J : Filtrator.subset (α := α), ∀ K' : Filtrator.subset (α := β),
-        δCore (I ⊔ J).1 K'.1 ↔ δCore I.1 K'.1 ∨ δCore J.1 K'.1 := by
+        δCore (supSrc I J).1 K'.1 ↔ δCore I.1 K'.1 ∨ δCore J.1 K'.1 := by
     intro I J K'
+    have h_atoms_sup_src :
+        atoms ((supSrc I J).1 : α) = atoms I.1 ∪ atoms J.1 := by
+      simpa [supSrc, atoms_ambient] using
+        (atoms_coreJoin_eq_union_ambient
+          (γ := α) (D := Dsrc)
+          (hTop := hTopSrc) (hBot := hBotSrc)
+          (F := X) (Bcore := Bsrc.toDistribLattice)
+          (hcoreOrder := h_src_core_order) (hord := hord_src)
+          (I := I) (J := J))
     constructor
     · intro h
       rcases h with ⟨a, ha, b, hb, hab⟩
       have ha_union : a ∈ atoms I.1 ∪ atoms J.1 := by
-        simpa [h_atoms_sup_src I J] using ha
+        simpa [h_atoms_sup_src] using ha
       rcases ha_union with haI | haJ
       · exact Or.inl ⟨a, haI, b, hb, hab⟩
       · exact Or.inr ⟨a, haJ, b, hb, hab⟩
@@ -758,19 +782,28 @@ lemma theorem1654_item2_exists
       rcases h with hI | hJ
       · rcases hI with ⟨a, ha, b, hb, hab⟩
         refine ⟨a, ?_, b, hb, hab⟩
-        simpa [h_atoms_sup_src I J] using (Or.inl ha : a ∈ atoms I.1 ∪ atoms J.1)
+        simpa [h_atoms_sup_src] using (Or.inl ha : a ∈ atoms I.1 ∪ atoms J.1)
       · rcases hJ with ⟨a, ha, b, hb, hab⟩
         refine ⟨a, ?_, b, hb, hab⟩
-        simpa [h_atoms_sup_src I J] using (Or.inr ha : a ∈ atoms I.1 ∪ atoms J.1)
+        simpa [h_atoms_sup_src] using (Or.inr ha : a ∈ atoms I.1 ∪ atoms J.1)
   have hδ_sup_right :
       ∀ K : Filtrator.subset (α := α), ∀ I' J' : Filtrator.subset (α := β),
-        δCore K.1 (I' ⊔ J').1 ↔ δCore K.1 I'.1 ∨ δCore K.1 J'.1 := by
+        δCore K.1 (supDst I' J').1 ↔ δCore K.1 I'.1 ∨ δCore K.1 J'.1 := by
     intro K I' J'
+    have h_atoms_sup_dst :
+        atoms ((supDst I' J').1 : β) = atoms I'.1 ∪ atoms J'.1 := by
+      simpa [supDst, atoms_ambient] using
+        (atoms_coreJoin_eq_union_ambient
+          (γ := β) (D := Ddst)
+          (hTop := hTopDst) (hBot := hBotDst)
+          (F := Y) (Bcore := Bdst.toDistribLattice)
+          (hcoreOrder := h_dst_core_order) (hord := hord_dst)
+          (I := I') (J := J'))
     constructor
     · intro h
       rcases h with ⟨a, ha, b, hb, hab⟩
       have hb_union : b ∈ atoms I'.1 ∪ atoms J'.1 := by
-        simpa [h_atoms_sup_dst I' J'] using hb
+        simpa [h_atoms_sup_dst] using hb
       rcases hb_union with hbI | hbJ
       · exact Or.inl ⟨a, ha, b, hbI, hab⟩
       · exact Or.inr ⟨a, ha, b, hbJ, hab⟩
@@ -778,10 +811,10 @@ lemma theorem1654_item2_exists
       rcases h with hI | hJ
       · rcases hI with ⟨a, ha, b, hb, hab⟩
         refine ⟨a, ha, b, ?_, hab⟩
-        simpa [h_atoms_sup_dst I' J'] using (Or.inl hb : b ∈ atoms I'.1 ∪ atoms J'.1)
+        simpa [h_atoms_sup_dst] using (Or.inl hb : b ∈ atoms I'.1 ∪ atoms J'.1)
       · rcases hJ with ⟨a, ha, b, hb, hab⟩
         refine ⟨a, ha, b, ?_, hab⟩
-        simpa [h_atoms_sup_dst I' J'] using (Or.inr hb : b ∈ atoms I'.1 ∪ atoms J'.1)
+        simpa [h_atoms_sup_dst] using (Or.inr hb : b ∈ atoms I'.1 ∪ atoms J'.1)
   rcases theorem1618_pf_cont_r
       (X := X) (Y := Y)
       (Bsrc := Bsrc) (Bdst := Bdst)
@@ -791,9 +824,13 @@ lemma theorem1654_item2_exists
       (h_sep_up_dst := h_sep_up_dst)
       (δ := δCore)
       (hδ_bot_left := hδ_bot_left)
-      (hδ_sup_left := hδ_sup_left)
+      (hδ_sup_left := by
+        intro I J K'
+        simpa [supSrc] using hδ_sup_left I J K')
       (hδ_bot_right := hδ_bot_right)
-      (hδ_sup_right := hδ_sup_right) with ⟨f, hf_core, _⟩
+      (hδ_sup_right := by
+        intro K I' J'
+        simpa [supDst] using hδ_sup_right K I' J') with ⟨f, hf_core, _⟩
   have hAtomic_src : IsAtomic α :=
     Filtrator.Primary.primary_imp_booleanAtomicCore
       (α := α) (Bcore := Bsrc) (hcoreOrder := h_src_core_order)
@@ -831,14 +868,17 @@ lemma theorem1654_item1_exists
     [Filtrator.Primary α] [Filtrator.Primary β]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
+    [Dsrc : DistribLattice α] [Ddst : DistribLattice β]
+    [hTopSrc : @OrderTop α Dsrc.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
+    [hTopDst : @OrderTop β Ddst.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
+    [hBotSrc : @OrderBot α Dsrc.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
+    [hBotDst : @OrderBot β Ddst.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
     [OrderBot α] [OrderBot β]
     [CompleteLattice β]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
-    (h_atoms_sup_src : ∀ I J : Filtrator.subset (α := α),
-      atoms ((I ⊔ J).1 : α) = atoms I.1 ∪ atoms J.1)
-    (h_atoms_sup_dst : ∀ I J : Filtrator.subset (α := β),
-      atoms ((I ⊔ J).1 : β) = atoms I.1 ∪ atoms J.1)
+    (hord_src : ∀ a b : α, a ≤ b ↔ @LE.le α Dsrc.toPartialOrder.toLE a b)
+    (hord_dst : ∀ a b : β, a ≤ b ↔ @LE.le β Ddst.toPartialOrder.toLE a b)
     (A : α → β)
     (hA_cond : PointfreeFuncoid.atomicFunctionCondition1654 (A := A))
     (hA_rel_cond :
@@ -856,10 +896,13 @@ lemma theorem1654_item1_exists
   rcases theorem1654_item2_exists
       (X := inferInstance) (Y := inferInstance)
       (Bsrc := Bsrc) (Bdst := Bdst)
+      (Dsrc := Dsrc) (Ddst := Ddst)
+      (hTopSrc := hTopSrc) (hTopDst := hTopDst)
+      (hBotSrc := hBotSrc) (hBotDst := hBotDst)
       (h_src_core_order := h_src_core_order)
       (h_dst_core_order := h_dst_core_order)
-      (h_atoms_sup_src := h_atoms_sup_src)
-      (h_atoms_sup_dst := h_atoms_sup_dst)
+      (hord_src := hord_src)
+      (hord_dst := hord_dst)
       (δ := δA) (hδ_cond := hA_rel_cond) with ⟨f, hf_rel_atoms⟩
   exact ⟨f, h_rel_to_fwd_atoms f hf_rel_atoms⟩
 
@@ -873,14 +916,17 @@ theorem theorem1654_item1
     [Filtrator.Primary α] [Filtrator.Primary β]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
+    [Dsrc : DistribLattice α] [Ddst : DistribLattice β]
+    [hTopSrc : @OrderTop α Dsrc.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
+    [hTopDst : @OrderTop β Ddst.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
+    [hBotSrc : @OrderBot α Dsrc.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
+    [hBotDst : @OrderBot β Ddst.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
     [OrderBot α] [OrderBot β]
     [CompleteLattice β]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
-    (h_atoms_sup_src : ∀ I J : Filtrator.subset (α := α),
-      atoms ((I ⊔ J).1 : α) = atoms I.1 ∪ atoms J.1)
-    (h_atoms_sup_dst : ∀ I J : Filtrator.subset (α := β),
-      atoms ((I ⊔ J).1 : β) = atoms I.1 ∪ atoms J.1)
+    (hord_src : ∀ a b : α, a ≤ b ↔ @LE.le α Dsrc.toPartialOrder.toLE a b)
+    (hord_dst : ∀ a b : β, a ≤ b ↔ @LE.le β Ddst.toPartialOrder.toLE a b)
     (A : α → β)
     (hA_cond : PointfreeFuncoid.atomicFunctionCondition1654 (A := A))
     (hA_rel_cond :
@@ -898,10 +944,13 @@ theorem theorem1654_item1
       (α := α) (Bcore := Bsrc) h_src_core_order
   rcases theorem1654_item1_exists
       (Bsrc := Bsrc) (Bdst := Bdst)
+      (Dsrc := Dsrc) (Ddst := Ddst)
+      (hTopSrc := hTopSrc) (hTopDst := hTopDst)
+      (hBotSrc := hBotSrc) (hBotDst := hBotDst)
       (h_src_core_order := h_src_core_order)
       (h_dst_core_order := h_dst_core_order)
-      (h_atoms_sup_src := h_atoms_sup_src)
-      (h_atoms_sup_dst := h_atoms_sup_dst)
+      (hord_src := hord_src)
+      (hord_dst := hord_dst)
       (A := A) (hA_cond := hA_cond) (hA_rel_cond := hA_rel_cond)
       (h_rel_to_fwd_atoms := h_rel_to_fwd_atoms) with ⟨f, hf⟩
   refine ⟨f, hf, ?_⟩
@@ -923,13 +972,16 @@ theorem theorem1654_item2
     [Filtrator.Primary α] [Filtrator.Primary β]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
+    [Dsrc : DistribLattice α] [Ddst : DistribLattice β]
+    [hTopSrc : @OrderTop α Dsrc.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
+    [hTopDst : @OrderTop β Ddst.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
+    [hBotSrc : @OrderBot α Dsrc.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
+    [hBotDst : @OrderBot β Ddst.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
     [OrderBot α] [OrderBot β]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
-    (h_atoms_sup_src : ∀ I J : Filtrator.subset (α := α),
-      atoms ((I ⊔ J).1 : α) = atoms I.1 ∪ atoms J.1)
-    (h_atoms_sup_dst : ∀ I J : Filtrator.subset (α := β),
-      atoms ((I ⊔ J).1 : β) = atoms I.1 ∪ atoms J.1)
+    (hord_src : ∀ a b : α, a ≤ b ↔ @LE.le α Dsrc.toPartialOrder.toLE a b)
+    (hord_dst : ∀ a b : β, a ≤ b ↔ @LE.le β Ddst.toPartialOrder.toLE a b)
     (δ : α → β → Prop)
     (hδ_cond : PointfreeFuncoid.atomicRelationCondition1654 (δ := δ)) :
     ∃! f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
@@ -942,10 +994,13 @@ theorem theorem1654_item2
       (α := β) (Bcore := Bdst) h_dst_core_order
   rcases theorem1654_item2_exists
       (Bsrc := Bsrc) (Bdst := Bdst)
+      (Dsrc := Dsrc) (Ddst := Ddst)
+      (hTopSrc := hTopSrc) (hTopDst := hTopDst)
+      (hBotSrc := hBotSrc) (hBotDst := hBotDst)
       (h_src_core_order := h_src_core_order)
       (h_dst_core_order := h_dst_core_order)
-      (h_atoms_sup_src := h_atoms_sup_src)
-      (h_atoms_sup_dst := h_atoms_sup_dst)
+      (hord_src := hord_src)
+      (hord_dst := hord_dst)
       (δ := δ) (hδ_cond := hδ_cond) with ⟨f, hf⟩
   refine ⟨f, hf, ?_⟩
   intro g hg
