@@ -502,4 +502,6 @@ theorem exists_to_poset_filter_eq (F : PosetFilter (Filtrator.suborder (α := α
     _ = F := hx
 end primary_other
 
+instance BotOfPrimaryFiltrator (F: Filtrator.Primary α) [Bot α] : Bot F.supset := inferInstance
+
 end Filtrator.Primary
