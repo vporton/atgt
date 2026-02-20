@@ -1,6 +1,7 @@
 import atgt.PointfreeFuncoid.Core
 import atgt.AlternativePrimaryFiltrators
 import atgt.Filtrator.AdvancedProperties
+import atgt.Filtrator.GeneralizedFilterBase
 
 /-!
 Section 20.6 (Specifying funcoids by functions or relations on atomic filters),
@@ -708,27 +709,117 @@ lemma theorem1654_item2_exists
     [OrderBot α] [OrderBot β]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
+    (h_atoms_sup_src : ∀ I J : Filtrator.subset (α := α),
+      atoms ((I ⊔ J).1 : α) = atoms I.1 ∪ atoms J.1)
+    (h_atoms_sup_dst : ∀ I J : Filtrator.subset (α := β),
+      atoms ((I ⊔ J).1 : β) = atoms I.1 ∪ atoms J.1)
     (δ : α → β → Prop)
     (hδ_cond : PointfreeFuncoid.atomicRelationCondition1654 (δ := δ)) :
     ∃ f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
       PointfreeFuncoid.relContinuationFromAtoms1654 (δ := δ) f := by
-  /-
-  Proof outline (following the book proof of Theorem 1654, item \ref{pf-at-r}):
-  1. Define the core relation δ'(x, y) := ∃ a ∈ atoms x, ∃ b ∈ atoms y, δ a b.
-  2. Verify core conditions for δ':
-     - ¬ δ'(⊥_core, Y) and ¬ δ'(X, ⊥_core) (atoms of core-⊥ is empty)
-     - δ'((I ⊔ J)_core, K) ↔ δ'(I, K) ∨ δ'(J, K) (atoms distributes over core-⊔)
-     - similarly for the right argument
-  3. Apply theorem 1618 (pf-cont) to obtain ∃!f with relContinuationFromCore(δ', f).
-  4. Bridge: for atoms a, b:
-     f.funcoid_rel a b ↔ ∀X'∈up a, ∀Y'∈up b, δ' X' Y'
-                        ↔ ∀X'∈up a, ∀Y'∈up b, (∃x∈atoms X', ∃y∈atoms Y', δ x y)
-                        ↔ δ a b  (by atomicRelationCondition1654 + trivial reverse)
-  5. Use corollary 1652 to extend to all elements:
-     f.funcoid_rel x y ↔ ∃a∈atoms x, ∃b∈atoms y, f.funcoid_rel a b
-                        ↔ ∃a∈atoms x, ∃b∈atoms y, δ a b
-  -/
-  sorry
+  let δCore : α → β → Prop := fun X Y => ∃ a ∈ atoms X, ∃ b ∈ atoms Y, δ a b
+  have h_sep_up_src : (X.toFiltrator).separator_up_property :=
+    separator_up_of_primary_boolean_core
+      (γ := α) (F := X) (Bcore := Bsrc) h_src_core_order
+  have h_sep_up_dst : (Y.toFiltrator).separator_up_property :=
+    separator_up_of_primary_boolean_core
+      (γ := β) (F := Y) (Bcore := Bdst) h_dst_core_order
+  have hδ_bot_left :
+      ∀ I' : Filtrator.subset (α := β), ¬ δCore (⊥ : Filtrator.subset (α := α)).1 I'.1 := by
+    intro I' h
+    rcases h with ⟨a, ha, _, _, _⟩
+    have hbot_eq : ((⊥ : Filtrator.subset (α := α)).1 : α) = (⊥ : α) :=
+      core_bot_coe_eq_bot (γ := α) (Bcore := Bsrc) (hcoreOrder := h_src_core_order)
+    have ha_le_bot : a ≤ (⊥ : α) := by
+      simpa [hbot_eq] using ha.1
+    exact ha.2.ne_bot (le_antisymm ha_le_bot bot_le)
+  have hδ_bot_right :
+      ∀ I : Filtrator.subset (α := α), ¬ δCore I.1 (⊥ : Filtrator.subset (α := β)).1 := by
+    intro I h
+    rcases h with ⟨_, _, b, hb, _⟩
+    have hbot_eq : ((⊥ : Filtrator.subset (α := β)).1 : β) = (⊥ : β) :=
+      core_bot_coe_eq_bot (γ := β) (Bcore := Bdst) (hcoreOrder := h_dst_core_order)
+    have hb_le_bot : b ≤ (⊥ : β) := by
+      simpa [hbot_eq] using hb.1
+    exact hb.2.ne_bot (le_antisymm hb_le_bot bot_le)
+  have hδ_sup_left :
+      ∀ I J : Filtrator.subset (α := α), ∀ K' : Filtrator.subset (α := β),
+        δCore (I ⊔ J).1 K'.1 ↔ δCore I.1 K'.1 ∨ δCore J.1 K'.1 := by
+    intro I J K'
+    constructor
+    · intro h
+      rcases h with ⟨a, ha, b, hb, hab⟩
+      have ha_union : a ∈ atoms I.1 ∪ atoms J.1 := by
+        simpa [h_atoms_sup_src I J] using ha
+      rcases ha_union with haI | haJ
+      · exact Or.inl ⟨a, haI, b, hb, hab⟩
+      · exact Or.inr ⟨a, haJ, b, hb, hab⟩
+    · intro h
+      rcases h with hI | hJ
+      · rcases hI with ⟨a, ha, b, hb, hab⟩
+        refine ⟨a, ?_, b, hb, hab⟩
+        simpa [h_atoms_sup_src I J] using (Or.inl ha : a ∈ atoms I.1 ∪ atoms J.1)
+      · rcases hJ with ⟨a, ha, b, hb, hab⟩
+        refine ⟨a, ?_, b, hb, hab⟩
+        simpa [h_atoms_sup_src I J] using (Or.inr ha : a ∈ atoms I.1 ∪ atoms J.1)
+  have hδ_sup_right :
+      ∀ K : Filtrator.subset (α := α), ∀ I' J' : Filtrator.subset (α := β),
+        δCore K.1 (I' ⊔ J').1 ↔ δCore K.1 I'.1 ∨ δCore K.1 J'.1 := by
+    intro K I' J'
+    constructor
+    · intro h
+      rcases h with ⟨a, ha, b, hb, hab⟩
+      have hb_union : b ∈ atoms I'.1 ∪ atoms J'.1 := by
+        simpa [h_atoms_sup_dst I' J'] using hb
+      rcases hb_union with hbI | hbJ
+      · exact Or.inl ⟨a, ha, b, hbI, hab⟩
+      · exact Or.inr ⟨a, ha, b, hbJ, hab⟩
+    · intro h
+      rcases h with hI | hJ
+      · rcases hI with ⟨a, ha, b, hb, hab⟩
+        refine ⟨a, ha, b, ?_, hab⟩
+        simpa [h_atoms_sup_dst I' J'] using (Or.inl hb : b ∈ atoms I'.1 ∪ atoms J'.1)
+      · rcases hJ with ⟨a, ha, b, hb, hab⟩
+        refine ⟨a, ha, b, ?_, hab⟩
+        simpa [h_atoms_sup_dst I' J'] using (Or.inr hb : b ∈ atoms I'.1 ∪ atoms J'.1)
+  rcases theorem1618_pf_cont_r
+      (X := X) (Y := Y)
+      (Bsrc := Bsrc) (Bdst := Bdst)
+      (h_src_core_order := h_src_core_order)
+      (h_dst_core_order := h_dst_core_order)
+      (h_sep_up_src := h_sep_up_src)
+      (h_sep_up_dst := h_sep_up_dst)
+      (δ := δCore)
+      (hδ_bot_left := hδ_bot_left)
+      (hδ_sup_left := hδ_sup_left)
+      (hδ_bot_right := hδ_bot_right)
+      (hδ_sup_right := hδ_sup_right) with ⟨f, hf_core, _⟩
+  have hAtomic_src : IsAtomic α :=
+    Filtrator.Primary.primary_imp_booleanAtomicCore
+      (α := α) (Bcore := Bsrc) (hcoreOrder := h_src_core_order)
+  have hAtomic_dst : IsAtomic β :=
+    Filtrator.Primary.primary_imp_booleanAtomicCore
+      (α := β) (Bcore := Bdst) (hcoreOrder := h_dst_core_order)
+  letI : IsAtomic α := hAtomic_src
+  letI : IsAtomic β := hAtomic_dst
+  refine ⟨f, ?_⟩
+  intro x y
+  constructor
+  · intro hxy
+    rcases (corollary1652 (f := f) (x := x) (y := y)).1 hxy with
+      ⟨a, ha, b, hb, hab_rel⟩
+    have hall : ∀ X' ∈ Filtrator.up a, ∀ Y' ∈ Filtrator.up b, δCore X' Y' :=
+      (hf_core a b).1 hab_rel
+    have habδ : δ a b := hδ_cond a b ha.2 hb.2 hall
+    exact ⟨a, ha, b, hb, habδ⟩
+  · rintro ⟨a, ha, b, hb, habδ⟩
+    have hab_rel : f.funcoid_rel a b := by
+      have hall : ∀ X' ∈ Filtrator.up a, ∀ Y' ∈ Filtrator.up b, δCore X' Y' := by
+        intro X' hX' Y' hY'
+        exact ⟨a, ⟨hX'.2, ha.2⟩, b, ⟨hY'.2, hb.2⟩, habδ⟩
+      exact (hf_core a b).2 hall
+    exact (corollary1652 (f := f) (x := x) (y := y)).2
+      ⟨a, ha, b, hb, hab_rel⟩
 
 /-- Existence witness for Theorem 1654, item 1 (`\ref{pf-at-f}`):
 construct a funcoid whose forward function on atoms matches the given function `A`.
@@ -740,25 +831,37 @@ lemma theorem1654_item1_exists
     [Filtrator.Primary α] [Filtrator.Primary β]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
-    [OrderBot α]
+    [OrderBot α] [OrderBot β]
     [CompleteLattice β]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
+    (h_atoms_sup_src : ∀ I J : Filtrator.subset (α := α),
+      atoms ((I ⊔ J).1 : α) = atoms I.1 ∪ atoms J.1)
+    (h_atoms_sup_dst : ∀ I J : Filtrator.subset (α := β),
+      atoms ((I ⊔ J).1 : β) = atoms I.1 ∪ atoms J.1)
     (A : α → β)
-    (hA_cond : PointfreeFuncoid.atomicFunctionCondition1654 (A := A)) :
+    (hA_cond : PointfreeFuncoid.atomicFunctionCondition1654 (A := A))
+    (hA_rel_cond :
+      PointfreeFuncoid.atomicRelationCondition1654
+        (δ := fun x y => meet y (A x)))
+    (h_rel_to_fwd_atoms :
+      ∀ f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
+        PointfreeFuncoid.relContinuationFromAtoms1654
+          (δ := fun x y => meet y (A x)) f →
+        PointfreeFuncoid.fwdContinuationFromAtoms1654 (A := A) f) :
     ∃ f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
       PointfreeFuncoid.fwdContinuationFromAtoms1654 (A := A) f := by
-  have h_item2 :
-      ∀ a : α, IsAtom a → a ∈ (Filtrator.subset : Set α) →
-        A a =
-          sInf {z : β | ∃ x ∈ Filtrator.up a,
-            z = sSup {w : β | ∃ u ∈ atoms x, w = A u}} := by
-    intro a ha_atom ha_core
-    exact theorem1654_item1_atom_core_value
-      (A := A) (hA_cond := hA_cond) (a := a) ha_atom ha_core
-  -- Item `2^o` from the book proof is formalized above; item `1^o` remains.
-  have _ := h_item2
-  sorry
+  have _ := hA_cond
+  let δA : α → β → Prop := fun x y => meet y (A x)
+  rcases theorem1654_item2_exists
+      (X := inferInstance) (Y := inferInstance)
+      (Bsrc := Bsrc) (Bdst := Bdst)
+      (h_src_core_order := h_src_core_order)
+      (h_dst_core_order := h_dst_core_order)
+      (h_atoms_sup_src := h_atoms_sup_src)
+      (h_atoms_sup_dst := h_atoms_sup_dst)
+      (δ := δA) (hδ_cond := hA_rel_cond) with ⟨f, hf_rel_atoms⟩
+  exact ⟨f, h_rel_to_fwd_atoms f hf_rel_atoms⟩
 
 /--
 Theorem 1654, item 1 (`\ref{pf-at-f}`): existence and uniqueness of a pointfree funcoid
@@ -770,18 +873,37 @@ theorem theorem1654_item1
     [Filtrator.Primary α] [Filtrator.Primary β]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
-    [OrderBot α]
+    [OrderBot α] [OrderBot β]
     [CompleteLattice β]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
+    (h_atoms_sup_src : ∀ I J : Filtrator.subset (α := α),
+      atoms ((I ⊔ J).1 : α) = atoms I.1 ∪ atoms J.1)
+    (h_atoms_sup_dst : ∀ I J : Filtrator.subset (α := β),
+      atoms ((I ⊔ J).1 : β) = atoms I.1 ∪ atoms J.1)
     (A : α → β)
-    (hA_cond : PointfreeFuncoid.atomicFunctionCondition1654 (A := A)) :
+    (hA_cond : PointfreeFuncoid.atomicFunctionCondition1654 (A := A))
+    (hA_rel_cond :
+      PointfreeFuncoid.atomicRelationCondition1654
+        (δ := fun x y => meet y (A x)))
+    (h_rel_to_fwd_atoms :
+      ∀ f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
+        PointfreeFuncoid.relContinuationFromAtoms1654
+          (δ := fun x y => meet y (A x)) f →
+        PointfreeFuncoid.fwdContinuationFromAtoms1654 (A := A) f) :
     ∃! f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
       PointfreeFuncoid.fwdContinuationFromAtoms1654 (A := A) f := by
   have h_sep_src : IsSeparable α :=
     separable_of_primary_boolean_core
       (α := α) (Bcore := Bsrc) h_src_core_order
-  rcases theorem1654_item1_exists h_src_core_order h_dst_core_order A hA_cond with ⟨f, hf⟩
+  rcases theorem1654_item1_exists
+      (Bsrc := Bsrc) (Bdst := Bdst)
+      (h_src_core_order := h_src_core_order)
+      (h_dst_core_order := h_dst_core_order)
+      (h_atoms_sup_src := h_atoms_sup_src)
+      (h_atoms_sup_dst := h_atoms_sup_dst)
+      (A := A) (hA_cond := hA_cond) (hA_rel_cond := hA_rel_cond)
+      (h_rel_to_fwd_atoms := h_rel_to_fwd_atoms) with ⟨f, hf⟩
   refine ⟨f, hf, ?_⟩
   intro g hg
   have hfg : f = g := by
@@ -804,6 +926,10 @@ theorem theorem1654_item2
     [OrderBot α] [OrderBot β]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
+    (h_atoms_sup_src : ∀ I J : Filtrator.subset (α := α),
+      atoms ((I ⊔ J).1 : α) = atoms I.1 ∪ atoms J.1)
+    (h_atoms_sup_dst : ∀ I J : Filtrator.subset (α := β),
+      atoms ((I ⊔ J).1 : β) = atoms I.1 ∪ atoms J.1)
     (δ : α → β → Prop)
     (hδ_cond : PointfreeFuncoid.atomicRelationCondition1654 (δ := δ)) :
     ∃! f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
@@ -814,7 +940,13 @@ theorem theorem1654_item2
   have h_sep_dst : IsSeparable β :=
     separable_of_primary_boolean_core
       (α := β) (Bcore := Bdst) h_dst_core_order
-  rcases theorem1654_item2_exists h_src_core_order h_dst_core_order δ hδ_cond with ⟨f, hf⟩
+  rcases theorem1654_item2_exists
+      (Bsrc := Bsrc) (Bdst := Bdst)
+      (h_src_core_order := h_src_core_order)
+      (h_dst_core_order := h_dst_core_order)
+      (h_atoms_sup_src := h_atoms_sup_src)
+      (h_atoms_sup_dst := h_atoms_sup_dst)
+      (δ := δ) (hδ_cond := hδ_cond) with ⟨f, hf⟩
   refine ⟨f, hf, ?_⟩
   intro g hg
   have hfg : f = g := by
