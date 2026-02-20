@@ -3,6 +3,7 @@ import atgt.Filtrator.Powerset
 import atgt.AlternativePrimaryFiltrators
 import Mathlib.Order.CompleteLattice.Basic
 import Mathlib.Order.CompleteBooleanAlgebra
+import Mathlib.Order.Bounds.OrderIso
 import Mathlib.Data.Finset.Lattice.Fold
 import Mathlib.Data.Fintype.Basic
 
@@ -511,6 +512,215 @@ theorem theorem522_item1
 
 end FiniteFilterInfimum
 
+namespace ArbitraryFilterInfimum
+
+variable {α : Type u} [DistribLattice α]
+
+/--
+The right-hand side in theorem `distr-meet` (`chap-filt.tex`): finite meets of elements drawn from
+the union of a nonempty family of filters.
+-/
+noncomputable def finiteMeetGeneratedSet
+    (S : Set (PosetFilter (U := (inferInstance : PartialOrder α)))) : Set α := by
+  classical
+  exact
+    { x : α |
+      ∃ t : Finset α, ∃ ht : t.Nonempty,
+        ((t : Set α) ⊆ ⋃ F ∈ S, F.elements) ∧
+        x = t.inf' ht id }
+
+/-- Finite meets generated from an arbitrary carrier set. -/
+noncomputable def finiteMeetFromSet (U : Set α) : Set α := by
+  classical
+  exact
+    { x : α |
+      ∃ t : Finset α, ∃ ht : t.Nonempty,
+        ((t : Set α) ⊆ U) ∧
+        x = t.inf' ht id }
+
+lemma finiteMeetGeneratedSet_eq_finiteMeetFromSet
+    (S : Set (PosetFilter (U := (inferInstance : PartialOrder α)))) :
+    finiteMeetGeneratedSet (α := α) S =
+      finiteMeetFromSet (α := α) (⋃ F ∈ S, F.elements) := by
+  rfl
+
+lemma inf'_mem_filter
+    (F : PosetFilter (U := (inferInstance : PartialOrder α)))
+    {t : Finset α} (ht : t.Nonempty)
+    (hmem : ∀ x ∈ t, x ∈ F.elements) :
+    t.inf' ht id ∈ F.elements := by
+  have hinf_mem : ∀ {z w : α}, z ∈ F.elements → w ∈ F.elements → z ⊓ w ∈ F.elements := by
+    intro z w hz hw
+    rcases F.cap_elements hz hw with ⟨u, hu, huz, huw⟩
+    have hu_car : u ∈ F.carrier := by
+      simpa [F.carrier_eq_elements] using hu
+    have hzw_car : z ⊓ w ∈ F.carrier :=
+      F.upper' (le_inf huz huw) hu_car
+    simpa [F.carrier_eq_elements] using hzw_car
+  have hclosed : (∀ᵉ (z ∈ F.elements) (w ∈ F.elements), z ⊓ w ∈ F.elements) := by
+    intro z hz w hw
+    exact hinf_mem hz hw
+  exact Finset.inf'_mem (s := F.elements) hclosed (t := t) (H := ht) (p := id) (by
+    intro i hi
+    exact hmem i hi)
+
+lemma finiteMeetFromSet_inter_filter
+    (A : PosetFilter (U := (inferInstance : PartialOrder α)))
+    (U : Set α) :
+    finiteMeetFromSet (α := α) (A.elements ∩ U) =
+      A.elements ∩ finiteMeetFromSet (α := α) U := by
+  ext x
+  constructor
+  · intro hx
+    rcases hx with ⟨t, ht, ht_sub, rfl⟩
+    refine ⟨?_, ?_⟩
+    · exact inf'_mem_filter (α := α) A ht (by
+        intro y hy
+        exact (ht_sub hy).1)
+    · exact ⟨t, ht, (by
+        intro y hy
+        exact (ht_sub hy).2), rfl⟩
+  · intro hx
+    rcases hx with ⟨hxA, hxU⟩
+    rcases hxU with ⟨t, ht, ht_sub, rfl⟩
+    refine ⟨t, ht, ?_, rfl⟩
+    intro y hy
+    refine ⟨?_, ht_sub hy⟩
+    have hxy : t.inf' ht id ≤ y := Finset.inf'_le (s := t) (f := id) (h := hy)
+    have hxA_car : t.inf' ht id ∈ A.carrier := by
+      simpa [A.carrier_eq_elements] using hxA
+    have hy_car : y ∈ A.carrier := A.upper' hxy hxA_car
+    simpa [A.carrier_eq_elements] using hy_car
+
+lemma finiteMeetGeneratedSet_eq_of_union_eq
+    {S T : Set (PosetFilter (U := (inferInstance : PartialOrder α)))}
+    (hU : (⋃ F ∈ S, F.elements) = (⋃ F ∈ T, F.elements)) :
+    finiteMeetGeneratedSet (α := α) S =
+      finiteMeetGeneratedSet (α := α) T := by
+  rw [finiteMeetGeneratedSet_eq_finiteMeetFromSet,
+    finiteMeetGeneratedSet_eq_finiteMeetFromSet, hU]
+
+/--
+Theorem `distr-meet`, item `1` (`chap-filt.tex`): for a nonempty family of filters over a
+distributive lattice, their infimum filter is exactly the set of finite meets of elements picked
+from the union of the family.
+-/
+theorem theorem_distr_meet
+    (S : Set (PosetFilter (U := (inferInstance : PartialOrder α))))
+    (hS : S.Nonempty) :
+    ∃ R : PosetFilter (U := (inferInstance : PartialOrder α)),
+      R.elements = finiteMeetGeneratedSet (α := α) S ∧
+      IsGLB S R := by
+  classical
+  let setR : Set α := finiteMeetGeneratedSet (α := α) S
+  have hR_nonempty : Set.Nonempty setR := by
+    rcases hS with ⟨F, hF⟩
+    rcases F.non_empty with ⟨x, hx⟩
+    refine ⟨x, ?_⟩
+    refine ⟨{x}, by simp, ?_, by simp⟩
+    intro y hy
+    have hyx : y = x := by simpa using hy
+    subst hyx
+    exact Set.mem_iUnion.2 ⟨F, Set.mem_iUnion.2 ⟨hF, hx⟩⟩
+  let R : PosetFilter (U := (inferInstance : PartialOrder α)) := {
+    elements := setR
+    non_empty := hR_nonempty
+    cap_elements := by
+      intro a b ha hb
+      rcases ha with ⟨ta, hta, hta_sub, rfl⟩
+      rcases hb with ⟨tb, htb, htb_sub, rfl⟩
+      let tc : Finset α := ta ∪ tb
+      have htc : tc.Nonempty := by
+        rcases hta with ⟨x, hx⟩
+        exact ⟨x, by simpa [tc] using (Finset.mem_union.2 (Or.inl hx))⟩
+      have htc_sub : (tc : Set α) ⊆ ⋃ F ∈ S, F.elements := by
+        intro x hx
+        have hx' : x ∈ ta ∨ x ∈ tb := by
+          simpa [tc] using (show x ∈ ta ∪ tb from hx)
+        cases hx' with
+        | inl hxa => exact hta_sub hxa
+        | inr hxb => exact htb_sub hxb
+      refine ⟨tc.inf' htc id, ⟨tc, htc, htc_sub, rfl⟩, ?_, ?_⟩
+      · refine Finset.le_inf' (s := ta) (H := hta) (f := id) ?_
+        intro x hx
+        have hxtc : x ∈ tc := by
+          simpa [tc] using (Finset.mem_union.2 (Or.inl hx))
+        exact Finset.inf'_le (s := tc) (f := id) (h := hxtc)
+      · refine Finset.le_inf' (s := tb) (H := htb) (f := id) ?_
+        intro x hx
+        have hxtc : x ∈ tc := by
+          simpa [tc] using (Finset.mem_union.2 (Or.inr hx))
+        exact Finset.inf'_le (s := tc) (f := id) (h := hxtc)
+    carrier := setR
+    upper' := by
+      intro a b hab ha
+      rcases ha with ⟨ta, hta, hta_sub, rfl⟩
+      let tb : Finset α := ta.image (fun x => b ⊔ x)
+      have htb : tb.Nonempty := by
+        simpa [tb] using hta.image (fun x => b ⊔ x)
+      have htb_sub : (tb : Set α) ⊆ ⋃ F ∈ S, F.elements := by
+        intro y hy
+        rcases Finset.mem_image.1 (by simpa [tb] using hy) with ⟨x, hx, rfl⟩
+        rcases Set.mem_iUnion.1 (hta_sub hx) with ⟨F, hmemF⟩
+        rcases Set.mem_iUnion.1 hmemF with ⟨hF, hxF⟩
+        have hx_car : x ∈ F.carrier := by
+          simpa [F.carrier_eq_elements] using hxF
+        have hbx_car : b ⊔ x ∈ F.carrier :=
+          F.upper' (by simpa using (le_sup_right : x ≤ b ⊔ x)) hx_car
+        have hbx : b ⊔ x ∈ F.elements := by
+          simpa [F.carrier_eq_elements] using hbx_car
+        exact Set.mem_iUnion.2 ⟨F, Set.mem_iUnion.2 ⟨hF, hbx⟩⟩
+      refine ⟨tb, htb, htb_sub, ?_⟩
+      have hdistrib :
+          b ⊔ ta.inf' hta id =
+            ta.inf' hta (fun x => b ⊔ x) := by
+        simpa using
+          (Finset.inf'_sup_distrib_left (s := ta) (hs := hta) (f := id) (a := b))
+      have hmap :
+          ta.inf' hta (fun x => b ⊔ x) =
+            tb.inf' htb id := by
+        simpa [tb] using
+          (Finset.inf'_comp_eq_image
+            (s := ta) (f := fun x => b ⊔ x) (hs := hta) (g := id))
+      have hsup : b ⊔ ta.inf' hta id = b :=
+        sup_eq_left.2 hab
+      exact ((hdistrib.trans hmap).symm.trans hsup).symm
+    carrier_eq_elements := rfl
+  }
+  refine ⟨R, rfl, ?_⟩
+  refine ⟨?_, ?_⟩
+  · intro F hF
+    intro p hp
+    refine ⟨{p}, by simp, ?_, by simp⟩
+    intro y hy
+    have hy_p : y = p := by simpa using hy
+    subst hy_p
+    exact Set.mem_iUnion.2 ⟨F, Set.mem_iUnion.2 ⟨hF, hp⟩⟩
+  · intro B hB
+    intro x hx
+    rcases hx with ⟨t, ht, ht_sub, rfl⟩
+    have htB : ∀ z ∈ t, z ∈ B.elements := by
+      intro z hz
+      rcases Set.mem_iUnion.1 (ht_sub hz) with ⟨F, hFz⟩
+      rcases Set.mem_iUnion.1 hFz with ⟨hF, hzF⟩
+      exact (hB hF) hzF
+    have hinf_mem : ∀ {z w : α}, z ∈ B.elements → w ∈ B.elements → z ⊓ w ∈ B.elements := by
+      intro z w hz hw
+      rcases B.cap_elements hz hw with ⟨u, hu, huz, huw⟩
+      have hu_car : u ∈ B.carrier := by
+        simpa [B.carrier_eq_elements] using hu
+      have hzw_car : z ⊓ w ∈ B.carrier :=
+        B.upper' (le_inf huz huw) hu_car
+      simpa [B.carrier_eq_elements] using hzw_car
+    have hclosed : (∀ᵉ (z ∈ B.elements) (w ∈ B.elements), z ⊓ w ∈ B.elements) := by
+      intro z hz w hw
+      exact hinf_mem hz hw
+    exact Finset.inf'_mem (s := B.elements) hclosed (t := t) (H := ht) (p := id) (by
+      intro i hi
+      exact htB i hi)
+
+end ArbitraryFilterInfimum
+
 namespace FiniteFilterMeetCoreTuple
 
 variable {α : Type u}
@@ -562,6 +772,333 @@ namespace PrimaryDistribCoreBridge
 
 variable {α : Type u}
 
+/-- The canonical order isomorphism from a primary filtrator to filters on its core suborder. -/
+noncomputable def toPosetFilterOrderIso [Filtrator.Primary α] :
+    α ≃o PosetFilter (Filtrator.suborder (α := α)) where
+  toEquiv := (Filtrator.Primary.to_filters_iso (α := α)).toRelIso.toEquiv
+  map_rel_iff' := by
+    intro x y
+    exact (Filtrator.Primary.to_filters_iso (α := α)).toRelIso.map_rel_iff
+
+@[simp]
+lemma toPosetFilterOrderIso_apply [Filtrator.Primary α] (x : α) :
+    toPosetFilterOrderIso (α := α) x =
+      Filtrator.Primary.to_poset_filter (α := α) x := by
+  simpa [toPosetFilterOrderIso] using
+    (Filtrator.Primary.to_filters_iso_eq_to_poset_filter (α := α) x)
+
+lemma to_poset_filter_injective [Filtrator.Primary α] :
+    Function.Injective (Filtrator.Primary.to_poset_filter (α := α)) := by
+  intro x y hxy
+  have hxy' :
+      toPosetFilterOrderIso (α := α) x = toPosetFilterOrderIso (α := α) y := by
+    simpa using hxy
+  exact (toPosetFilterOrderIso (α := α)).injective hxy'
+
+/-- `to_poset_filter` cast to an explicitly provided core order. -/
+noncomputable def toFilterInOrder
+    [Filtrator.Primary α]
+    (U : PartialOrder (Filtrator.subset (α := α)))
+    (hU : Filtrator.suborder (α := α) = U)
+    (x : α) : PosetFilter (U := U) :=
+  PosetFilter.castOrderIso hU (Filtrator.Primary.to_poset_filter (α := α) x)
+
+lemma mem_toFilterInOrder_elements_iff
+    [Filtrator.Primary α]
+    (U : PartialOrder (Filtrator.subset (α := α)))
+    (hU : Filtrator.suborder (α := α) = U)
+    (x : α) (z : Filtrator.subset (α := α)) :
+    z ∈ (toFilterInOrder (α := α) U hU x).elements ↔ x ≤ z.1 := by
+  cases hU
+  change z ∈ (Filtrator.Primary.to_poset_filter (α := α) x).elements ↔ x ≤ z.1
+  simp [Filtrator.Primary.to_poset_filter, Filtrator.up_suborder]
+
+/-- `to_poset_filter` with codomain typed by the distributive-core order (via a provided order
+identification). -/
+noncomputable def toCoreFilter
+    [Filtrator.Primary α]
+    [Dcore : DistribLattice (Filtrator.subset (α := α))]
+    (hcoreord : Filtrator.suborder (α := α) =
+      Dcore.toLattice.toSemilatticeInf.toPartialOrder)
+    (x : α) :
+    PosetFilter (U := Dcore.toLattice.toSemilatticeInf.toPartialOrder) :=
+  toFilterInOrder (α := α)
+    (U := Dcore.toLattice.toSemilatticeInf.toPartialOrder) hcoreord x
+
+/-- Canonical order isomorphism `α ≃o` core filters typed with the distributive-core order. -/
+noncomputable def toCoreFilterOrderIso
+    [Filtrator.Primary α]
+    [Dcore : DistribLattice (Filtrator.subset (α := α))]
+    (hcoreord : Filtrator.suborder (α := α) =
+      Dcore.toLattice.toSemilatticeInf.toPartialOrder) :
+    α ≃o PosetFilter (U := Dcore.toLattice.toSemilatticeInf.toPartialOrder) :=
+  (toPosetFilterOrderIso (α := α)).trans (PosetFilter.castOrderIso hcoreord)
+
+@[simp]
+lemma toCoreFilterOrderIso_apply
+    [Filtrator.Primary α]
+    [Dcore : DistribLattice (Filtrator.subset (α := α))]
+    (hcoreord : Filtrator.suborder (α := α) =
+      Dcore.toLattice.toSemilatticeInf.toPartialOrder)
+    (x : α) :
+    toCoreFilterOrderIso (α := α) hcoreord x = toCoreFilter (α := α) hcoreord x := by
+  simp [toCoreFilterOrderIso, toCoreFilter, toFilterInOrder, toPosetFilterOrderIso_apply]
+
+lemma toCoreFilter_injective
+    [Filtrator.Primary α]
+    [Dcore : DistribLattice (Filtrator.subset (α := α))]
+    (hcoreord : Filtrator.suborder (α := α) =
+      Dcore.toLattice.toSemilatticeInf.toPartialOrder) :
+    Function.Injective (toCoreFilter (α := α) hcoreord) := by
+  intro x y hxy
+  have hxy' :
+      toCoreFilterOrderIso (α := α) hcoreord x =
+        toCoreFilterOrderIso (α := α) hcoreord y := by
+    simpa [toCoreFilterOrderIso_apply] using hxy
+  exact (toCoreFilterOrderIso (α := α) hcoreord).injective hxy'
+
+lemma mem_toCoreFilter_elements_iff
+    [Filtrator.Primary α]
+    [Dcore : DistribLattice (Filtrator.subset (α := α))]
+    (hcoreord : Filtrator.suborder (α := α) =
+      Dcore.toLattice.toSemilatticeInf.toPartialOrder)
+    (x : α) (z : Filtrator.subset (α := α)) :
+    z ∈ (toCoreFilter (α := α) hcoreord x).elements ↔ x ≤ z.1 := by
+  simpa [toCoreFilter] using
+    mem_toFilterInOrder_elements_iff
+      (α := α) (U := Dcore.toLattice.toSemilatticeInf.toPartialOrder) hcoreord x z
+
+lemma toCoreFilter_sInf_elements_nonempty
+    [SemilatticeInf α]
+    [hTop : @OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
+    [hBot : @OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
+    [Filtrator.Primary α]
+    [Dcore : DistribLattice (Filtrator.subset (α := α))]
+    (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
+      (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b)
+    (hcoreord : Filtrator.suborder (α := α) =
+      Dcore.toLattice.toSemilatticeInf.toPartialOrder)
+    (S : Set α) (hS : S.Nonempty) :
+    letI : CompleteLattice (Filtrator.supset (α := α)) :=
+      PrimaryMeetTopCompleteLatticeTuple.two_imp_three (α := α) hord
+    (toCoreFilter (α := α) hcoreord (sInf S)).elements =
+      ArbitraryFilterInfimum.finiteMeetGeneratedSet
+        (α := Filtrator.subset (α := α))
+        ((toCoreFilterOrderIso (α := α) hcoreord) '' S) := by
+  letI : CompleteLattice (Filtrator.supset (α := α)) :=
+    PrimaryMeetTopCompleteLatticeTuple.two_imp_three (α := α) hord
+  let e := toCoreFilterOrderIso (α := α) hcoreord
+  have hImgNonempty : (e '' S).Nonempty := hS.image e
+  rcases ArbitraryFilterInfimum.theorem_distr_meet
+      (α := Filtrator.subset (α := α))
+      (S := e '' S) hImgNonempty with
+    ⟨R, hRset, hRglb⟩
+  have hglb_alpha : IsGLB S (e.symm R) := (e.isGLB_image).1 hRglb
+  have hsInf_eq : sInf S = e.symm R := (isGLB_sInf S).unique hglb_alpha
+  have hER : e (sInf S) = R := by
+    simpa [hsInf_eq]
+  have htoCore : toCoreFilter (α := α) hcoreord (sInf S) = R := by
+    simpa [e, toCoreFilterOrderIso_apply] using hER
+  calc
+    (toCoreFilter (α := α) hcoreord (sInf S)).elements = R.elements := by
+      simpa [htoCore]
+    _ = ArbitraryFilterInfimum.finiteMeetGeneratedSet
+          (α := Filtrator.subset (α := α)) (e '' S) := hRset
+    _ = ArbitraryFilterInfimum.finiteMeetGeneratedSet
+          (α := Filtrator.subset (α := α))
+          ((toCoreFilterOrderIso (α := α) hcoreord) '' S) := by
+      rfl
+
+lemma toCoreFilter_sup_elements
+    [Lattice α]
+    [Filtrator.Primary α]
+    [Dcore : DistribLattice (Filtrator.subset (α := α))]
+    (hcoreord : Filtrator.suborder (α := α) =
+      Dcore.toLattice.toSemilatticeInf.toPartialOrder)
+    (hord : ∀ x y : α, x ≤ y ↔ @LE.le α
+      (inferInstance : Lattice α).toPartialOrder.toPreorder.toLE x y)
+    (a b : α) :
+    (toCoreFilter (α := α) hcoreord (a ⊔ b)).elements =
+      (toCoreFilter (α := α) hcoreord a).elements ∩
+        (toCoreFilter (α := α) hcoreord b).elements := by
+  ext z
+  constructor
+  · intro hz
+    have hz_ab : a ⊔ b ≤ z.1 := (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hz
+    refine ⟨?_, ?_⟩
+    · exact (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).2
+        (le_trans
+          ((hord a (a ⊔ b)).2 (by simpa using (le_sup_left : a ≤ a ⊔ b)))
+          hz_ab)
+    · exact (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).2
+        (le_trans
+          ((hord b (a ⊔ b)).2 (by simpa using (le_sup_right : b ≤ a ⊔ b)))
+          hz_ab)
+  · intro hz
+    rcases hz with ⟨hza, hzb⟩
+    have hza' : a ≤ z.1 := (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hza
+    have hzb' : b ≤ z.1 := (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hzb
+    have hza'' : @LE.le α (inferInstance : Lattice α).toPartialOrder.toPreorder.toLE a z.1 :=
+      (hord a z.1).1 hza'
+    have hzb'' : @LE.le α (inferInstance : Lattice α).toPartialOrder.toPreorder.toLE b z.1 :=
+      (hord b z.1).1 hzb'
+    have hzab'' : @LE.le α (inferInstance : Lattice α).toPartialOrder.toPreorder.toLE
+        (a ⊔ b) z.1 :=
+      sup_le hza'' hzb''
+    exact (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).2
+      ((hord (a ⊔ b) z.1).2 hzab'')
+
+lemma union_toCoreFilter_image_sup
+    [Lattice α]
+    [Filtrator.Primary α]
+    [Dcore : DistribLattice (Filtrator.subset (α := α))]
+    (hcoreord : Filtrator.suborder (α := α) =
+      Dcore.toLattice.toSemilatticeInf.toPartialOrder)
+    (hord : ∀ x y : α, x ≤ y ↔ @LE.le α
+      (inferInstance : Lattice α).toPartialOrder.toPreorder.toLE x y)
+    (a : α) (S : Set α) :
+    (⋃ F ∈ (toCoreFilterOrderIso (α := α) hcoreord '' ((fun x => a ⊔ x) '' S)), F.elements) =
+      (toCoreFilter (α := α) hcoreord a).elements ∩
+        (⋃ F ∈ ((toCoreFilterOrderIso (α := α) hcoreord) '' S), F.elements) := by
+  ext z
+  constructor
+  · intro hz
+    rcases Set.mem_iUnion.1 hz with ⟨F, hF⟩
+    rcases Set.mem_iUnion.1 hF with ⟨hFS, hzF⟩
+    rcases hFS with ⟨u, huS, rfl⟩
+    rcases huS with ⟨x, hxS, rfl⟩
+    have hz_ax : z ∈ (toCoreFilter (α := α) hcoreord (a ⊔ x)).elements := by
+      simpa [toCoreFilterOrderIso_apply] using hzF
+    have haz : a ≤ z.1 := by
+      have hzax_le : a ⊔ x ≤ z.1 :=
+        (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hz_ax
+      exact le_trans
+        ((hord a (a ⊔ x)).2 (by simpa using (le_sup_left : a ≤ a ⊔ x)))
+        hzax_le
+    have hzx : x ≤ z.1 := by
+      have hzax_le : a ⊔ x ≤ z.1 :=
+        (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hz_ax
+      exact le_trans
+        ((hord x (a ⊔ x)).2 (by simpa using (le_sup_right : x ≤ a ⊔ x)))
+        hzax_le
+    refine ⟨(mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).2 haz, ?_⟩
+    refine Set.mem_iUnion.2 ⟨toCoreFilterOrderIso (α := α) hcoreord x, ?_⟩
+    refine Set.mem_iUnion.2 ⟨⟨x, hxS, rfl⟩, ?_⟩
+    simpa [toCoreFilterOrderIso_apply] using
+      ((mem_toCoreFilter_elements_iff (α := α) hcoreord x z).2 hzx)
+  · intro hz
+    rcases hz with ⟨hza, hzU⟩
+    rcases Set.mem_iUnion.1 hzU with ⟨F, hF⟩
+    rcases Set.mem_iUnion.1 hF with ⟨hFS, hzF⟩
+    rcases hFS with ⟨x, hxS, rfl⟩
+    have hzF_core : z ∈ (toCoreFilter (α := α) hcoreord x).elements := by
+      simpa [toCoreFilterOrderIso_apply] using hzF
+    have haz' : a ≤ z.1 := (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hza
+    have hzx' : x ≤ z.1 := (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hzF_core
+    have haz'' : @LE.le α (inferInstance : Lattice α).toPartialOrder.toPreorder.toLE a z.1 :=
+      (hord a z.1).1 haz'
+    have hzx'' : @LE.le α (inferInstance : Lattice α).toPartialOrder.toPreorder.toLE x z.1 :=
+      (hord x z.1).1 hzx'
+    have hzax : z ∈ (toCoreFilter (α := α) hcoreord (a ⊔ x)).elements :=
+      (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).2
+        ((hord (a ⊔ x) z.1).2 (sup_le haz'' hzx''))
+    refine Set.mem_iUnion.2 ⟨toCoreFilterOrderIso (α := α) hcoreord (a ⊔ x), ?_⟩
+    refine Set.mem_iUnion.2 ⟨⟨a ⊔ x, ⟨x, hxS, rfl⟩, rfl⟩, ?_⟩
+    simpa [toCoreFilterOrderIso_apply] using hzax
+
+/-- Nonempty-family distributivity in the filter lattice (Theorem 530, item 3) via core-filters. -/
+lemma sup_sInf_eq_image_nonempty
+    [SemilatticeInf α]
+    [hTop : @OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
+    [hBot : @OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
+    [Filtrator.Primary α]
+    [Dcore : DistribLattice (Filtrator.subset (α := α))]
+    (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
+      (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b)
+    (hcoreord : Filtrator.suborder (α := α) =
+      Dcore.toLattice.toSemilatticeInf.toPartialOrder)
+    (a : α) (S : Set α) (hS : S.Nonempty) :
+    letI : CompleteLattice (Filtrator.supset (α := α)) :=
+      PrimaryMeetTopCompleteLatticeTuple.two_imp_three (α := α) hord
+    a ⊔ sInf S = sInf ((fun x => a ⊔ x) '' S) := by
+  letI : CompleteLattice (Filtrator.supset (α := α)) :=
+    PrimaryMeetTopCompleteLatticeTuple.two_imp_three (α := α) hord
+  let e := toCoreFilterOrderIso (α := α) hcoreord
+  let A : PosetFilter (U := Dcore.toLattice.toSemilatticeInf.toPartialOrder) :=
+    toCoreFilter (α := α) hcoreord a
+  let U : Set (Filtrator.subset (α := α)) := ⋃ F ∈ (e '' S), F.elements
+  have hLatticeOrd : ∀ x y : α, x ≤ y ↔ @LE.le α
+      (inferInstance : Lattice α).toPartialOrder.toPreorder.toLE x y := by
+    intro x y
+    rfl
+  have hSsup : ((fun x => a ⊔ x) '' S).Nonempty := hS.image (fun x => a ⊔ x)
+  have hUnion :
+      (⋃ F ∈ (e '' ((fun x => a ⊔ x) '' S)), F.elements) = A.elements ∩ U := by
+    simpa [A, U, e] using
+      union_toCoreFilter_image_sup (α := α) hcoreord hLatticeOrd a S
+  have hLeftElems :
+      (toCoreFilter (α := α) hcoreord (a ⊔ sInf S)).elements =
+        A.elements ∩
+          ArbitraryFilterInfimum.finiteMeetGeneratedSet
+            (α := Filtrator.subset (α := α)) (e '' S) := by
+    calc
+      (toCoreFilter (α := α) hcoreord (a ⊔ sInf S)).elements =
+          (toCoreFilter (α := α) hcoreord a).elements ∩
+            (toCoreFilter (α := α) hcoreord (sInf S)).elements := by
+        simpa [e] using
+          toCoreFilter_sup_elements (α := α) hcoreord hLatticeOrd a (sInf S)
+      _ = A.elements ∩
+          ArbitraryFilterInfimum.finiteMeetGeneratedSet
+            (α := Filtrator.subset (α := α)) (e '' S) := by
+        simpa [A, e] using congrArg
+          (fun T => (toCoreFilter (α := α) hcoreord a).elements ∩ T)
+          (toCoreFilter_sInf_elements_nonempty (α := α) hord hcoreord S hS)
+  have hRightElems :
+      (toCoreFilter (α := α) hcoreord (sInf ((fun x => a ⊔ x) '' S))).elements =
+        A.elements ∩
+          ArbitraryFilterInfimum.finiteMeetGeneratedSet
+            (α := Filtrator.subset (α := α)) (e '' S) := by
+    calc
+      (toCoreFilter (α := α) hcoreord (sInf ((fun x => a ⊔ x) '' S))).elements =
+          ArbitraryFilterInfimum.finiteMeetGeneratedSet
+            (α := Filtrator.subset (α := α)) (e '' ((fun x => a ⊔ x) '' S)) := by
+        simpa [e] using
+          toCoreFilter_sInf_elements_nonempty (α := α) hord hcoreord
+            ((fun x => a ⊔ x) '' S) hSsup
+      _ = ArbitraryFilterInfimum.finiteMeetFromSet (α := Filtrator.subset (α := α))
+            (⋃ F ∈ (e '' ((fun x => a ⊔ x) '' S)), F.elements) := by
+        simpa using
+          (ArbitraryFilterInfimum.finiteMeetGeneratedSet_eq_finiteMeetFromSet
+            (α := Filtrator.subset (α := α))
+            (S := e '' ((fun x => a ⊔ x) '' S)))
+      _ = ArbitraryFilterInfimum.finiteMeetFromSet (α := Filtrator.subset (α := α))
+            (A.elements ∩ U) := by
+        simpa [Set.image_image, Function.comp] using
+          congrArg
+            (ArbitraryFilterInfimum.finiteMeetFromSet (α := Filtrator.subset (α := α)))
+            hUnion
+      _ = A.elements ∩
+            ArbitraryFilterInfimum.finiteMeetFromSet (α := Filtrator.subset (α := α)) U := by
+        simpa using
+          (ArbitraryFilterInfimum.finiteMeetFromSet_inter_filter
+            (α := Filtrator.subset (α := α)) A U)
+      _ = A.elements ∩
+            ArbitraryFilterInfimum.finiteMeetGeneratedSet
+              (α := Filtrator.subset (α := α)) (e '' S) := by
+        have hFU :
+            ArbitraryFilterInfimum.finiteMeetFromSet (α := Filtrator.subset (α := α)) U =
+              ArbitraryFilterInfimum.finiteMeetGeneratedSet
+                (α := Filtrator.subset (α := α)) (e '' S) := by
+          simpa [U] using
+            (ArbitraryFilterInfimum.finiteMeetGeneratedSet_eq_finiteMeetFromSet
+              (α := Filtrator.subset (α := α)) (S := e '' S)).symm
+        simpa [hFU]
+  have hEqCore :
+      toCoreFilter (α := α) hcoreord (a ⊔ sInf S) =
+        toCoreFilter (α := α) hcoreord (sInf ((fun x => a ⊔ x) '' S)) := by
+    exact PosetFilter.ThroughEquiv.ext _ _ (hLeftElems.trans hRightElems.symm)
+  exact toCoreFilter_injective (α := α) hcoreord hEqCore
+
 /--
 Theorem 524 bridge route (Lean form): from primary + distributive-core assumptions we construct
 the complete lattice structure on `Filtrator.supset`.
@@ -582,20 +1119,39 @@ noncomputable instance primary_distribCore_imp_completeLattice
   exact PrimaryMeetTopCompleteLatticeTuple.two_imp_three (α := α) hord
 
 /--
-Specialized bridge: under the primary/distributive-core setup, any proof of Theorem 530
-(`Order.Coframe`) yields a coframe instance on `Filtrator.supset`.
+Specialized bridge (Theorem 530 route): under the primary/distributive-core setup with
+core-order alignment, we construct a coframe instance on `Filtrator.supset`.
 -/
 noncomputable def primary_distribCore_imp_coframe
     [SemilatticeInf α]
     [hTop : @OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
     [hBot : @OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
     [Filtrator.Primary α]
-    [_Dcore : DistribLattice (Filtrator.subset (α := α))]
+    [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
       (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b)
-    (hC : Order.Coframe (Filtrator.supset (α := α))) :
+    (hcoreord : Filtrator.suborder (α := α) =
+      Dcore.toLattice.toSemilatticeInf.toPartialOrder) :
     Order.Coframe (Filtrator.supset (α := α)) := by
-  exact hC
+  letI : CompleteLattice (Filtrator.supset (α := α)) :=
+    primary_distribCore_imp_completeLattice (α := α) hord
+  exact Order.Coframe.ofMinimalAxioms {
+    toCompleteLattice := inferInstance
+    iInf_sup_le_sup_sInf := by
+      intro a s
+      by_cases hS : s.Nonempty
+      · have hEq :
+          a ⊔ sInf s = sInf ((fun x => a ⊔ x) '' s) := by
+          simpa using sup_sInf_eq_image_nonempty (α := α) hord hcoreord a s hS
+        exact le_of_eq (by
+          calc
+            ⨅ b ∈ s, a ⊔ b = sInf ((fun x => a ⊔ x) '' s) := by
+              simpa using (sInf_image (s := s) (f := fun x => a ⊔ x)).symm
+            _ = a ⊔ sInf s := hEq.symm)
+      · have hsEmpty : s = ∅ := Set.not_nonempty_iff_eq_empty.mp hS
+        subst hsEmpty
+        simp
+  }
 
 end PrimaryDistribCoreBridge
 
@@ -618,9 +1174,11 @@ noncomputable def two_imp_three
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
       (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b)
-    (hC : Order.Coframe (Filtrator.supset (α := α))) :
+    (hcoreord : Filtrator.suborder (α := α) =
+      Dcore.toLattice.toSemilatticeInf.toPartialOrder) :
     Order.Coframe (Filtrator.supset (α := α)) := by
-  exact hC
+  exact PrimaryDistribCoreBridge.primary_distribCore_imp_coframe
+    (α := α) hord hcoreord
 
 /-- 1⇒3 in Theorem 530 tuple. -/
 noncomputable def one_imp_three
@@ -631,10 +1189,11 @@ noncomputable def one_imp_three
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
       (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b)
-    (hC : Order.Coframe (Filtrator.supset (α := α))) :
+    (hcoreord : Filtrator.suborder (α := α) =
+      Dcore.toLattice.toSemilatticeInf.toPartialOrder) :
     Order.Coframe (Filtrator.supset (α := α)) := by
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
-  exact two_imp_three (α := α) hord hC
+  exact two_imp_three (α := α) hord hcoreord
 
 end FilterInfAssociativity
 
@@ -657,11 +1216,12 @@ noncomputable def two_imp_three
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
       (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b)
-    (hC : Order.Coframe (Filtrator.supset (α := α))) :
+    (hcoreord : Filtrator.suborder (α := α) =
+      Dcore.toLattice.toSemilatticeInf.toPartialOrder) :
     DistribLattice (Filtrator.supset (α := α)) := by
   let hC' : Order.Coframe (Filtrator.supset (α := α)) :=
     PrimaryDistribCoreBridge.primary_distribCore_imp_coframe
-      (α := α) hord hC
+      (α := α) hord hcoreord
   exact hC'.toCoheytingAlgebra.toDistribLattice
 
 /-- 1⇒3 in Corollary 531 tuple. -/
@@ -673,10 +1233,11 @@ noncomputable def one_imp_three
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
       (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b)
-    (hC : Order.Coframe (Filtrator.supset (α := α))) :
+    (hcoreord : Filtrator.suborder (α := α) =
+      Dcore.toLattice.toSemilatticeInf.toPartialOrder) :
     DistribLattice (Filtrator.supset (α := α)) := by
   letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
-  exact two_imp_three (α := α) hord hC
+  exact two_imp_three (α := α) hord hcoreord
 
 end FilterAlsoDistributive
 
