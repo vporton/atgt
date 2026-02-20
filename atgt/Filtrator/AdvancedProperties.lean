@@ -577,7 +577,7 @@ Note: `OrderTop`/`OrderBot` assumptions are Lean-side technical assumptions used
 empty-family branch in complete-lattice construction; they are not stated explicitly in the
 informal book.
 -/
-noncomputable def primary_distribCore_imp_completeLattice
+noncomputable instance primary_distribCore_imp_completeLattice
     [SemilatticeInf α]
     [hTop : @OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
     [hBot : @OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
@@ -591,9 +591,9 @@ noncomputable def primary_distribCore_imp_completeLattice
 /--
 Package a complete-lattice plus Theorem-530 style law into an explicit coframe structure.
 -/
-noncomputable def coframe_of_supSInfAssoc
+noncomputable instance coframe_of_supSInfAssoc
     (α : Type u) [CompleteLattice α]
-    (hAssoc : SupSInfAssoc α) :
+    [hAssoc : Fact (SupSInfAssoc α)] :
     Order.Coframe α := by
   refine Order.Coframe.ofMinimalAxioms ?_
   refine {
@@ -603,7 +603,7 @@ noncomputable def coframe_of_supSInfAssoc
   intro a s
   have hs :
       (a ⊔ sInf s) = ⨅ b ∈ s, a ⊔ b := by
-    simpa [sInf_image] using (hAssoc a s)
+    simpa [sInf_image] using (hAssoc.out a s)
   exact hs.ge
 
 /--
@@ -623,7 +623,8 @@ noncomputable def primary_distribCore_imp_coframe
     Order.Coframe (Filtrator.supset (α := α)) := by
   letI : CompleteLattice (Filtrator.supset (α := α)) :=
     primary_distribCore_imp_completeLattice (α := α) hord
-  exact coframe_of_supSInfAssoc (Filtrator.supset (α := α)) (by simpa using hAssoc)
+  letI : Fact (SupSInfAssoc (Filtrator.supset (α := α))) := ⟨by simpa using hAssoc⟩
+  infer_instance
 
 end PrimaryDistribCoreBridge
 
