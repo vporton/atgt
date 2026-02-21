@@ -866,24 +866,18 @@ lemma mem_toCoreFilter_elements_iff
       (α := α) (U := Dcore.toLattice.toSemilatticeInf.toPartialOrder) hcoreord x z
 
 lemma toCoreFilter_sInf_elements_nonempty
-    [SemilatticeInf α]
-    [hTop : @OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
-    [hBot : @OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
     [Filtrator.Primary α]
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
+    [CompleteLattice (Filtrator.supset (α := α))]
     (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
-      (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b)
+      (inferInstance : CompleteLattice (Filtrator.supset (α := α))).toPartialOrder.toPreorder.toLE a b)
     (hcoreord : Filtrator.suborder (α := α) =
       Dcore.toLattice.toSemilatticeInf.toPartialOrder)
     (S : Set α) (hS : S.Nonempty) :
-    letI : CompleteLattice (Filtrator.supset (α := α)) :=
-      PrimaryMeetTopCompleteLatticeTuple.two_imp_three (α := α) hord
     (toCoreFilter (α := α) hcoreord (sInf S)).elements =
       ArbitraryFilterInfimum.finiteMeetGeneratedSet
         (α := Filtrator.subset (α := α))
         ((toCoreFilterOrderIso (α := α) hcoreord) '' S) := by
-  letI : CompleteLattice (Filtrator.supset (α := α)) :=
-    PrimaryMeetTopCompleteLatticeTuple.two_imp_three (α := α) hord
   let e := toCoreFilterOrderIso (α := α) hcoreord
   have hImgNonempty : (e '' S).Nonempty := hS.image e
   rcases ArbitraryFilterInfimum.theorem_distr_meet
@@ -891,7 +885,25 @@ lemma toCoreFilter_sInf_elements_nonempty
       (S := e '' S) hImgNonempty with
     ⟨R, hRset, hRglb⟩
   have hglb_alpha : IsGLB S (e.symm R) := (e.isGLB_image).1 hRglb
-  have hsInf_eq : sInf S = e.symm R := (isGLB_sInf S).unique hglb_alpha
+  let CL : CompleteLattice (Filtrator.supset (α := α)) := inferInstance
+  letI : CompleteLattice (Filtrator.supset (α := α)) := CL
+  have hglb_sInf :
+      @IsGLB α CL.toCompleteSemilatticeInf.toPartialOrder.toPreorder.toLE S (sInf S) :=
+    @isGLB_sInf α CL.toCompleteSemilatticeInf S
+  have hR_lower_cl :
+      (e.symm R) ∈ @lowerBounds α
+        CL.toCompleteSemilatticeInf.toPartialOrder.toPreorder.toLE S := by
+    intro a ha
+    exact (hord (e.symm R) a).1 ((hglb_alpha.1) ha)
+  have hR_le_sInf_cl :
+      @LE.le α CL.toCompleteSemilatticeInf.toPartialOrder.toPreorder.toLE (e.symm R) (sInf S) :=
+    hglb_sInf.2 hR_lower_cl
+  have hR_le_sInf : e.symm R ≤ sInf S := (hord (e.symm R) (sInf S)).2 hR_le_sInf_cl
+  have hsInf_lower : (sInf S) ∈ lowerBounds S := by
+    intro a ha
+    exact (hord (sInf S) a).2 ((hglb_sInf.1) ha)
+  have hsInf_le_R : sInf S ≤ e.symm R := hglb_alpha.2 hsInf_lower
+  have hsInf_eq : sInf S = e.symm R := le_antisymm hsInf_le_R hR_le_sInf
   have hER : e (sInf S) = R := by
     simpa [hsInf_eq]
   have htoCore : toCoreFilter (α := α) hcoreord (sInf S) = R := by
@@ -1049,7 +1061,8 @@ lemma sup_sInf_eq_image_nonempty
             (α := Filtrator.subset (α := α)) (e '' S) := by
         simpa [A, e] using congrArg
           (fun T => (toCoreFilter (α := α) hcoreord a).elements ∩ T)
-          (toCoreFilter_sInf_elements_nonempty (α := α) hord hcoreord S hS)
+          (toCoreFilter_sInf_elements_nonempty (α := α)
+            (hord := by intro x y; rfl) hcoreord S hS)
   have hRightElems :
       (toCoreFilter (α := α) hcoreord (sInf ((fun x => a ⊔ x) '' S))).elements =
         A.elements ∩
@@ -1060,7 +1073,8 @@ lemma sup_sInf_eq_image_nonempty
           ArbitraryFilterInfimum.finiteMeetGeneratedSet
             (α := Filtrator.subset (α := α)) (e '' ((fun x => a ⊔ x) '' S)) := by
         simpa [e] using
-          toCoreFilter_sInf_elements_nonempty (α := α) hord hcoreord
+          toCoreFilter_sInf_elements_nonempty (α := α)
+            (hord := by intro x y; rfl) hcoreord
             ((fun x => a ⊔ x) '' S) hSsup
       _ = ArbitraryFilterInfimum.finiteMeetFromSet (α := Filtrator.subset (α := α))
             (⋃ F ∈ (e '' ((fun x => a ⊔ x) '' S)), F.elements) := by
