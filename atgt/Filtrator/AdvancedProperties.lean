@@ -1106,8 +1106,8 @@ informal book.
 -/
 noncomputable instance primary_distribCore_imp_completeLattice
     [SemilatticeInf α]
-    [hTop : @OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
-    [hBot : @OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
+    [OrderTop α]
+    [OrderBot α]
     [Filtrator.Primary α]
     [_Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
@@ -1121,8 +1121,8 @@ core-order alignment, we construct a coframe instance on `Filtrator.supset`.
 -/
 noncomputable instance primary_distribCore_imp_coframe
     [SemilatticeInf α]
-    [hTop : @OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
-    [hBot : @OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
+    [OrderTop α]
+    [OrderBot α]
     [Filtrator.Primary α]
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
@@ -1165,8 +1165,8 @@ noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary
 /-- 2⇒3 in Theorem 530 tuple (development-level complete-distributive form). -/
 noncomputable instance two_imp_three
     [SemilatticeInf α]
-    [hTop : @OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
-    [hBot : @OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
+    [OrderTop α]
+    [OrderBot α]
     [Filtrator.Primary α]
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
@@ -1180,8 +1180,8 @@ noncomputable instance two_imp_three
 /-- 1⇒3 in Theorem 530 tuple. -/
 noncomputable instance one_imp_three
     [SemilatticeInf α]
-    [@OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
-    [@OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
+    [OrderTop α]
+    [OrderBot α]
     [Filtrator.Powerset.{u, v} α]
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
@@ -1207,8 +1207,8 @@ noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary
 /-- 2⇒3 in Corollary 531 tuple: the filter lattice is distributive. -/
 noncomputable instance two_imp_three
     [SemilatticeInf α]
-    [hTop : @OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
-    [hBot : @OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
+    [OrderTop α]
+    [OrderBot α]
     [Filtrator.Primary α]
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
@@ -1224,8 +1224,8 @@ noncomputable instance two_imp_three
 /-- 1⇒3 in Corollary 531 tuple. -/
 noncomputable instance one_imp_three
     [SemilatticeInf α]
-    [@OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
-    [@OrderBot α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
+    [OrderTop α]
+    [OrderBot α]
     [Filtrator.Powerset.{u, v} α]
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hord : ∀ a b : α, a ≤ b ↔ @LE.le α
