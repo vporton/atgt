@@ -607,7 +607,7 @@ noncomputable def relRightCoreFreeStar
     rcases Filtrator.Primary.exists_up_in_subset (α := α) x with ⟨X0, hX0⟩
     have hbot_mem : (⊥ : Filtrator.subset (α := β)) ∈
         {y : Filtrator.subset (α := β) | ∀ X' ∈ Filtrator.up x, δ X' y.1} := by
-      simp [h_univ]
+      exact h_univ ▸ Set.mem_univ (⊥ : Filtrator.subset (α := β))
     have hbot_rel : ∀ X' ∈ Filtrator.up x, δ X' (⊥ : Filtrator.subset (α := β)).1 := hbot_mem
     exact (hδ_bot_right X0) (hbot_rel X0.1 ⟨X0.2, hX0⟩)
   · intro a b
