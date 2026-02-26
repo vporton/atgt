@@ -178,6 +178,72 @@ theorem theorem515
       exact (Filtrator.Primary.order_determined (α := α) d z).2 h_up_sub
 
 /--
+From Theorem 515, plus top/bottom in the filtrator order, we obtain arbitrary suprema.
+-/
+noncomputable def theorem515_completeSemilatticeSup
+    [Filtrator.Primary α]
+    [SemilatticeInf (Filtrator.subset (α := α))]
+    [OrderTop α]
+    [OrderBot α]
+    (hcoreord :
+      ∀ a b : Filtrator.subset (α := α),
+        a.1 ≤ b.1 ↔
+          @LE.le (Filtrator.subset (α := α))
+            (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder.toLE
+              a b) :
+    CompleteSemilatticeSup (Filtrator.supset (α := α)) := by
+  classical
+  let sSupFun : Set α → α := fun S =>
+    if hS : S.Nonempty then
+      Classical.choose
+        (theorem515 (α := α) hcoreord S hS ⟨⊤, by intro s hs; exact le_top⟩)
+    else
+      ⊥
+  letI : SupSet α := ⟨sSupFun⟩
+  refine { le_sSup := ?_, sSup_le := ?_ }
+  · intro S a ha
+    by_cases hS : S.Nonempty
+    · let h515 := theorem515 (α := α) hcoreord S hS ⟨⊤, by intro s hs; exact le_top⟩
+      have hsSup : sSup S = Classical.choose h515 := by
+        change sSupFun S = Classical.choose h515
+        simp [sSupFun, hS]
+      exact hsSup ▸ (Classical.choose_spec h515).2.1 ha
+    · exact False.elim (hS ⟨a, ha⟩)
+  · intro S z hz
+    by_cases hS : S.Nonempty
+    · let h515 := theorem515 (α := α) hcoreord S hS ⟨⊤, by intro s hs; exact le_top⟩
+      have hsSup : sSup S = Classical.choose h515 := by
+        change sSupFun S = Classical.choose h515
+        simp [sSupFun, hS]
+      exact hsSup ▸ (Classical.choose_spec h515).2.2 hz
+    · have hSEmpty : S = ∅ := Set.not_nonempty_iff_eq_empty.mp hS
+      subst hSEmpty
+      have hsSupEmpty : sSup (∅ : Set α) = (⊥ : α) := by
+        change sSupFun (∅ : Set α) = (⊥ : α)
+        simp [sSupFun]
+      exact hsSupEmpty ▸ bot_le
+
+/--
+Any `CompleteSemilatticeSup` is a complete lattice (Mathlib constructor),
+so Theorem 515 also yields a complete lattice under the same assumptions.
+-/
+noncomputable def theorem515_completeLattice
+    [Filtrator.Primary α]
+    [SemilatticeInf (Filtrator.subset (α := α))]
+    [OrderTop α]
+    [OrderBot α]
+    (hcoreord :
+      ∀ a b : Filtrator.subset (α := α),
+        a.1 ≤ b.1 ↔
+          @LE.le (Filtrator.subset (α := α))
+            (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder.toLE
+              a b) :
+    CompleteLattice (Filtrator.supset (α := α)) := by
+  letI : CompleteSemilatticeSup (Filtrator.supset (α := α)) :=
+    theorem515_completeSemilatticeSup (α := α) hcoreord
+  exact completeLatticeOfCompleteSemilatticeSup (Filtrator.supset (α := α))
+
+/--
 Theorem 516 (pp. 85-86), formalized in the present framework as the meet-side statement
 used by Corollaries 517/518.
 -/
