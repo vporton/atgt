@@ -57,10 +57,125 @@ of this supremum is the intersection of upper sets of elements of `S`.
 theorem theorem515
     [Filtrator.Primary α]
     [SemilatticeInf (Filtrator.subset (α := α))] :
+    (∀ a b : Filtrator.subset (α := α),
+      a.1 ≤ b.1 ↔
+        @LE.le (Filtrator.subset (α := α))
+          (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder.toLE a b) →
     ∀ S : Set (Filtrator.supset (α := α)), S.Nonempty → BddAbove S →
       ∃ m : Filtrator.supset (α := α),
         (Filtrator.up (α := α) m = Set.sInter (Filtrator.up '' S) ∧ IsLUB S m) := by
-  sorry
+  intro hcoreord S hS hBdd
+  let T : Set (subset : Set α) := {y | ∀ s ∈ S, s ≤ y.1}
+  have hT_nonempty : Set.Nonempty T := by
+    rcases hBdd with ⟨u, hu⟩
+    rcases Filtrator.Primary.exists_up_in_subset (α := α) u with ⟨y, hy⟩
+    refine ⟨y, ?_⟩
+    intro s hs
+    exact le_trans (hu hs) hy
+  let F : PosetFilter (Filtrator.suborder (α := α)) := {
+    elements := T
+    non_empty := hT_nonempty
+    cap_elements := by
+      intro a b ha hb
+      let c0 : Filtrator.subset (α := α) := a ⊓ b
+      have hc0a' :
+          @LE.le (Filtrator.subset (α := α))
+            (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder.toLE
+            c0 a := by
+        simpa [c0] using (inf_le_left : c0 ≤ a)
+      have hc0b' :
+          @LE.le (Filtrator.subset (α := α))
+            (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder.toLE
+            c0 b := by
+        simpa [c0] using (inf_le_right : c0 ≤ b)
+      have hc0a : c0.1 ≤ a.1 := (hcoreord c0 a).2 hc0a'
+      have hc0b : c0.1 ≤ b.1 := (hcoreord c0 b).2 hc0b'
+      refine ⟨c0, ?_, hc0a, hc0b⟩
+      intro s hs
+      have hsa : s ≤ a.1 := ha s hs
+      have hsb : s ≤ b.1 := hb s hs
+      let Fs : PosetFilter (Filtrator.suborder (α := α)) :=
+        Filtrator.Primary.to_poset_filter (α := α) s
+      have ha_mem : a ∈ Fs.elements := by
+        simpa [Fs, Filtrator.Primary.to_poset_filter, Filtrator.up_suborder] using hsa
+      have hb_mem : b ∈ Fs.elements := by
+        simpa [Fs, Filtrator.Primary.to_poset_filter, Filtrator.up_suborder] using hsb
+      rcases Fs.cap_elements ha_mem hb_mem with ⟨z, hzmem, hza, hzb⟩
+      have hza' :
+          @LE.le (Filtrator.subset (α := α))
+            (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder.toLE
+            z a := (hcoreord z a).1 hza
+      have hzb' :
+          @LE.le (Filtrator.subset (α := α))
+            (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder.toLE
+            z b := (hcoreord z b).1 hzb
+      have hzc0' :
+          @LE.le (Filtrator.subset (α := α))
+            (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder.toLE
+            z c0 := by
+        exact le_inf hza' hzb'
+      have hzc0 : z.1 ≤ c0.1 := (hcoreord z c0).2 hzc0'
+      have hc0_mem : c0 ∈ Fs.elements := Fs.upper' hzc0 hzmem
+      simpa [Fs, Filtrator.Primary.to_poset_filter, Filtrator.up_suborder] using hc0_mem
+    carrier := T
+    upper' := by
+      intro a b hab ha s hs
+      exact le_trans (ha s hs) hab
+    carrier_eq_elements := rfl
+  }
+  rcases Filtrator.Primary.exists_to_poset_filter_eq (α := α) F with ⟨d, hdF⟩
+  have hd_char : ∀ x : α, x ∈ subset → (d ≤ x ↔ ∀ s ∈ S, s ≤ x) := by
+    intro x hxsub
+    constructor
+    · intro hdx
+      have hx_to :
+          (⟨x, hxsub⟩ : subset) ∈
+            (Filtrator.Primary.to_poset_filter (α := α) d).elements := by
+        simpa [Filtrator.Primary.to_poset_filter, Filtrator.up_suborder] using hdx
+      have hx_F : (⟨x, hxsub⟩ : subset) ∈ F.elements := by
+        simpa [hdF] using hx_to
+      simpa [F, T] using hx_F
+    · intro hxall
+      have hx_F : (⟨x, hxsub⟩ : subset) ∈ F.elements := by
+        simpa [F, T] using hxall
+      have hx_to :
+          (⟨x, hxsub⟩ : subset) ∈
+            (Filtrator.Primary.to_poset_filter (α := α) d).elements := by
+        simpa [hdF] using hx_F
+      simpa [Filtrator.Primary.to_poset_filter, Filtrator.up_suborder] using hx_to
+  refine ⟨d, ?_⟩
+  constructor
+  · ext x
+    constructor
+    · intro hx
+      refine Set.mem_sInter.2 ?_
+      intro t ht
+      rcases ht with ⟨s, hs, rfl⟩
+      exact ⟨hx.1, (hd_char x hx.1).1 hx.2 s hs⟩
+    · intro hx
+      rcases hS with ⟨s0, hs0⟩
+      have hx0 : x ∈ Filtrator.up s0 := by
+        exact (Set.mem_sInter.1 hx) (Filtrator.up s0) ⟨s0, hs0, rfl⟩
+      have hxsub : x ∈ subset := hx0.1
+      have hxall : ∀ s ∈ S, s ≤ x := by
+        intro s hs
+        exact ((Set.mem_sInter.1 hx) (Filtrator.up s) ⟨s, hs, rfl⟩).2
+      exact ⟨hxsub, (hd_char x hxsub).2 hxall⟩
+  · refine ⟨?_, ?_⟩
+    · intro s hs
+      have h_up_sub : Filtrator.up d ⊆ Filtrator.up s := by
+        intro x hx
+        refine ⟨hx.1, (hd_char x hx.1).1 hx.2 s hs⟩
+      exact (Filtrator.Primary.order_determined (α := α) s d).2 h_up_sub
+    · intro z hz
+      have hz' : ∀ s ∈ S, s ≤ z := hz
+      have h_up_sub : Filtrator.up z ⊆ Filtrator.up d := by
+        intro x hx
+        have hxall : ∀ s ∈ S, s ≤ x := by
+          intro s hs
+          exact le_trans (hz' s hs) hx.2
+        exact ⟨hx.1, (hd_char x hx.1).2 hxall⟩
+      exact (Filtrator.Primary.order_determined (α := α) d z).2 h_up_sub
 
 /--
 Theorem 516 (pp. 85-86), formalized in the present framework as the meet-side statement
