@@ -55,103 +55,11 @@ for every nonempty bounded-above family `S`, its supremum exists and the upper s
 of this supremum is the intersection of upper sets of elements of `S`.
 -/
 theorem theorem515 {α : Type u}
-    [SemilatticeInf α] [Filtrator.Primary α] :
-    (∀ a b : α, a ≤ b ↔ @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) →
-    Filtrator.binary_meet_closed (α := α) →
+    [Filtrator.Primary α] :
     ∀ S : Set (Filtrator.supset (α := α)), S.Nonempty → BddAbove S →
-      ∃ d : α, IsLUB S d ∧ Filtrator.up d = {x : α | ∀ s ∈ S, x ∈ Filtrator.up s} := by
-  intro hord h_closed S hS hBdd
-  have h_nonempty : ∀ a : α, Set.Nonempty (Filtrator.up a) := by
-    intro a
-    rcases Filtrator.Primary.exists_up_in_subset (α := α) a with ⟨y, hy⟩
-    exact ⟨y.1, y.2, hy⟩
-  have h_bin_closed_iff :=
-    Filtrator.binary_meet_closed_iff_up_filters
-      (α := α) (h_nonempty := h_nonempty) (hord := hord)
-  have h_exists_concrete_up :
-      ∀ F : PosetFilter (Filtrator.suborder (α := α)),
-        ∃ d : α, Filtrator.Primary.to_poset_filter (α := α) d = F := by
-    intro F
-    exact Filtrator.Primary.exists_to_poset_filter_eq (α := α) F
-  have h_filtered : Filtrator.Filtered α := Filtrator.primary_imp_filtered (α := α)
-  let T : Set (subset : Set α) := {y | ∀ s ∈ S, s ≤ y.1}
-  have hT_nonempty : Set.Nonempty T := by
-    rcases hBdd with ⟨u, hu⟩
-    rcases h_nonempty u with ⟨x, hx⟩
-    refine ⟨⟨x, hx.1⟩, ?_⟩
-    intro s hs
-    exact le_trans (hu hs) hx.2
-  let F : PosetFilter (Filtrator.suborder (α := α)) := {
-    elements := T
-    non_empty := hT_nonempty
-    cap_elements := by
-      intro a b ha hb
-      let c0 : α := a.1 ⊓ b.1
-      have hc0 : c0 ∈ subset := h_closed a.1 b.1 a.2 b.2
-      refine ⟨⟨c0, hc0⟩, ?_, ?_, ?_⟩
-      · intro s hs
-        have hsa' :
-            @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE s a.1 :=
-          (hord s a.1).1 (ha s hs)
-        have hsb' :
-            @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE s b.1 :=
-          (hord s b.1).1 (hb s hs)
-        have hsc' :
-            @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE s c0 :=
-          le_inf hsa' hsb'
-        exact (hord s c0).2 hsc'
-      · exact (hord c0 a.1).2 inf_le_left
-      · exact (hord c0 b.1).2 inf_le_right
-    carrier := T
-    upper' := by
-      intro a b hab ha s hs
-      exact le_trans (ha s hs) hab
-    carrier_eq_elements := rfl
-  }
-  rcases h_exists_concrete_up F with ⟨d, hdF⟩
-  have hd_char : ∀ x : α, x ∈ subset → (d ≤ x ↔ ∀ s ∈ S, s ≤ x) := by
-    intro x hxsub
-    constructor
-    · intro hdx
-      have hx_to : (⟨x, hxsub⟩ : subset) ∈ (Filtrator.Primary.to_poset_filter (α := α) d).elements := by
-        simpa [Filtrator.Primary.to_poset_filter, Filtrator.up_suborder] using hdx
-      have hx_F : (⟨x, hxsub⟩ : subset) ∈ F.elements := by simpa [hdF] using hx_to
-      simpa [F, T] using hx_F
-    · intro hxall
-      have hx_F : (⟨x, hxsub⟩ : subset) ∈ F.elements := by
-        simpa [F, T] using hxall
-      have hx_to : (⟨x, hxsub⟩ : subset) ∈ (Filtrator.Primary.to_poset_filter (α := α) d).elements := by
-        simpa [hdF] using hx_F
-      simpa [Filtrator.Primary.to_poset_filter, Filtrator.up_suborder] using hx_to
-  refine ⟨d, ?_, ?_⟩
-  · refine ⟨?_, ?_⟩
-    · intro s hs
-      have h_up_sub : Filtrator.up d ⊆ Filtrator.up s := by
-        intro x hx
-        refine ⟨hx.1, ?_⟩
-        exact (hd_char x hx.1).1 hx.2 s hs
-      exact (Filtrator.Primary.order_determined (α := α) s d).2 h_up_sub
-    · intro z hz
-      have h_up_sub : Filtrator.up z ⊆ Filtrator.up d := by
-        intro x hx
-        have hxall : ∀ s ∈ S, s ≤ x := by
-          intro s hs
-          exact le_trans (hz hs) hx.2
-        exact ⟨hx.1, (hd_char x hx.1).2 hxall⟩
-      exact (Filtrator.Primary.order_determined (α := α) d z).2 h_up_sub
-  · ext x
-    constructor
-    · intro hx
-      refine ?_
-      intro s hs
-      exact ⟨hx.1, (hd_char x hx.1).1 hx.2 s hs⟩
-    · intro hx
-      rcases hS with ⟨s0, hs0⟩
-      have hxsub : x ∈ subset := (hx s0 hs0).1
-      have hxall : ∀ s ∈ S, s ≤ x := by
-        intro s hs
-        exact (hx s hs).2
-      exact ⟨hxsub, (hd_char x hxsub).2 hxall⟩
+      ∃ m : Filtrator.supset (α := α),
+        (Filtrator.up (α := α) m = Set.sInter (Filtrator.up '' S) ∧ IsLUB S m) := by
+  sorry
 
 /--
 Theorem 516 (pp. 85-86), formalized in the present framework as the meet-side statement
