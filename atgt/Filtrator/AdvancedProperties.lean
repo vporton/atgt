@@ -899,103 +899,6 @@ lemma toCoreFilter_sInf_elements_nonempty
           ((toCoreFilterOrderIso (α := α) hcoreord) '' S) := by
       rfl
 
-lemma toCoreFilter_sup_elements
-    [Lattice α]
-    [Filtrator.Primary α]
-    [Dcore : DistribLattice (Filtrator.subset (α := α))]
-    (hcoreord : Filtrator.suborder (α := α) =
-      Dcore.toLattice.toSemilatticeInf.toPartialOrder)
-    (hord : ∀ x y : α, x ≤ y ↔ @LE.le α
-      (inferInstance : Lattice α).toPartialOrder.toPreorder.toLE x y)
-    (a b : α) :
-    (toCoreFilter (α := α) hcoreord (a ⊔ b)).elements =
-      (toCoreFilter (α := α) hcoreord a).elements ∩
-        (toCoreFilter (α := α) hcoreord b).elements := by
-  ext z
-  constructor
-  · intro hz
-    have hz_ab : a ⊔ b ≤ z.1 := (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hz
-    refine ⟨?_, ?_⟩
-    · exact (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).2
-        (le_trans
-          ((hord a (a ⊔ b)).2 (by simpa using (le_sup_left : a ≤ a ⊔ b)))
-          hz_ab)
-    · exact (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).2
-        (le_trans
-          ((hord b (a ⊔ b)).2 (by simpa using (le_sup_right : b ≤ a ⊔ b)))
-          hz_ab)
-  · intro hz
-    rcases hz with ⟨hza, hzb⟩
-    have hza' : a ≤ z.1 := (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hza
-    have hzb' : b ≤ z.1 := (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hzb
-    have hza'' : @LE.le α (inferInstance : Lattice α).toPartialOrder.toPreorder.toLE a z.1 :=
-      (hord a z.1).1 hza'
-    have hzb'' : @LE.le α (inferInstance : Lattice α).toPartialOrder.toPreorder.toLE b z.1 :=
-      (hord b z.1).1 hzb'
-    have hzab'' : @LE.le α (inferInstance : Lattice α).toPartialOrder.toPreorder.toLE
-        (a ⊔ b) z.1 :=
-      sup_le hza'' hzb''
-    exact (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).2
-      ((hord (a ⊔ b) z.1).2 hzab'')
-
-lemma union_toCoreFilter_image_sup
-    [Lattice α]
-    [Filtrator.Primary α]
-    [Dcore : DistribLattice (Filtrator.subset (α := α))]
-    (hcoreord : Filtrator.suborder (α := α) =
-      Dcore.toLattice.toSemilatticeInf.toPartialOrder)
-    (hord : ∀ x y : α, x ≤ y ↔ @LE.le α
-      (inferInstance : Lattice α).toPartialOrder.toPreorder.toLE x y)
-    (a : α) (S : Set α) :
-    (⋃ F ∈ (toCoreFilterOrderIso (α := α) hcoreord '' ((fun x => a ⊔ x) '' S)), F.elements) =
-      (toCoreFilter (α := α) hcoreord a).elements ∩
-        (⋃ F ∈ ((toCoreFilterOrderIso (α := α) hcoreord) '' S), F.elements) := by
-  ext z
-  constructor
-  · intro hz
-    rcases Set.mem_iUnion.1 hz with ⟨F, hF⟩
-    rcases Set.mem_iUnion.1 hF with ⟨hFS, hzF⟩
-    rcases hFS with ⟨u, huS, rfl⟩
-    rcases huS with ⟨x, hxS, rfl⟩
-    have hz_ax : z ∈ (toCoreFilter (α := α) hcoreord (a ⊔ x)).elements := by
-      simpa [toCoreFilterOrderIso_apply] using hzF
-    have haz : a ≤ z.1 := by
-      have hzax_le : a ⊔ x ≤ z.1 :=
-        (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hz_ax
-      exact le_trans
-        ((hord a (a ⊔ x)).2 (by simpa using (le_sup_left : a ≤ a ⊔ x)))
-        hzax_le
-    have hzx : x ≤ z.1 := by
-      have hzax_le : a ⊔ x ≤ z.1 :=
-        (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hz_ax
-      exact le_trans
-        ((hord x (a ⊔ x)).2 (by simpa using (le_sup_right : x ≤ a ⊔ x)))
-        hzax_le
-    refine ⟨(mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).2 haz, ?_⟩
-    refine Set.mem_iUnion.2 ⟨toCoreFilterOrderIso (α := α) hcoreord x, ?_⟩
-    refine Set.mem_iUnion.2 ⟨⟨x, hxS, rfl⟩, ?_⟩
-    simpa [toCoreFilterOrderIso_apply] using
-      ((mem_toCoreFilter_elements_iff (α := α) hcoreord x z).2 hzx)
-  · intro hz
-    rcases hz with ⟨hza, hzU⟩
-    rcases Set.mem_iUnion.1 hzU with ⟨F, hF⟩
-    rcases Set.mem_iUnion.1 hF with ⟨hFS, hzF⟩
-    rcases hFS with ⟨x, hxS, rfl⟩
-    have hzF_core : z ∈ (toCoreFilter (α := α) hcoreord x).elements := by
-      simpa [toCoreFilterOrderIso_apply] using hzF
-    have haz' : a ≤ z.1 := (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hza
-    have hzx' : x ≤ z.1 := (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hzF_core
-    have haz'' : @LE.le α (inferInstance : Lattice α).toPartialOrder.toPreorder.toLE a z.1 :=
-      (hord a z.1).1 haz'
-    have hzx'' : @LE.le α (inferInstance : Lattice α).toPartialOrder.toPreorder.toLE x z.1 :=
-      (hord x z.1).1 hzx'
-    have hzax : z ∈ (toCoreFilter (α := α) hcoreord (a ⊔ x)).elements :=
-      (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).2
-        ((hord (a ⊔ x) z.1).2 (sup_le haz'' hzx''))
-    refine Set.mem_iUnion.2 ⟨toCoreFilterOrderIso (α := α) hcoreord (a ⊔ x), ?_⟩
-    refine Set.mem_iUnion.2 ⟨⟨a ⊔ x, ⟨x, hxS, rfl⟩, rfl⟩, ?_⟩
-    simpa [toCoreFilterOrderIso_apply] using hzax
-
 /-- Nonempty-family distributivity in the filter lattice (Theorem 530, item 3) via core-filters. -/
 lemma sup_sInf_eq_image_nonempty
     [SemilatticeInf α]
@@ -1017,15 +920,74 @@ lemma sup_sInf_eq_image_nonempty
   let A : PosetFilter (U := Dcore.toLattice.toSemilatticeInf.toPartialOrder) :=
     toCoreFilter (α := α) hcoreord a
   let U : Set (Filtrator.subset (α := α)) := ⋃ F ∈ (e '' S), F.elements
-  have hLatticeOrd : ∀ x y : α, x ≤ y ↔ @LE.le α
-      (inferInstance : Lattice α).toPartialOrder.toPreorder.toLE x y := by
-    intro x y
-    rfl
+  have h_toCore_sup :
+      ∀ p q : α,
+        (toCoreFilter (α := α) hcoreord (p ⊔ q)).elements =
+          (toCoreFilter (α := α) hcoreord p).elements ∩
+            (toCoreFilter (α := α) hcoreord q).elements := by
+    intro p q
+    ext z
+    constructor
+    · intro hz
+      have hz_pq : p ⊔ q ≤ z.1 := (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hz
+      refine ⟨?_, ?_⟩
+      · exact (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).2
+          (le_trans (le_sup_left : p ≤ p ⊔ q) hz_pq)
+      · exact (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).2
+          (le_trans (le_sup_right : q ≤ p ⊔ q) hz_pq)
+    · intro hz
+      rcases hz with ⟨hzp, hzq⟩
+      have hzp' : p ≤ z.1 := (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hzp
+      have hzq' : q ≤ z.1 := (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hzq
+      exact (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).2 (sup_le hzp' hzq')
+  have h_union_toCore_image_sup :
+      ∀ a0 : α, ∀ S0 : Set α,
+        (⋃ F ∈ (toCoreFilterOrderIso (α := α) hcoreord '' ((fun x => a0 ⊔ x) '' S0)), F.elements) =
+          (toCoreFilter (α := α) hcoreord a0).elements ∩
+            (⋃ F ∈ ((toCoreFilterOrderIso (α := α) hcoreord) '' S0), F.elements) := by
+    intro a0 S0
+    ext z
+    constructor
+    · intro hz
+      rcases Set.mem_iUnion.1 hz with ⟨F, hF⟩
+      rcases Set.mem_iUnion.1 hF with ⟨hFS, hzF⟩
+      rcases hFS with ⟨u, huS, rfl⟩
+      rcases huS with ⟨x, hxS, rfl⟩
+      have hz_ax : z ∈ (toCoreFilter (α := α) hcoreord (a0 ⊔ x)).elements := by
+        simpa [toCoreFilterOrderIso_apply] using hzF
+      have haz : a0 ≤ z.1 := by
+        have hzax_le : a0 ⊔ x ≤ z.1 :=
+          (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hz_ax
+        exact le_trans (le_sup_left : a0 ≤ a0 ⊔ x) hzax_le
+      have hzx : x ≤ z.1 := by
+        have hzax_le : a0 ⊔ x ≤ z.1 :=
+          (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hz_ax
+        exact le_trans (le_sup_right : x ≤ a0 ⊔ x) hzax_le
+      refine ⟨(mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).2 haz, ?_⟩
+      refine Set.mem_iUnion.2 ⟨toCoreFilterOrderIso (α := α) hcoreord x, ?_⟩
+      refine Set.mem_iUnion.2 ⟨⟨x, hxS, rfl⟩, ?_⟩
+      simpa [toCoreFilterOrderIso_apply] using
+        ((mem_toCoreFilter_elements_iff (α := α) hcoreord x z).2 hzx)
+    · intro hz
+      rcases hz with ⟨hza, hzU⟩
+      rcases Set.mem_iUnion.1 hzU with ⟨F, hF⟩
+      rcases Set.mem_iUnion.1 hF with ⟨hFS, hzF⟩
+      rcases hFS with ⟨x, hxS, rfl⟩
+      have hzF_core : z ∈ (toCoreFilter (α := α) hcoreord x).elements := by
+        simpa [toCoreFilterOrderIso_apply] using hzF
+      have haz' : a0 ≤ z.1 := (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hza
+      have hzx' : x ≤ z.1 := (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).1 hzF_core
+      have hzax_le : a0 ⊔ x ≤ z.1 := sup_le haz' hzx'
+      have hzax : z ∈ (toCoreFilter (α := α) hcoreord (a0 ⊔ x)).elements :=
+        (mem_toCoreFilter_elements_iff (α := α) hcoreord _ _).2 hzax_le
+      refine Set.mem_iUnion.2 ⟨toCoreFilterOrderIso (α := α) hcoreord (a0 ⊔ x), ?_⟩
+      refine Set.mem_iUnion.2 ⟨⟨a0 ⊔ x, ⟨x, hxS, rfl⟩, rfl⟩, ?_⟩
+      simpa [toCoreFilterOrderIso_apply] using hzax
   have hSsup : ((fun x => a ⊔ x) '' S).Nonempty := hS.image (fun x => a ⊔ x)
   have hUnion :
       (⋃ F ∈ (e '' ((fun x => a ⊔ x) '' S)), F.elements) = A.elements ∩ U := by
     simpa [A, U, e] using
-      union_toCoreFilter_image_sup (α := α) hcoreord hLatticeOrd a S
+      h_union_toCore_image_sup a S
   have hLeftElems :
       (toCoreFilter (α := α) hcoreord (a ⊔ sInf S)).elements =
         A.elements ∩
@@ -1036,7 +998,7 @@ lemma sup_sInf_eq_image_nonempty
           (toCoreFilter (α := α) hcoreord a).elements ∩
             (toCoreFilter (α := α) hcoreord (sInf S)).elements := by
         simpa [e] using
-          toCoreFilter_sup_elements (α := α) hcoreord hLatticeOrd a (sInf S)
+          h_toCore_sup a (sInf S)
       _ = A.elements ∩
           ArbitraryFilterInfimum.finiteMeetGeneratedSet
             (α := Filtrator.subset (α := α)) (e '' S) := by
