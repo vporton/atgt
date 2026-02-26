@@ -54,8 +54,9 @@ Theorem 515 (p. 85), filter side in the current framework:
 for every nonempty bounded-above family `S`, its supremum exists and the upper set
 of this supremum is the intersection of upper sets of elements of `S`.
 -/
-theorem theorem515 {α : Type u}
-    [Filtrator.Primary α] :
+theorem theorem515
+    [Filtrator.Primary α]
+    [SemilatticeInf (Filtrator.subset (α := α))] :
     ∀ S : Set (Filtrator.supset (α := α)), S.Nonempty → BddAbove S →
       ∃ m : Filtrator.supset (α := α),
         (Filtrator.up (α := α) m = Set.sInter (Filtrator.up '' S) ∧ IsLUB S m) := by
