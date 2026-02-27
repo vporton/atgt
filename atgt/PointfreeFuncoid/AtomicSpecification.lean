@@ -790,6 +790,95 @@ noncomputable def orderBot_of_distrib_via_hord
   intro a
   exact (hord ⊥ a).1 bot_le
 
+/-- Ambient complete lattice derived from a primary boolean core (via AdvancedProperties). -/
+noncomputable def completeLattice_of_primary_boolean_core
+    {γ : Type u}
+    [F : Filtrator.Primary γ]
+    [Bcore : BooleanAlgebra (Filtrator.subset (α := γ))]
+    (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ)) :
+    CompleteLattice γ := by
+  letI : OrderBot γ :=
+    orderBot_of_primary_boolean_core (γ := γ) (F := F) (Bcore := Bcore) hcoreOrder
+  letI : OrderTop γ := by
+    letI : OrderTop F.subset := by
+      refine
+        { top := (⊤ : Filtrator.subset (α := γ))
+          le_top := ?_ }
+      intro a
+      have hle_top_core :
+          @LE.le (Filtrator.subset (α := γ)) Bcore.toPartialOrder.toLE
+            a (⊤ : Filtrator.subset (α := γ)) := Bcore.le_top a
+      simpa [hcoreOrder] using hle_top_core
+    exact Filtrator.Primary.TopOfPrimaryFiltrator (F := F)
+  have hcoreord :
+      Filtrator.suborder (α := γ) =
+        Bcore.toDistribLattice.toLattice.toSemilatticeInf.toPartialOrder := by
+    simpa using hcoreOrder.symm
+  exact primary_distribCore_imp_completeLattice
+    (α := γ) (Dcore := Bcore.toDistribLattice) hcoreord
+
+/-- `atomicRelationCondition1654` specialized to primary boolean cores. -/
+def atomicRelationCondition1654_pb
+    {α : Type u} {β : Type v}
+    [X : Filtrator.Primary α] [Y : Filtrator.Primary β]
+    [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
+    (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
+    (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
+    (δ : α → β → Prop) : Prop :=
+  @PointfreeFuncoid.atomicRelationCondition1654 α β
+    (inferInstance : Filtrator α) (inferInstance : Filtrator β)
+    (orderBot_of_primary_boolean_core (γ := α) (F := X) (Bcore := Bsrc) h_src_core_order)
+    (orderBot_of_primary_boolean_core (γ := β) (F := Y) (Bcore := Bdst) h_dst_core_order)
+    δ
+
+/-- `relContinuationFromAtoms1654` specialized to primary boolean cores. -/
+def relContinuationFromAtoms1654_pb
+    {α : Type u} {β : Type v}
+    [X : Filtrator.Primary α] [Y : Filtrator.Primary β]
+    [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
+    (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
+    (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
+    (δ : α → β → Prop)
+    (f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β))) : Prop :=
+  @PointfreeFuncoid.relContinuationFromAtoms1654 α β
+    (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β))
+    (orderBot_of_primary_boolean_core (γ := α) (F := X) (Bcore := Bsrc) h_src_core_order)
+    (orderBot_of_primary_boolean_core (γ := β) (F := Y) (Bcore := Bdst) h_dst_core_order)
+    δ f
+
+/-- `atomicFunctionCondition1654` specialized to primary boolean cores. -/
+def atomicFunctionCondition1654_pb
+    {α : Type u} {β : Type v}
+    [X : Filtrator.Primary α] [Y : Filtrator.Primary β]
+    [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
+    (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
+    (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
+    (A : α → β) : Prop :=
+  @PointfreeFuncoid.atomicFunctionCondition1654 α β
+    (inferInstance : Filtrator α)
+    (orderBot_of_primary_boolean_core (γ := α) (F := X) (Bcore := Bsrc) h_src_core_order)
+    (completeLattice_of_primary_boolean_core (γ := β) (F := Y) (Bcore := Bdst) h_dst_core_order)
+    A
+
+/-- `fwdContinuationFromAtoms1654` specialized to primary boolean cores. -/
+def fwdContinuationFromAtoms1654_pb
+    {α : Type u} {β : Type v}
+    [X : Filtrator.Primary α] [Y : Filtrator.Primary β]
+    [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
+    (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
+    (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
+    (A : α → β)
+    (f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β))) : Prop :=
+  @PointfreeFuncoid.fwdContinuationFromAtoms1654 α β
+    (inferInstance : Filtrator α) (inferInstance : Filtrator β)
+    (orderBot_of_primary_boolean_core (γ := α) (F := X) (Bcore := Bsrc) h_src_core_order)
+    (completeLattice_of_primary_boolean_core (γ := β) (F := Y) (Bcore := Bdst) h_dst_core_order)
+    A f
+
 /-- Existence witness for Theorem 1654, item 2 (`\ref{pf-at-r}`):
 construct a funcoid whose relation on atoms matches the given `δ`.
 The construction follows the book proof: lift `δ` to a core relation
@@ -802,7 +891,6 @@ lemma theorem1654_item2_exists
     [X : Filtrator.Primary α] [Y : Filtrator.Primary β]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
-    [OrderBot α] [OrderBot β]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
     (hord_src : ∀ a b : α, a ≤ b ↔ @LE.le α
@@ -812,9 +900,17 @@ lemma theorem1654_item2_exists
       (distribLattice_of_primary_boolean_core
         (γ := β) (F := Y) (Bcore := Bdst) h_dst_core_order).toPartialOrder.toLE a b)
     (δ : α → β → Prop)
-    (hδ_cond : PointfreeFuncoid.atomicRelationCondition1654 (δ := δ)) :
+    (hδ_cond : atomicRelationCondition1654_pb
+      (X := X) (Y := Y) (Bsrc := Bsrc) (Bdst := Bdst)
+      h_src_core_order h_dst_core_order δ) :
     ∃ f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
-      PointfreeFuncoid.relContinuationFromAtoms1654 (δ := δ) f := by
+      relContinuationFromAtoms1654_pb
+        (X := X) (Y := Y) (Bsrc := Bsrc) (Bdst := Bdst)
+        h_src_core_order h_dst_core_order δ f := by
+  letI : OrderBot α :=
+    orderBot_of_primary_boolean_core (γ := α) (F := X) (Bcore := Bsrc) h_src_core_order
+  letI : OrderBot β :=
+    orderBot_of_primary_boolean_core (γ := β) (F := Y) (Bcore := Bdst) h_dst_core_order
   let δCore : α → β → Prop := fun X Y => ∃ a ∈ atoms X, ∃ b ∈ atoms Y, δ a b
   have h_sep_up_src : (X.toFiltrator).separator_up_property :=
     separator_up_of_primary_boolean_core
@@ -1019,8 +1115,6 @@ lemma theorem1654_item1_exists
     [Filtrator.Primary α] [Filtrator.Primary β]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
-    [OrderBot α] [OrderBot β]
-    [CompleteLattice β]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
     (hord_src : ∀ a b : α, a ≤ b ↔ @LE.le α
@@ -1030,17 +1124,34 @@ lemma theorem1654_item1_exists
       (distribLattice_of_primary_boolean_core
         (γ := β) (F := inferInstance) (Bcore := Bdst) h_dst_core_order).toPartialOrder.toLE a b)
     (A : α → β)
-    (hA_cond : PointfreeFuncoid.atomicFunctionCondition1654 (A := A))
+    (hA_cond : atomicFunctionCondition1654_pb
+      (X := inferInstance) (Y := inferInstance) (Bsrc := Bsrc) (Bdst := Bdst)
+      h_src_core_order h_dst_core_order A)
     (hA_rel_cond :
-      PointfreeFuncoid.atomicRelationCondition1654
-        (δ := fun x y => meet y (A x)))
+      atomicRelationCondition1654_pb
+        (X := inferInstance) (Y := inferInstance) (Bsrc := Bsrc) (Bdst := Bdst)
+        h_src_core_order h_dst_core_order
+        (fun x y => meet y (A x)))
     (h_rel_to_fwd_atoms :
       ∀ f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
-        PointfreeFuncoid.relContinuationFromAtoms1654
-          (δ := fun x y => meet y (A x)) f →
-        PointfreeFuncoid.fwdContinuationFromAtoms1654 (A := A) f) :
+        relContinuationFromAtoms1654_pb
+          (X := inferInstance) (Y := inferInstance) (Bsrc := Bsrc) (Bdst := Bdst)
+          h_src_core_order h_dst_core_order
+          (fun x y => meet y (A x)) f →
+        fwdContinuationFromAtoms1654_pb
+          (X := inferInstance) (Y := inferInstance) (Bsrc := Bsrc) (Bdst := Bdst)
+          h_src_core_order h_dst_core_order A f) :
     ∃ f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
-      PointfreeFuncoid.fwdContinuationFromAtoms1654 (A := A) f := by
+      fwdContinuationFromAtoms1654_pb
+        (X := inferInstance) (Y := inferInstance) (Bsrc := Bsrc) (Bdst := Bdst)
+        h_src_core_order h_dst_core_order A f := by
+  letI : OrderBot α :=
+    orderBot_of_primary_boolean_core (γ := α) (F := inferInstance) (Bcore := Bsrc) h_src_core_order
+  letI : OrderBot β :=
+    orderBot_of_primary_boolean_core (γ := β) (F := inferInstance) (Bcore := Bdst) h_dst_core_order
+  letI : CompleteLattice β :=
+    completeLattice_of_primary_boolean_core
+      (γ := β) (F := inferInstance) (Bcore := Bdst) h_dst_core_order
   have _ := hA_cond
   let δA : α → β → Prop := fun x y => meet y (A x)
   rcases theorem1654_item2_exists
@@ -1063,8 +1174,6 @@ theorem theorem1654_item1
     [Filtrator.Primary α] [Filtrator.Primary β]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
-    [OrderBot α] [OrderBot β]
-    [CompleteLattice β]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
     (hord_src : ∀ a b : α, a ≤ b ↔ @LE.le α
@@ -1074,17 +1183,34 @@ theorem theorem1654_item1
       (distribLattice_of_primary_boolean_core
         (γ := β) (F := inferInstance) (Bcore := Bdst) h_dst_core_order).toPartialOrder.toLE a b)
     (A : α → β)
-    (hA_cond : PointfreeFuncoid.atomicFunctionCondition1654 (A := A))
+    (hA_cond : atomicFunctionCondition1654_pb
+      (X := inferInstance) (Y := inferInstance) (Bsrc := Bsrc) (Bdst := Bdst)
+      h_src_core_order h_dst_core_order A)
     (hA_rel_cond :
-      PointfreeFuncoid.atomicRelationCondition1654
-        (δ := fun x y => meet y (A x)))
+      atomicRelationCondition1654_pb
+        (X := inferInstance) (Y := inferInstance) (Bsrc := Bsrc) (Bdst := Bdst)
+        h_src_core_order h_dst_core_order
+        (fun x y => meet y (A x)))
     (h_rel_to_fwd_atoms :
       ∀ f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
-        PointfreeFuncoid.relContinuationFromAtoms1654
-          (δ := fun x y => meet y (A x)) f →
-        PointfreeFuncoid.fwdContinuationFromAtoms1654 (A := A) f) :
+        relContinuationFromAtoms1654_pb
+          (X := inferInstance) (Y := inferInstance) (Bsrc := Bsrc) (Bdst := Bdst)
+          h_src_core_order h_dst_core_order
+          (fun x y => meet y (A x)) f →
+        fwdContinuationFromAtoms1654_pb
+          (X := inferInstance) (Y := inferInstance) (Bsrc := Bsrc) (Bdst := Bdst)
+          h_src_core_order h_dst_core_order A f) :
     ∃! f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
-      PointfreeFuncoid.fwdContinuationFromAtoms1654 (A := A) f := by
+      fwdContinuationFromAtoms1654_pb
+        (X := inferInstance) (Y := inferInstance) (Bsrc := Bsrc) (Bdst := Bdst)
+        h_src_core_order h_dst_core_order A f := by
+  letI : OrderBot α :=
+    orderBot_of_primary_boolean_core (γ := α) (F := inferInstance) (Bcore := Bsrc) h_src_core_order
+  letI : OrderBot β :=
+    orderBot_of_primary_boolean_core (γ := β) (F := inferInstance) (Bcore := Bdst) h_dst_core_order
+  letI : CompleteLattice β :=
+    completeLattice_of_primary_boolean_core
+      (γ := β) (F := inferInstance) (Bcore := Bdst) h_dst_core_order
   have h_sep_src : IsSeparable α :=
     separable_of_primary_boolean_core
       (α := α) (Bcore := Bsrc) h_src_core_order
@@ -1115,7 +1241,6 @@ theorem theorem1654_item2
     [Filtrator.Primary α] [Filtrator.Primary β]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
-    [OrderBot α] [OrderBot β]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
     (hord_src : ∀ a b : α, a ≤ b ↔ @LE.le α
@@ -1125,9 +1250,17 @@ theorem theorem1654_item2
       (distribLattice_of_primary_boolean_core
         (γ := β) (F := inferInstance) (Bcore := Bdst) h_dst_core_order).toPartialOrder.toLE a b)
     (δ : α → β → Prop)
-    (hδ_cond : PointfreeFuncoid.atomicRelationCondition1654 (δ := δ)) :
+    (hδ_cond : atomicRelationCondition1654_pb
+      (X := inferInstance) (Y := inferInstance) (Bsrc := Bsrc) (Bdst := Bdst)
+      h_src_core_order h_dst_core_order δ) :
     ∃! f : PointfreeFuncoid (Filtrator.suporder (α := α)) (Filtrator.suporder (α := β)),
-      PointfreeFuncoid.relContinuationFromAtoms1654 (δ := δ) f := by
+      relContinuationFromAtoms1654_pb
+        (X := inferInstance) (Y := inferInstance) (Bsrc := Bsrc) (Bdst := Bdst)
+        h_src_core_order h_dst_core_order δ f := by
+  letI : OrderBot α :=
+    orderBot_of_primary_boolean_core (γ := α) (F := inferInstance) (Bcore := Bsrc) h_src_core_order
+  letI : OrderBot β :=
+    orderBot_of_primary_boolean_core (γ := β) (F := inferInstance) (Bcore := Bdst) h_dst_core_order
   have h_sep_src : IsSeparable α :=
     separable_of_primary_boolean_core
       (α := α) (Bcore := Bsrc) h_src_core_order
