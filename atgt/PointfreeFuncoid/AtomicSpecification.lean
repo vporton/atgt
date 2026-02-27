@@ -893,12 +893,12 @@ lemma theorem1654_item2_exists
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
-    (hord_src : ∀ a b : α, a ≤ b ↔ @LE.le α
+    (hord_src : Filtrator.suporder (α := α) =
       (distribLattice_of_primary_boolean_core
-        (γ := α) (F := X) (Bcore := Bsrc) h_src_core_order).toPartialOrder.toLE a b)
-    (hord_dst : ∀ a b : β, a ≤ b ↔ @LE.le β
+        (γ := α) (F := X) (Bcore := Bsrc) h_src_core_order).toPartialOrder)
+    (hord_dst : Filtrator.suporder (α := β) =
       (distribLattice_of_primary_boolean_core
-        (γ := β) (F := Y) (Bcore := Bdst) h_dst_core_order).toPartialOrder.toLE a b)
+        (γ := β) (F := Y) (Bcore := Bdst) h_dst_core_order).toPartialOrder)
     (δ : α → β → Prop)
     (hδ_cond : atomicRelationCondition1654_pb
       (X := X) (Y := Y) (Bsrc := Bsrc) (Bdst := Bdst)
@@ -924,6 +924,18 @@ lemma theorem1654_item2_exists
   let Ddst : DistribLattice β :=
     distribLattice_of_primary_boolean_core
       (γ := β) (F := Y) (Bcore := Bdst) h_dst_core_order
+  have hEq_src : Dsrc.toPartialOrder = Filtrator.suporder (α := α) := by
+    simpa [Dsrc] using hord_src.symm
+  have hEq_dst : Ddst.toPartialOrder = Filtrator.suporder (α := β) := by
+    simpa [Ddst] using hord_dst.symm
+  have hord_src_iff : ∀ a b : α, a ≤ b ↔ @LE.le α Dsrc.toPartialOrder.toLE a b := by
+    intro a b
+    simpa [hEq_src] using
+      (show a ≤ b ↔ @LE.le α (Filtrator.suporder (α := α)).toLE a b from Iff.rfl)
+  have hord_dst_iff : ∀ a b : β, a ≤ b ↔ @LE.le β Ddst.toPartialOrder.toLE a b := by
+    intro a b
+    simpa [hEq_dst] using
+      (show a ≤ b ↔ @LE.le β (Filtrator.suporder (α := β)).toLE a b from Iff.rfl)
   letI : OrderTop α := by
     letI : OrderTop X.subset := by
       refine
@@ -999,11 +1011,11 @@ lemma theorem1654_item2_exists
           (γ := α) (D := Dsrc)
           (hTop := hTopSrc) (hBot := hBotSrc)
           (F := X) (Bcore := Bsrc.toDistribLattice)
-          (hcoreOrder := h_src_core_order) (hord := hord_src)
+          (hcoreOrder := h_src_core_order) (hord := hord_src_iff)
           (hCL := by
             letI : OrderTop α := ⟨by
               intro a
-              exact (hord_src a ⊤).2 (hTopSrc.le_top a)⟩
+              exact (hord_src_iff a ⊤).2 (hTopSrc.le_top a)⟩
             have hcoreord : Filtrator.suborder (α := α) =
                 Bsrc.toDistribLattice.toLattice.toSemilatticeInf.toPartialOrder := by
               simpa using h_src_core_order.symm
@@ -1036,11 +1048,11 @@ lemma theorem1654_item2_exists
           (γ := β) (D := Ddst)
           (hTop := hTopDst) (hBot := hBotDst)
           (F := Y) (Bcore := Bdst.toDistribLattice)
-          (hcoreOrder := h_dst_core_order) (hord := hord_dst)
+          (hcoreOrder := h_dst_core_order) (hord := hord_dst_iff)
           (hCL := by
             letI : OrderTop β := ⟨by
               intro b
-              exact (hord_dst b ⊤).2 (hTopDst.le_top b)⟩
+              exact (hord_dst_iff b ⊤).2 (hTopDst.le_top b)⟩
             have hcoreord : Filtrator.suborder (α := β) =
                 Bdst.toDistribLattice.toLattice.toSemilatticeInf.toPartialOrder := by
               simpa using h_dst_core_order.symm
@@ -1117,12 +1129,12 @@ lemma theorem1654_item1_exists
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
-    (hord_src : ∀ a b : α, a ≤ b ↔ @LE.le α
+    (hord_src : Filtrator.suporder (α := α) =
       (distribLattice_of_primary_boolean_core
-        (γ := α) (F := inferInstance) (Bcore := Bsrc) h_src_core_order).toPartialOrder.toLE a b)
-    (hord_dst : ∀ a b : β, a ≤ b ↔ @LE.le β
+        (γ := α) (F := inferInstance) (Bcore := Bsrc) h_src_core_order).toPartialOrder)
+    (hord_dst : Filtrator.suporder (α := β) =
       (distribLattice_of_primary_boolean_core
-        (γ := β) (F := inferInstance) (Bcore := Bdst) h_dst_core_order).toPartialOrder.toLE a b)
+        (γ := β) (F := inferInstance) (Bcore := Bdst) h_dst_core_order).toPartialOrder)
     (A : α → β)
     (hA_cond : atomicFunctionCondition1654_pb
       (X := inferInstance) (Y := inferInstance) (Bsrc := Bsrc) (Bdst := Bdst)
@@ -1176,12 +1188,12 @@ theorem theorem1654_item1
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
-    (hord_src : ∀ a b : α, a ≤ b ↔ @LE.le α
+    (hord_src : Filtrator.suporder (α := α) =
       (distribLattice_of_primary_boolean_core
-        (γ := α) (F := inferInstance) (Bcore := Bsrc) h_src_core_order).toPartialOrder.toLE a b)
-    (hord_dst : ∀ a b : β, a ≤ b ↔ @LE.le β
+        (γ := α) (F := inferInstance) (Bcore := Bsrc) h_src_core_order).toPartialOrder)
+    (hord_dst : Filtrator.suporder (α := β) =
       (distribLattice_of_primary_boolean_core
-        (γ := β) (F := inferInstance) (Bcore := Bdst) h_dst_core_order).toPartialOrder.toLE a b)
+        (γ := β) (F := inferInstance) (Bcore := Bdst) h_dst_core_order).toPartialOrder)
     (A : α → β)
     (hA_cond : atomicFunctionCondition1654_pb
       (X := inferInstance) (Y := inferInstance) (Bsrc := Bsrc) (Bdst := Bdst)
@@ -1243,12 +1255,12 @@ theorem theorem1654_item2
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
-    (hord_src : ∀ a b : α, a ≤ b ↔ @LE.le α
+    (hord_src : Filtrator.suporder (α := α) =
       (distribLattice_of_primary_boolean_core
-        (γ := α) (F := inferInstance) (Bcore := Bsrc) h_src_core_order).toPartialOrder.toLE a b)
-    (hord_dst : ∀ a b : β, a ≤ b ↔ @LE.le β
+        (γ := α) (F := inferInstance) (Bcore := Bsrc) h_src_core_order).toPartialOrder)
+    (hord_dst : Filtrator.suporder (α := β) =
       (distribLattice_of_primary_boolean_core
-        (γ := β) (F := inferInstance) (Bcore := Bdst) h_dst_core_order).toPartialOrder.toLE a b)
+        (γ := β) (F := inferInstance) (Bcore := Bdst) h_dst_core_order).toPartialOrder)
     (δ : α → β → Prop)
     (hδ_cond : atomicRelationCondition1654_pb
       (X := inferInstance) (Y := inferInstance) (Bsrc := Bsrc) (Bdst := Bdst)
