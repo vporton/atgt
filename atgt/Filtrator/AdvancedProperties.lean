@@ -6,6 +6,7 @@ import Mathlib.Order.CompleteBooleanAlgebra
 import Mathlib.Order.Bounds.OrderIso
 import Mathlib.Data.Finset.Lattice.Fold
 import Mathlib.Data.Fintype.Basic
+import Mathlib.Data.Subtype
 
 set_option linter.unnecessarySimpa false
 
@@ -57,14 +58,39 @@ of this supremum is the intersection of upper sets of elements of `S`.
 theorem theorem515
     [Filtrator.Primary α]
     [SemilatticeInf (Filtrator.subset (α := α))] :
-    (∀ a b : Filtrator.subset (α := α),
-      a.1 ≤ b.1 ↔
-        @LE.le (Filtrator.subset (α := α))
-          (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder.toLE a b) →
+    (Filtrator.suborder (α := α) =
+      (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder) →
     ∀ S : Set (Filtrator.supset (α := α)), S.Nonempty → BddAbove S →
       ∃ m : Filtrator.supset (α := α),
         (Filtrator.up (α := α) m = Set.sInter (Filtrator.up '' S) ∧ IsLUB S m) := by
   intro hcoreord S hS hBdd
+  have hcoreord_fun :
+      ∀ x y : Filtrator.subset (α := α),
+        x.1 ≤ y.1 ↔
+          @LE.le (Filtrator.subset (α := α))
+            (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder.toLE
+            x y := by
+    intro x y
+    let h_le_eq :=
+      congrArg (fun o => o.toLE) hcoreord
+    have h_eq :
+        @LE.le (Filtrator.subset (α := α))
+          (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder.toLE x y =
+          @LE.le (Filtrator.subset (α := α))
+            (Filtrator.suborder (α := α)).toLE x y := by
+      dsimp [LE.le]
+      simp [h_le_eq]
+    have h_sub :
+        @LE.le (Filtrator.subset (α := α))
+          (Filtrator.suborder (α := α)).toLE x y ↔ x.1 ≤ y.1 := by
+      simp [Filtrator.suborder, Subtype.coe_le_coe]
+    have h_le_iff :
+        @LE.le (Filtrator.subset (α := α))
+          (Filtrator.suborder (α := α)).toLE x y ↔
+          @LE.le (Filtrator.subset (α := α))
+            (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder.toLE x y := by
+      simpa [h_eq] using Iff.rfl
+    refine h_sub.symm.trans h_le_iff
   let T : Set (subset : Set α) := {y | ∀ s ∈ S, s ≤ y.1}
   have hT_nonempty : Set.Nonempty T := by
     rcases hBdd with ⟨u, hu⟩
@@ -88,8 +114,8 @@ theorem theorem515
             (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder.toLE
             c0 b := by
         simpa [c0] using (inf_le_right : c0 ≤ b)
-      have hc0a : c0.1 ≤ a.1 := (hcoreord c0 a).2 hc0a'
-      have hc0b : c0.1 ≤ b.1 := (hcoreord c0 b).2 hc0b'
+      have hc0a : c0.1 ≤ a.1 := (hcoreord_fun c0 a).mpr hc0a'
+      have hc0b : c0.1 ≤ b.1 := (hcoreord_fun c0 b).mpr hc0b'
       refine ⟨c0, ?_, hc0a, hc0b⟩
       intro s hs
       have hsa : s ≤ a.1 := ha s hs
@@ -104,17 +130,20 @@ theorem theorem515
       have hza' :
           @LE.le (Filtrator.subset (α := α))
             (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder.toLE
-            z a := (hcoreord z a).1 hza
+            z a :=
+        (hcoreord_fun z a).mp hza
       have hzb' :
           @LE.le (Filtrator.subset (α := α))
             (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder.toLE
-            z b := (hcoreord z b).1 hzb
+            z b :=
+        (hcoreord_fun z b).mp hzb
       have hzc0' :
           @LE.le (Filtrator.subset (α := α))
             (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder.toLE
             z c0 := by
         exact le_inf hza' hzb'
-      have hzc0 : z.1 ≤ c0.1 := (hcoreord z c0).2 hzc0'
+      have hzc0 :
+          z.1 ≤ c0.1 := (hcoreord_fun z c0).mpr hzc0'
       have hc0_mem : c0 ∈ Fs.elements := Fs.upper' hzc0 hzmem
       simpa [Fs, Filtrator.Primary.to_poset_filter, Filtrator.up_suborder] using hc0_mem
     carrier := T
@@ -186,11 +215,8 @@ noncomputable def theorem515_completeSemilatticeSup
     [OrderTop α]
     [OrderBot α]
     (hcoreord :
-      ∀ a b : Filtrator.subset (α := α),
-        a.1 ≤ b.1 ↔
-          @LE.le (Filtrator.subset (α := α))
-            (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder.toLE
-              a b) :
+      Filtrator.suborder (α := α) =
+        (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder) :
     CompleteSemilatticeSup (Filtrator.supset (α := α)) := by
   classical
   let sSupFun : Set α → α := fun S =>
@@ -233,11 +259,8 @@ noncomputable def theorem515_completeLattice
     [OrderTop α]
     [OrderBot α]
     (hcoreord :
-      ∀ a b : Filtrator.subset (α := α),
-        a.1 ≤ b.1 ↔
-          @LE.le (Filtrator.subset (α := α))
-            (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder.toLE
-              a b) :
+      Filtrator.suborder (α := α) =
+        (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder) :
     CompleteLattice (Filtrator.supset (α := α)) := by
   letI : CompleteSemilatticeSup (Filtrator.supset (α := α)) :=
     theorem515_completeSemilatticeSup (α := α) hcoreord
