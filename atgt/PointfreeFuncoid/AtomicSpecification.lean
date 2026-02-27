@@ -593,8 +593,7 @@ lemma atoms_coreJoin_eq_union_ambient
     (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ))
     (hord : ∀ a b : γ, a ≤ b ↔ @LE.le γ
       D.toPartialOrder.toLE a b)
-    (hCL : Nonempty (CompleteLattice (Filtrator.supset (α := γ))) :=
-      ⟨primary_distribCore_imp_completeLattice (α := γ) hord⟩)
+    (hCL : Nonempty (CompleteLattice (Filtrator.supset (α := γ))))
     (I J : Filtrator.subset (α := γ)) :
     atoms_ambient (@Max.max (Filtrator.subset (α := γ))
       (SemilatticeSup.toMax (α := Filtrator.subset (α := γ))) I J) =
@@ -772,6 +771,14 @@ lemma theorem1654_item2_exists
           (hTop := hTopSrc) (hBot := hBotSrc)
           (F := X) (Bcore := Bsrc.toDistribLattice)
           (hcoreOrder := h_src_core_order) (hord := hord_src)
+          (hCL := by
+            letI : OrderTop α := ⟨by
+              intro a
+              exact (hord_src a ⊤).2 (hTopSrc.le_top a)⟩
+            have hcoreord : Filtrator.suborder (α := α) =
+                Bsrc.toDistribLattice.toLattice.toSemilatticeInf.toPartialOrder := by
+              simpa using h_src_core_order.symm
+            exact ⟨primary_distribCore_imp_completeLattice (α := α) hcoreord⟩)
           (I := I) (J := J))
     constructor
     · intro h
@@ -801,6 +808,14 @@ lemma theorem1654_item2_exists
           (hTop := hTopDst) (hBot := hBotDst)
           (F := Y) (Bcore := Bdst.toDistribLattice)
           (hcoreOrder := h_dst_core_order) (hord := hord_dst)
+          (hCL := by
+            letI : OrderTop β := ⟨by
+              intro b
+              exact (hord_dst b ⊤).2 (hTopDst.le_top b)⟩
+            have hcoreord : Filtrator.suborder (α := β) =
+                Bdst.toDistribLattice.toLattice.toSemilatticeInf.toPartialOrder := by
+              simpa using h_dst_core_order.symm
+            exact ⟨primary_distribCore_imp_completeLattice (α := β) hcoreord⟩)
           (I := I') (J := J'))
     constructor
     · intro h
