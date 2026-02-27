@@ -368,38 +368,6 @@ theorem theorem516 {α : Type u}
         exact (hx s hs).2
       exact ⟨hxsub, (hd_char x hxsub).2 hxall⟩
 
-namespace PrimaryMeetTopInfimumTuple
-
-variable {α : Type u}
-
-/-- 1⇒2 in Corollary 517 tuple. -/
-noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α :=
-  inferInstance
-
-/-- 2⇒3 in Corollary 517 tuple. -/
-theorem two_imp_three
-    [SemilatticeInf α]
-    [@OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
-    [Filtrator.Primary α]
-    (hord : ∀ a b : α, a ≤ b ↔ @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) :
-    NonemptyInfUpInter (Filtrator.supset (α := α)) := by
-  exact theorem516 (α := α) hord
-
-/-- 1⇒3 in Corollary 517 tuple. -/
-theorem one_imp_three
-    [SemilatticeInf α]
-    [@OrderTop α (inferInstance : SemilatticeInf α).toPartialOrder.toPreorder.toLE]
-    [Filtrator.Powerset.{u, v} α] :
-    (∀ a b : α, a ≤ b ↔ @LE.le α (inferInstance : SemilatticeInf α).toPartialOrder.toLE a b) →
-    NonemptyInfUpInter (Filtrator.supset (α := α)) := by
-  intro hord
-  letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
-  exact two_imp_three (α := α) hord
-
-end PrimaryMeetTopInfimumTuple
-
-export PrimaryMeetTopInfimumTuple (two_imp_three one_imp_three)
-
 namespace PrimaryMeetTopCompleteLatticeTuple
 
 variable {α : Type u}
