@@ -28,27 +28,27 @@ def NonemptyInfUpInter (α : Type u) [Filtrator α] : Prop :=
   ∀ S : Set α, S.Nonempty →
     ∃ d : α, IsLUB S d ∧ Filtrator.up d = {x : α | ∀ s ∈ S, x ∈ Filtrator.up s}
 
-/--
-Lemma 512 (p. 85), in the form used for filters:
-if an order embedding sends some `d : α` to the infimum of `f '' S` in a complete lattice,
-then `d` is the infimum of `S`.
--/
-theorem lemma512 {α : Type u} {β : Type v}
-    [PartialOrder α] [CompleteLattice β]
-    (f : α ↪o β) (S : Set α)
-    (h : ∃ d : α, IsGLB (f '' S) (f d)) :
-    ∃ d : α, IsGLB S d ∧ sInf (f '' S) = f d := by
-  rcases h with ⟨d, hd⟩
-  refine ⟨d, ?_, hd.sInf_eq⟩
-  refine ⟨?_, ?_⟩
-  · intro a ha
-    exact f.le_iff_le.mp (hd.1 ⟨a, ha, rfl⟩)
-  · intro z hz
-    apply f.le_iff_le.mp
-    apply hd.2
-    intro y hy
-    rcases hy with ⟨a, ha, rfl⟩
-    exact f.monotone (hz ha)
+-- /--
+-- Lemma 512 (p. 85), in the form used for filters:
+-- if an order embedding sends some `d : α` to the infimum of `f '' S` in a complete lattice,
+-- then `d` is the infimum of `S`.
+-- -/
+-- theorem lemma512 {α : Type u} {β : Type v}
+--     [PartialOrder α] [CompleteLattice β]
+--     (f : α ↪o β) (S : Set α)
+--     (h : ∃ d : α, IsGLB (f '' S) (f d)) :
+--     ∃ d : α, IsGLB S d ∧ sInf (f '' S) = f d := by
+--   rcases h with ⟨d, hd⟩
+--   refine ⟨d, ?_, hd.sInf_eq⟩
+--   refine ⟨?_, ?_⟩
+--   · intro a ha
+--     exact f.le_iff_le.mp (hd.1 ⟨a, ha, rfl⟩)
+--   · intro z hz
+--     apply f.le_iff_le.mp
+--     apply hd.2
+--     intro y hy
+--     rcases hy with ⟨a, ha, rfl⟩
+--     exact f.monotone (hz ha)
 
 /--
 Theorem 515 (p. 85), filter side in the current framework:
