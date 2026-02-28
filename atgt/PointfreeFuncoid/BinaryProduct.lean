@@ -316,7 +316,7 @@ theorem theorem1664_binaryProduct_glb
     (f : PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)
     (a : α) (b : β) :
     let h :=
-      ((PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f) ∘
+      (PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f ∘
         (PointfreeFuncoid.restrictedIdentity (X := Y) b)
     h ≤ f ∧ h ≤ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a b) ∧
       ∀ g : PointfreeFuncoid X.toPartialOrder Y.toPartialOrder,
@@ -324,7 +324,7 @@ theorem theorem1664_binaryProduct_glb
         g ≤ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a b) →
         g ≤ h := by
   let h :=
-    ((PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f) ∘
+    (PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f ∘
       (PointfreeFuncoid.restrictedIdentity (X := Y) b)
   have h_src_strong : IsStronglySeparable α :=
     separable_imp_stronglySeparable h_src_sep
@@ -423,13 +423,13 @@ theorem corollary1665_restrict_glb
     (f : PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)
     (a : α) :
     let h :=
-      ((PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f) ∘
+      (PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f ∘
         (PointfreeFuncoid.restrictedIdentity (X := Y) (⊤ : β))
     h = f.restrict a ∧
       h ≤ f ∧
       h ≤ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a (⊤ : β)) := by
   let h :=
-    ((PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f) ∘
+    (PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f ∘
       (PointfreeFuncoid.restrictedIdentity (X := Y) (⊤ : β))
   have h_glb :=
     theorem1664_binaryProduct_glb
