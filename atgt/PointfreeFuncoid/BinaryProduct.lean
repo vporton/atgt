@@ -417,11 +417,9 @@ theorem theorem1664_binaryProduct_glb
     [OrderBot α] [OrderBot β] [OrderTop α] [OrderTop β]
     [SemilatticeInf (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)]
     (hle_iff :
-      ∀ p q : PointfreeFuncoid X.toPartialOrder Y.toPartialOrder,
-        @LE.le (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)
-          ((SemilatticeInf.toPartialOrder
-            (self := (inferInstance : SemilatticeInf (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)))).toLE) p q ↔
-          p ≤ q)
+      (SemilatticeInf.toPartialOrder
+        (self := (inferInstance : SemilatticeInf (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)))).toLE =
+        (inferInstance : LE (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)))
     (h_src_sep : IsSeparable α) (h_dst_sep : IsSeparable β)
     (f : PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)
     (a : α) (b : β) :
@@ -431,6 +429,14 @@ theorem theorem1664_binaryProduct_glb
   let h :=
     (PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f ∘
       (PointfreeFuncoid.restrictedIdentity (X := Y) b)
+  have hle_iff' :
+      ∀ p q : PointfreeFuncoid X.toPartialOrder Y.toPartialOrder,
+        @LE.le (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)
+          ((SemilatticeInf.toPartialOrder
+            (self := (inferInstance : SemilatticeInf (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)))).toLE) p q ↔
+          p ≤ q := by
+    intro p q
+    simpa [hle_iff]
   have h_glb :=
     theorem1664_binaryProduct_glb_witness
       (X := X) (Y := Y)
@@ -438,20 +444,20 @@ theorem theorem1664_binaryProduct_glb
       (f := f) (a := a) (b := b)
   have h_inf_le_left :
       f ⊓ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a b) ≤ f := by
-    exact (hle_iff _ _).1 inf_le_left
+    exact (hle_iff' _ _).1 inf_le_left
   have h_inf_le_right :
       f ⊓ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a b) ≤
         (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a b) := by
-    exact (hle_iff _ _).1 inf_le_right
+    exact (hle_iff' _ _).1 inf_le_right
   have hh_le_inf_semilattice :
       @LE.le (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)
         ((SemilatticeInf.toPartialOrder
           (self := (inferInstance : SemilatticeInf (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)))).toLE)
         h (f ⊓ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a b)) := by
-    exact le_inf ((hle_iff _ _).2 h_glb.1) ((hle_iff _ _).2 h_glb.2.1)
+    exact le_inf ((hle_iff' _ _).2 h_glb.1) ((hle_iff' _ _).2 h_glb.2.1)
   apply le_antisymm
   · exact h_glb.2.2 _ h_inf_le_left h_inf_le_right
-  · exact (hle_iff _ _).1 hh_le_inf_semilattice
+  · exact (hle_iff' _ _).1 hh_le_inf_semilattice
 
 /-- Corollary 1665: specialization to `B = ⊤` recovers source restriction. -/
 theorem corollary1665_restrict_glb
@@ -460,11 +466,9 @@ theorem corollary1665_restrict_glb
     [OrderBot α] [OrderBot β] [OrderTop α] [OrderTop β]
     [SemilatticeInf (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)]
     (hle_iff :
-      ∀ p q : PointfreeFuncoid X.toPartialOrder Y.toPartialOrder,
-        @LE.le (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)
-          ((SemilatticeInf.toPartialOrder
-            (self := (inferInstance : SemilatticeInf (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)))).toLE) p q ↔
-          p ≤ q)
+      (SemilatticeInf.toPartialOrder
+        (self := (inferInstance : SemilatticeInf (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)))).toLE =
+        (inferInstance : LE (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)))
     (h_src_sep : IsSeparable α) (h_dst_sep : IsSeparable β)
     (f : PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)
     (a : α) :
