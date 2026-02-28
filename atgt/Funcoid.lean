@@ -1,17 +1,13 @@
 import atgt.PointfreeFuncoid
 import atgt.Filtrator.Powerset
 
-universe u w
+universe u v w
 
 class Funcoid
     {α: Type u} {β: Type w}
     [a: PartialOrder α] [b: PartialOrder β]
     [Filtrator.Powerset α] [Filtrator.Powerset β]
   extends PointfreeFuncoid a b
-
-namespace PointfreeFuncoid
-
-universe v
 
 def relImage
     {α : Type u} {β : Type v}
@@ -135,5 +131,3 @@ theorem principalFuncoid_comp
       rcases hx with ⟨y, hyPre, hxy⟩
       rcases hyPre with ⟨z, hzC, hyz⟩
       exact ⟨z, hzC, ⟨y, hxy, hyz⟩⟩
-
-end PointfreeFuncoid
