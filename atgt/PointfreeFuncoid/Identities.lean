@@ -60,19 +60,7 @@ def PointfreeFuncoid.image {α : Type u} {β : Type v}
 def PointfreeFuncoid.domain {α : Type u} {β : Type v}
     {X : PartialOrder α} {Y : PartialOrder β}
     [OrderTop β] (f : PointfreeFuncoid X Y) : α :=
-  f.inv.image
-
-@[simp] theorem PointfreeFuncoid.image_eq_fwd_top
-    {α : Type u} {β : Type v}
-    {X : PartialOrder α} {Y : PartialOrder β}
-    [OrderTop α] (f : PointfreeFuncoid X Y) :
-    f.image = f.fwd ⊤ := rfl
-
-@[simp] theorem PointfreeFuncoid.domain_eq_bwd_top
-    {α : Type u} {β : Type v}
-    {X : PartialOrder α} {Y : PartialOrder β}
-    [OrderTop β] (f : PointfreeFuncoid X Y) :
-    f.domain = f.bwd ⊤ := rfl
+  f.bwd ⊤
 
 lemma meet_iff_not_is_least_of_le_right {α : Type u}
     [PartialOrder α] {a b : α} (h : a ≤ b) :
