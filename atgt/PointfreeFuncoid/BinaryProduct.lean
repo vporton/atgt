@@ -300,15 +300,8 @@ theorem binaryProduct_comp_inv
     _ = binaryProduct (X := Z) (Y := Y) (g.bwd a) b := by
       rfl
 
-/--
-Theorem 1664 (GLB form): for bounded separable meet-semilattices, the
-composition with restricted identities is the greatest lower bound of
-`f` and `A ×^FCD B`.
-
-This is the order-theoretic formulation of
-`f ⊓ (A ×^FCD B) = id_B ∘ f ∘ id_A`.
--/
-theorem theorem1664_binaryProduct_glb
+/-- Order-theoretic GLB witness used to derive Theorem 1664 in inf-form. -/
+private theorem theorem1664_binaryProduct_glb_witness
     {α : Type u} {β : Type v}
     {X : SemilatticeInf α} {Y : SemilatticeInf β}
     [OrderBot α] [OrderBot β] [OrderTop α] [OrderTop β]
@@ -414,36 +407,88 @@ theorem theorem1664_binaryProduct_glb
     change g.bwd y ≤ a ⊓ f.bwd (b ⊓ y)
     exact le_inf hgy_le_a hgy_le_fby
 
+/--
+Theorem 1664: for bounded separable meet-semilattices,
+`f ⊓ (A ×^FCD B) = id_B ∘ f ∘ id_A`.
+-/
+theorem theorem1664_binaryProduct_glb
+    {α : Type u} {β : Type v}
+    {X : SemilatticeInf α} {Y : SemilatticeInf β}
+    [OrderBot α] [OrderBot β] [OrderTop α] [OrderTop β]
+    [SemilatticeInf (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)]
+    (hle_iff :
+      ∀ p q : PointfreeFuncoid X.toPartialOrder Y.toPartialOrder,
+        @LE.le (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)
+          ((SemilatticeInf.toPartialOrder
+            (self := (inferInstance : SemilatticeInf (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)))).toLE) p q ↔
+          p ≤ q)
+    (h_src_sep : IsSeparable α) (h_dst_sep : IsSeparable β)
+    (f : PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)
+    (a : α) (b : β) :
+    f ⊓ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a b) =
+      (PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f ∘
+        (PointfreeFuncoid.restrictedIdentity (X := Y) b) := by
+  let h :=
+    (PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f ∘
+      (PointfreeFuncoid.restrictedIdentity (X := Y) b)
+  have h_glb :=
+    theorem1664_binaryProduct_glb_witness
+      (X := X) (Y := Y)
+      (h_src_sep := h_src_sep) (h_dst_sep := h_dst_sep)
+      (f := f) (a := a) (b := b)
+  have h_inf_le_left :
+      f ⊓ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a b) ≤ f := by
+    exact (hle_iff _ _).1 inf_le_left
+  have h_inf_le_right :
+      f ⊓ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a b) ≤
+        (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a b) := by
+    exact (hle_iff _ _).1 inf_le_right
+  have hh_le_inf_semilattice :
+      @LE.le (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)
+        ((SemilatticeInf.toPartialOrder
+          (self := (inferInstance : SemilatticeInf (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)))).toLE)
+        h (f ⊓ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a b)) := by
+    exact le_inf ((hle_iff _ _).2 h_glb.1) ((hle_iff _ _).2 h_glb.2.1)
+  apply le_antisymm
+  · exact h_glb.2.2 _ h_inf_le_left h_inf_le_right
+  · exact (hle_iff _ _).1 hh_le_inf_semilattice
+
 /-- Corollary 1665: specialization to `B = ⊤` recovers source restriction. -/
 theorem corollary1665_restrict_glb
     {α : Type u} {β : Type v}
     {X : SemilatticeInf α} {Y : SemilatticeInf β}
     [OrderBot α] [OrderBot β] [OrderTop α] [OrderTop β]
+    [SemilatticeInf (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)]
+    (hle_iff :
+      ∀ p q : PointfreeFuncoid X.toPartialOrder Y.toPartialOrder,
+        @LE.le (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)
+          ((SemilatticeInf.toPartialOrder
+            (self := (inferInstance : SemilatticeInf (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)))).toLE) p q ↔
+          p ≤ q)
     (h_src_sep : IsSeparable α) (h_dst_sep : IsSeparable β)
     (f : PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)
     (a : α) :
-    let h :=
-      (PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f ∘
-        (PointfreeFuncoid.restrictedIdentity (X := Y) (⊤ : β))
-    h = f.restrict a ∧
-      h ≤ f ∧
-      h ≤ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a (⊤ : β)) := by
-  let h :=
-    (PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f ∘
-      (PointfreeFuncoid.restrictedIdentity (X := Y) (⊤ : β))
-  have h_glb :=
+    f.restrict a =
+      f ⊓ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a (⊤ : β)) := by
+  have h_glb_eq :=
     theorem1664_binaryProduct_glb
       (X := X) (Y := Y)
+      (hle_iff := hle_iff)
       (h_src_sep := h_src_sep) (h_dst_sep := h_dst_sep)
       (f := f) (a := a) (b := (⊤ : β))
-  have hh_eq : h = f.restrict a := by
+  have hh_eq :
+      (PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f ∘
+        (PointfreeFuncoid.restrictedIdentity (X := Y) (⊤ : β)) = f.restrict a := by
     apply PointfreeFuncoid.ext
     · funext x
-      simp [h, PointfreeFuncoid.restrict, comp, PointfreeFuncoid.restrictedIdentity]
+      simp [PointfreeFuncoid.restrict, comp, PointfreeFuncoid.restrictedIdentity]
     · funext y
-      simp [h, PointfreeFuncoid.restrict, comp, PointfreeFuncoid.restrictedIdentity]
-  refine ⟨hh_eq, ?_, ?_⟩
-  · simpa [h] using h_glb.1
-  · simpa [h] using h_glb.2.1
+      simp [PointfreeFuncoid.restrict, comp, PointfreeFuncoid.restrictedIdentity]
+  calc
+    f.restrict a =
+        (PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f ∘
+          (PointfreeFuncoid.restrictedIdentity (X := Y) (⊤ : β)) := hh_eq.symm
+    _ = f ⊓ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a (⊤ : β)) :=
+      h_glb_eq.symm
 
 end PointfreeFuncoid
