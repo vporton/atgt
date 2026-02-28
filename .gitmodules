@@ -1,3 +1,6 @@
 [submodule "book"]
 	path = book
 	url = git@github.com:vporton/agt-combined.git
+[submodule "limit-article"]
+	path = limit-article
+	url = git@github.com:vporton/limit.git
