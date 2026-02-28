@@ -6,3 +6,4 @@ import atgt.Filtrator.Powerset
 import atgt.Filtrator.GeneralizedFilterBase
 import atgt.Filtrator.AdvancedProperties
 import atgt.AlternativePrimaryFiltrators
+import atgt.Funcoid
