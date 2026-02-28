@@ -217,7 +217,7 @@ theorem theorem1663_pf_im_dom
             ((meet_domain_iff_fwd_not_least (f := f) (x := x)).2 h_notleast)
         have hfx_eq_bot : f.fwd x = (⊥ : β) :=
           le_antisymm (h_least_fx ⊥) bot_le
-        simpa [binaryProduct, hxa, hfx_eq_bot]
+        simp [binaryProduct, hxa, hfx_eq_bot]
     · intro y
       by_cases hyb : meet y b
       · have hmono_bwd : Monotone f.bwd :=
@@ -237,7 +237,7 @@ theorem theorem1663_pf_im_dom
             ((meet_domain_iff_fwd_not_least (f := f.inv) (x := y)).2 h_notleast)
         have hby_eq_bot : f.bwd y = (⊥ : α) :=
           le_antisymm (h_least_by ⊥) bot_le
-        simpa [binaryProduct, hyb, hby_eq_bot]
+        simp [binaryProduct, hyb, hby_eq_bot]
 
 theorem binaryProduct_comp
     {α : Type u} {β : Type v} {γ : Type w}
