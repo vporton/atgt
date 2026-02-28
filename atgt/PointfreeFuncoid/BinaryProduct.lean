@@ -195,4 +195,40 @@ theorem binaryProduct_comp
         exact (by simpa [meet_comm] using (f.rev b y).2 hby)
       simp [comp, binaryProduct, hy, hb]
 
+theorem binaryProduct_comp_inv
+    {α : Type u} {β : Type v} {γ : Type w}
+    {X : PartialOrder α} {Y : PartialOrder β} {Z : PartialOrder γ}
+    [OrderBot α] [OrderBot β] [OrderBot γ]
+    (a : α) (b : β)
+    (g : PointfreeFuncoid Z X) :
+    g ∘ (binaryProduct (X := X) (Y := Y) a b) =
+      (binaryProduct (X := Z) (Y := Y) (g.bwd a) b) := by
+  let B := binaryProduct (X := Y) (Y := X) b a
+  let B' := binaryProduct (X := Y) (Y := Z) b (g.inv.fwd a)
+  have h :=
+    binaryProduct_comp
+      (X := Y) (Y := X) (Z := Z)
+      (a := b) (b := a)
+      (f := g.inv)
+  have bin_prod_eq :=
+    binaryProduct_inv
+      (X := X) (Y := Y)
+      (a := a) (b := b)
+  have bin_prod_eq' := by
+    simpa [inv_inv_funcoid] using congrArg PointfreeFuncoid.inv bin_prod_eq
+  have inv_comp_eq :
+    g ∘ B.inv = (B ∘ g.inv).inv := by
+    have h_inv := inv_comp (f := B) (g := g.inv)
+    simp [PointfreeFuncoid.inv] at h_inv
+    exact h_inv.symm
+  calc
+    g ∘ (binaryProduct (X := X) (Y := Y) a b) =
+        g ∘ B.inv := by rw [bin_prod_eq']
+    _ = (B ∘ g.inv).inv := by rw [inv_comp_eq]
+    _ = B'.inv := by rw [h]
+    _ = binaryProduct (X := Z) (Y := Y) (g.inv.fwd a) b := by
+      rw [binaryProduct_inv (X := Y) (Y := Z) (a := b) (b := g.inv.fwd a)]
+    _ = binaryProduct (X := Z) (Y := Y) (g.bwd a) b := by
+      rfl
+
 end PointfreeFuncoid
