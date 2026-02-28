@@ -96,6 +96,27 @@ lemma principalFuncoid_rel_singleton_singleton
     exact (meet_set_iff_nonempty (A := relImage r ({x} : Set α)) (B := ({y} : Set β))).2
       ⟨y, hyImg, by simp⟩
 
+theorem principalFuncoid_rel_iff_meet_graph_prod
+    {α : Type u} {β : Type v}
+    (r : α → β → Prop) (x : Set α) (y : Set β) :
+    (principalFuncoid r).funcoid_rel x y ↔
+      meet ({p : α × β | r p.1 p.2}) (x ×ˢ y) := by
+  constructor
+  · intro h
+    have hNE : (relImage r x ∩ y).Nonempty :=
+      (meet_set_iff_nonempty (A := relImage r x) (B := y)).1 h
+    rcases hNE with ⟨b, hbImg, hby⟩
+    rcases hbImg with ⟨a, hax, hab⟩
+    exact (meet_set_iff_nonempty (A := {p : α × β | r p.1 p.2}) (B := x ×ˢ y)).2
+      ⟨(a, b), by simpa using hab, ⟨hax, hby⟩⟩
+  · intro h
+    have hNE : ({p : α × β | r p.1 p.2} ∩ (x ×ˢ y)).Nonempty :=
+      (meet_set_iff_nonempty (A := {p : α × β | r p.1 p.2}) (B := x ×ˢ y)).1 h
+    rcases hNE with ⟨⟨a, b⟩, hab, hxy⟩
+    have hbImg : b ∈ relImage r x := ⟨a, hxy.1, by simpa using hab⟩
+    exact (meet_set_iff_nonempty (A := relImage r x) (B := y)).2
+      ⟨b, hbImg, hxy.2⟩
+
 lemma principalFuncoidOfFunction_rel_singleton_singleton
     {α : Type u} {β : Type v}
     (f : α → β) (x : α) (y : β) :
