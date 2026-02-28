@@ -42,7 +42,7 @@ instance PointfreeFuncoid.instLE{α β : Type*}
   (a : PartialOrder α) (b : PartialOrder β) :
   LE (@PointfreeFuncoid α β a b) :=
 ⟨fun f g =>
-  (∀ x, f.fwd x ≤ g.fwd x) ∧ (∀ y, g.bwd y ≤ f.bwd y)⟩
+  (∀ x, f.fwd x ≤ g.fwd x) ∧ (∀ y, f.bwd y ≤ g.bwd y)⟩
 
 instance PointfreeFuncoid.instPartialOrder {α β : Type*}
     (a : PartialOrder α) (b : PartialOrder β) :
@@ -55,13 +55,13 @@ instance PointfreeFuncoid.instPartialOrder {α β : Type*}
     · intro x
       exact le_trans (hfg.1 x) (hgh.1 x)
     · intro y
-      exact le_trans (hgh.2 y) (hfg.2 y)
+      exact le_trans (hfg.2 y) (hgh.2 y)
   le_antisymm f g hfg hgf := by
     apply PointfreeFuncoid.ext
     · funext x
       exact le_antisymm (hfg.1 x) (hgf.1 x)
     · funext y
-      exact le_antisymm (hgf.2 y) (hfg.2 y)
+      exact le_antisymm (hfg.2 y) (hgf.2 y)
 
 /- TODO: Add `Semicategory` to MathLib and use it for `comp`. -/
 -- instance PointfreeFuncoid.instSemigroup

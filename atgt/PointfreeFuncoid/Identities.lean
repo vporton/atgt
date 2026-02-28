@@ -71,13 +71,13 @@ theorem PointfreeFuncoid.image_mono
     f.image ≤ g.image := by
   simpa [PointfreeFuncoid.image] using hfg.1 ⊤
 
-theorem PointfreeFuncoid.domain_antitone
+theorem PointfreeFuncoid.domain_mono
     {α : Type u} {β : Type v}
     {X : PartialOrder α} {Y : PartialOrder β}
     [OrderTop β]
     {f g : PointfreeFuncoid X Y}
     (hfg : f ≤ g) :
-    g.domain ≤ f.domain := by
+    f.domain ≤ g.domain := by
   simpa [PointfreeFuncoid.domain] using hfg.2 ⊤
 
 lemma meet_iff_not_is_least_of_le_right {α : Type u}
