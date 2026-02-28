@@ -300,4 +300,150 @@ theorem binaryProduct_comp_inv
     _ = binaryProduct (X := Z) (Y := Y) (g.bwd a) b := by
       rfl
 
+/--
+Theorem 1664 (GLB form): for bounded separable meet-semilattices, the
+composition with restricted identities is the greatest lower bound of
+`f` and `A ×^FCD B`.
+
+This is the order-theoretic formulation of
+`f ⊓ (A ×^FCD B) = id_B ∘ f ∘ id_A`.
+-/
+theorem theorem1664_binaryProduct_glb
+    {α : Type u} {β : Type v}
+    {X : SemilatticeInf α} {Y : SemilatticeInf β}
+    [OrderBot α] [OrderBot β] [OrderTop α] [OrderTop β]
+    (h_src_sep : IsSeparable α) (h_dst_sep : IsSeparable β)
+    (f : PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)
+    (a : α) (b : β) :
+    let h :=
+      ((PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f) ∘
+        (PointfreeFuncoid.restrictedIdentity (X := Y) b)
+    h ≤ f ∧ h ≤ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a b) ∧
+      ∀ g : PointfreeFuncoid X.toPartialOrder Y.toPartialOrder,
+        g ≤ f →
+        g ≤ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a b) →
+        g ≤ h := by
+  let h :=
+    ((PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f) ∘
+      (PointfreeFuncoid.restrictedIdentity (X := Y) b)
+  have h_src_strong : IsStronglySeparable α :=
+    separable_imp_stronglySeparable h_src_sep
+  have h_dst_strong : IsStronglySeparable β :=
+    separable_imp_stronglySeparable h_dst_sep
+  have hmono_fwd : Monotone f.fwd :=
+    PointfreeFuncoid.fwd_monotone_of_stronglySeparable (f := f) h_dst_strong
+  have hmono_bwd : Monotone f.bwd :=
+    PointfreeFuncoid.bwd_monotone_of_stronglySeparable (f := f) h_src_strong
+  have hh_le_f : h ≤ f := by
+    refine ⟨?_, ?_⟩
+    · intro x
+      calc
+        h.fwd x = b ⊓ f.fwd (a ⊓ x) := by rfl
+        _ ≤ f.fwd (a ⊓ x) := inf_le_right
+        _ ≤ f.fwd x := hmono_fwd inf_le_right
+    · intro y
+      calc
+        h.bwd y = a ⊓ f.bwd (b ⊓ y) := by rfl
+        _ ≤ f.bwd (b ⊓ y) := inf_le_right
+        _ ≤ f.bwd y := hmono_bwd inf_le_right
+  have hh_le_bin : h ≤ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a b) := by
+    have hh_domain_le : h.domain ≤ a := by
+      change a ⊓ f.bwd (b ⊓ (⊤ : β)) ≤ a
+      exact inf_le_left
+    have hh_image_le : h.image ≤ b := by
+      change b ⊓ f.fwd (a ⊓ (⊤ : α)) ≤ b
+      exact inf_le_left
+    exact
+      (theorem1663_pf_im_dom
+        (X := X.toPartialOrder) (Y := Y.toPartialOrder)
+        (h_src_strong := h_src_strong) (h_dst_strong := h_dst_strong)
+        (f := h) (a := a) (b := b)).2 ⟨hh_domain_le, hh_image_le⟩
+  refine ⟨hh_le_f, hh_le_bin, ?_⟩
+  intro g hgf hgb
+  have hdom_g : g.domain ≤ a := (proposition1662 (f := g) (a := a) (b := b) hgb).1
+  have himage_g : g.image ≤ b := (proposition1662 (f := g) (a := a) (b := b) hgb).2
+  have hmono_gfwd : Monotone g.fwd :=
+    PointfreeFuncoid.fwd_monotone_of_stronglySeparable (f := g) h_dst_strong
+  have hmono_gbwd : Monotone g.bwd :=
+    PointfreeFuncoid.bwd_monotone_of_stronglySeparable (f := g) h_src_strong
+  refine ⟨?_, ?_⟩
+  · intro x
+    have hgx_le_b : g.fwd x ≤ b := by
+      have hgx_le_image : g.fwd x ≤ g.image := by
+        simpa [PointfreeFuncoid.image] using hmono_gfwd (le_top : x ≤ (⊤ : α))
+      exact le_trans hgx_le_image himage_g
+    have hgx_eq :
+        g.fwd x = g.fwd (x ⊓ g.domain) := by
+      exact fwd_eq_fwd_inf_domain
+        (X := X) (Y := Y.toPartialOrder)
+        (h_src_sep := h_src_sep) (h_dst_sep := h_dst_sep)
+        (f := g) (x := x)
+    have hxd_le : x ⊓ g.domain ≤ a ⊓ x := by
+      calc
+        x ⊓ g.domain = g.domain ⊓ x := by simp [inf_comm]
+        _ ≤ a ⊓ x := inf_le_inf hdom_g le_rfl
+    have hgx_le_fax : g.fwd x ≤ f.fwd (a ⊓ x) := by
+      calc
+        g.fwd x = g.fwd (x ⊓ g.domain) := hgx_eq
+        _ ≤ g.fwd (a ⊓ x) := hmono_gfwd hxd_le
+        _ ≤ f.fwd (a ⊓ x) := hgf.1 (a ⊓ x)
+    change g.fwd x ≤ b ⊓ f.fwd (a ⊓ x)
+    exact le_inf hgx_le_b hgx_le_fax
+  · intro y
+    have hgy_le_a : g.bwd y ≤ a := by
+      have hgy_le_domain : g.bwd y ≤ g.domain := by
+        simpa [PointfreeFuncoid.domain] using hmono_gbwd (le_top : y ≤ (⊤ : β))
+      exact le_trans hgy_le_domain hdom_g
+    have hgy_eq :
+        g.bwd y = g.bwd (y ⊓ g.image) := by
+      have h_inv :=
+        fwd_eq_fwd_inf_domain
+          (X := Y) (Y := X.toPartialOrder)
+          (h_src_sep := h_dst_sep) (h_dst_sep := h_src_sep)
+          (f := g.inv) (x := y)
+      simpa [PointfreeFuncoid.domain, PointfreeFuncoid.image] using h_inv
+    have hyi_le : y ⊓ g.image ≤ b ⊓ y := by
+      calc
+        y ⊓ g.image = g.image ⊓ y := by simp [inf_comm]
+        _ ≤ b ⊓ y := inf_le_inf himage_g le_rfl
+    have hgy_le_fby : g.bwd y ≤ f.bwd (b ⊓ y) := by
+      calc
+        g.bwd y = g.bwd (y ⊓ g.image) := hgy_eq
+        _ ≤ g.bwd (b ⊓ y) := hmono_gbwd hyi_le
+        _ ≤ f.bwd (b ⊓ y) := hgf.2 (b ⊓ y)
+    change g.bwd y ≤ a ⊓ f.bwd (b ⊓ y)
+    exact le_inf hgy_le_a hgy_le_fby
+
+/-- Corollary 1665: specialization to `B = ⊤` recovers source restriction. -/
+theorem corollary1665_restrict_glb
+    {α : Type u} {β : Type v}
+    {X : SemilatticeInf α} {Y : SemilatticeInf β}
+    [OrderBot α] [OrderBot β] [OrderTop α] [OrderTop β]
+    (h_src_sep : IsSeparable α) (h_dst_sep : IsSeparable β)
+    (f : PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)
+    (a : α) :
+    let h :=
+      ((PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f) ∘
+        (PointfreeFuncoid.restrictedIdentity (X := Y) (⊤ : β))
+    h = f.restrict a ∧
+      h ≤ f ∧
+      h ≤ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a (⊤ : β)) := by
+  let h :=
+    ((PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f) ∘
+      (PointfreeFuncoid.restrictedIdentity (X := Y) (⊤ : β))
+  have h_glb :=
+    theorem1664_binaryProduct_glb
+      (X := X) (Y := Y)
+      (h_src_sep := h_src_sep) (h_dst_sep := h_dst_sep)
+      (f := f) (a := a) (b := (⊤ : β))
+  have hh_eq : h = f.restrict a := by
+    apply PointfreeFuncoid.ext
+    · funext x
+      simp [h, PointfreeFuncoid.restrict, comp, PointfreeFuncoid.restrictedIdentity]
+    · funext y
+      simp [h, PointfreeFuncoid.restrict, comp, PointfreeFuncoid.restrictedIdentity]
+  refine ⟨hh_eq, ?_, ?_⟩
+  · simpa [h] using h_glb.1
+  · simpa [h] using h_glb.2.1
+
 end PointfreeFuncoid
