@@ -35,7 +35,7 @@ lemma meet_set_iff_nonempty
       intro X
       have hEq : A ⊓ B = (∅ : Set α) :=
         Set.not_nonempty_iff_eq_empty.mp hEmpty
-      simpa [hEq]
+      simp [hEq]
     exact ((meet_as_inf A B).1 hAB) hLeast
   · intro hNonempty
     apply (meet_as_inf A B).2
