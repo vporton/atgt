@@ -62,6 +62,24 @@ def PointfreeFuncoid.domain {α : Type u} {β : Type v}
     [OrderTop β] (f : PointfreeFuncoid X Y) : α :=
   f.bwd ⊤
 
+theorem PointfreeFuncoid.image_mono
+    {α : Type u} {β : Type v}
+    {X : PartialOrder α} {Y : PartialOrder β}
+    [OrderTop α]
+    {f g : PointfreeFuncoid X Y}
+    (hfg : f ≤ g) :
+    f.image ≤ g.image := by
+  simpa [PointfreeFuncoid.image] using hfg.1 ⊤
+
+theorem PointfreeFuncoid.domain_antitone
+    {α : Type u} {β : Type v}
+    {X : PartialOrder α} {Y : PartialOrder β}
+    [OrderTop β]
+    {f g : PointfreeFuncoid X Y}
+    (hfg : f ≤ g) :
+    g.domain ≤ f.domain := by
+  simpa [PointfreeFuncoid.domain] using hfg.2 ⊤
+
 lemma meet_iff_not_is_least_of_le_right {α : Type u}
     [PartialOrder α] {a b : α} (h : a ≤ b) :
     meet a b ↔ ¬ is_least a := by
