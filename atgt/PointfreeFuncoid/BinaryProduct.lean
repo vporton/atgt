@@ -436,7 +436,7 @@ theorem theorem1664_binaryProduct_glb
             (self := (inferInstance : SemilatticeInf (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)))).toLE) p q ↔
           p ≤ q := by
     intro p q
-    simpa [hle_iff]
+    simp [hle_iff]
   have h_glb :=
     theorem1664_binaryProduct_glb_witness
       (X := X) (Y := Y)
