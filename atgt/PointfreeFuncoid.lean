@@ -1,3 +1,4 @@
 import atgt.PointfreeFuncoid.Core
 import atgt.PointfreeFuncoid.Identities
+import atgt.PointfreeFuncoid.BinaryProduct
 import atgt.PointfreeFuncoid.AtomicSpecification
