@@ -161,6 +161,6 @@ abbrev FilterFuncoid (α : Type u) (β : Type v) :=
     (Filtrator.suporder (α := PosetFilter (setPartialOrder α)))
     (Filtrator.suporder (α := PosetFilter (setPartialOrder β)))
 
-def Funcoid.fwd_set {α β : Type*} (f : FilterFuncoid α β) (x : Set α) :
-    PosetFilter (setPartialOrder β) :=
+def Funcoid.fwd_set {α β : Type*} (f : FilterFuncoid α β) (x : Set α)
+    : Filtrator.FilterOnPowerset β :=
   (PointfreeFuncoid.fwd f) (PosetFilter.principal x)

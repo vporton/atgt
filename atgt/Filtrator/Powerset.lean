@@ -22,9 +22,12 @@ abbrev OnPowerset (α : Type u) := Filtrator.Primary.{u, v} α
 
 variable {α : Type u}
 
+abbrev FilterOnPowerset (α: Type*) := PosetFilter (setPartialOrder α)
+
+abbrev FiltratorOnPowerset (α: Type*) := Filtrator (FilterOnPowerset α)
+
 /-- Canonical filtrator structure on powerset filters. -/
-instance instFiltratorOnPowerset (α : Type*) :
-    Filtrator (PosetFilter (setPartialOrder α)) :=
+instance instFiltratorOnPowerset (α : Type*) : FiltratorOnPowerset α :=
   FiltratorOfFilters (inst := setPartialOrder α)
 
 end Filtrator
