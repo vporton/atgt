@@ -955,7 +955,7 @@ theorem theorem1618_pf_cont_f
     (hA_rel_sup_right :
       ∀ K : Filtrator.subset (α := α), ∀ I' J' : Filtrator.subset (α := β),
         meet (I' ⊔ J').1 (A K.1) ↔ meet I'.1 (A K.1) ∨ meet J'.1 (A K.1))
-    (h_rel_to_fwd :
+    (h_rel_to_fwd : -- FIXME: Should not be assumed.
       ∀ f : PointfreeFuncoid X.toFiltrator.suporder Y.toFiltrator.suporder,
         PointfreeFuncoid.relContinuationFromCore
           (δ := fun x y => meet y (A x))

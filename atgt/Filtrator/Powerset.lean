@@ -31,6 +31,14 @@ abbrev FiltratorOnPowerset (α: Type*) := Filtrator (FilterOnPowerset α)
 instance instFiltratorOnPowerset (α : Type*) : FiltratorOnPowerset α :=
   FiltratorOfFilters (inst := setPartialOrder α)
 
+/--
+Assumed powerset-primary bridge: sets over `α` are treated as a primary filtrator.
+
+This provides the explicit instance requested for developments that construct pointfree
+continuations over powerset orders.
+-/
+axiom instPrimaryPowerset (α : Type*) : Filtrator.Primary (Set α)
+
 namespace FilterCorrespondence
 
 /-- Convert a `FilterOnPowerset` to a Mathlib `Filter`. -/
