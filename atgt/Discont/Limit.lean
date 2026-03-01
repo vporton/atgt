@@ -8,4 +8,7 @@ def IsFuncoidLimit {α: Type u} {β: Type v} (d: Funcoid α β) (F: Filtrator.Fi
   F ≤ Funcoid.fwd_set d ({x} : Set α)
 
 def IsBinaryRelationLimit {α: Type u} {β: Type v} (d: α → β → Prop) (F: Filtrator.FilterOnPowerset β) (x: α) :=
-  IsFuncoidLimit (principalFuncoid d) F
+  IsFuncoidLimit (principalFuncoid d) F x
+
+def IsFunctiondLimit {α: Type u} {β: Type v} (d: α → β) (F: Filtrator.FilterOnPowerset β) (x: α) :=
+  IsFuncoidLimit (principalFuncoidOfFunction d) F x
