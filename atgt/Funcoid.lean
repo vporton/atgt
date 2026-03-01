@@ -5,9 +5,9 @@ universe u v w
 
 class Funcoid
     (α: Type u) (β: Type w)
-    {a: PartialOrder α} {b: PartialOrder β}
-    [Filtrator.Powerset α] [Filtrator.Powerset β]
-  extends PointfreeFuncoid a b
+    -- {a: PartialOrder α} {b: PartialOrder β}
+    -- [Filtrator.Powerset α] [Filtrator.Powerset β]
+  extends PointfreeFuncoid (@Filtrator.Powerset.primary α).supset (@Filtrator.Powerset.primary b)
 
 def relImage
     {α : Type u} {β : Type v}
