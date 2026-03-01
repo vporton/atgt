@@ -61,8 +61,7 @@ theorem limitPointFuncoid_fwd_set_eq_principal_sInf_limitPointsOfSet
     (limitPointFuncoid d hRefl hCont).fwd_set s =
       PosetFilter.principal
         (sInf {t : Set (dual α) | ∃ u : Set α, s ⊆ u ∧ t = limitPointsOfSet d u}) := by
-  simp [Funcoid.fwd_set, limitPointFuncoid_fwd_eq_sInf_limitPointsOfSet,
-    d, hRefl, hCont, s]
+  simp [Funcoid.fwd_set, limitPointFuncoid_fwd_eq_sInf_limitPointsOfSet]
 
 theorem self_is_limitPoint_singleton
     {α : Type u}
