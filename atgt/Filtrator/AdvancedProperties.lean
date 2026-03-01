@@ -300,7 +300,7 @@ variable {α : Type u}
 /- TODO: Rename below. -/
 
 /-- 1⇒2 in Corollary 518 tuple. -/
-noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α :=
+noncomputable def one_imp_two [Filtrator.OnPowerset α] : Filtrator.Primary α :=
   inferInstance
 
 /-- 2⇒3 in Corollary 518 tuple. -/
@@ -317,7 +317,7 @@ noncomputable instance two_imp_three
 
 /-- 1⇒3 in Corollary 518 tuple. -/
 noncomputable instance one_imp_three
-    [Filtrator.Powerset.{u, v} α]
+    [Filtrator.OnPowerset α]
     [SemilatticeInf (Filtrator.subset (α := α))]
     [OrderTop α]
     [OrderBot α]
@@ -325,7 +325,7 @@ noncomputable instance one_imp_three
       Filtrator.suborder (α := α) =
         (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder) :
     CompleteLattice (Filtrator.supset (α := α)) := by
-  letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
+  letI : Filtrator.Primary α := one_imp_two (α := α)
   exact two_imp_three (α := α) hcoreord
 
 end PrimaryMeetTopCompleteLatticeTuple
@@ -719,7 +719,7 @@ def FiniteFilterMeetFormula (α : Type u) [Filtrator α]
       IsGLB (Set.range Fs) R
 
 /-- 1⇒2 in Corollary 523 tuple. -/
-noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α :=
+noncomputable def one_imp_two [Filtrator.OnPowerset α] : Filtrator.Primary α :=
   inferInstance
 
 /-- 2⇒3 in Corollary 523 tuple (core filter-lattice form). -/
@@ -735,10 +735,10 @@ theorem two_imp_three
 
 /-- 1⇒3 in Corollary 523 tuple. -/
 theorem one_imp_three
-    [Filtrator.Powerset.{u, v} α]
+    [Filtrator.OnPowerset α]
     [Dcore : DistribLattice (Filtrator.subset (α := α))] :
     FiniteFilterMeetFormula α := by
-  letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
+  letI : Filtrator.Primary α := one_imp_two (α := α)
   exact two_imp_three (α := α)
 
 end FiniteFilterMeetCoreTuple
@@ -1095,7 +1095,7 @@ namespace FilterInfAssociativity
 variable {α : Type u}
 
 /-- 1⇒2 in Theorem 530 tuple. -/
-noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α :=
+noncomputable def one_imp_two [Filtrator.OnPowerset α] : Filtrator.Primary α :=
   inferInstance
 
 /-- 2⇒3 in Theorem 530 tuple (development-level complete-distributive form). -/
@@ -1112,14 +1112,14 @@ noncomputable instance two_imp_three
 
 /-- 1⇒3 in Theorem 530 tuple. -/
 noncomputable instance one_imp_three
-    [Filtrator.Powerset.{u, v} α]
+    [Filtrator.OnPowerset α]
     [OrderTop α]
     [OrderBot α]
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hcoreord : Filtrator.suborder (α := α) =
       Dcore.toLattice.toSemilatticeInf.toPartialOrder) :
     Order.Coframe (Filtrator.supset (α := α)) := by
-  letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
+  letI : Filtrator.Primary α := one_imp_two (α := α)
   exact two_imp_three (α := α) hcoreord
 
 end FilterInfAssociativity
@@ -1131,7 +1131,7 @@ namespace FilterAlsoDistributive
 variable {α : Type u}
 
 /-- 1⇒2 in Corollary 531 tuple. -/
-noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α :=
+noncomputable def one_imp_two [Filtrator.OnPowerset α] : Filtrator.Primary α :=
   inferInstance
 
 /-- 2⇒3 in Corollary 531 tuple: the filter lattice is distributive. -/
@@ -1150,14 +1150,14 @@ noncomputable instance two_imp_three
 
 /-- 1⇒3 in Corollary 531 tuple. -/
 noncomputable instance one_imp_three
-    [Filtrator.Powerset.{u, v} α]
+    [Filtrator.OnPowerset α]
     [OrderTop α]
     [OrderBot α]
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hcoreord : Filtrator.suborder (α := α) =
       Dcore.toLattice.toSemilatticeInf.toPartialOrder) :
     DistribLattice (Filtrator.supset (α := α)) := by
-  letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
+  letI : Filtrator.Primary α := one_imp_two (α := α)
   exact two_imp_three (α := α) hcoreord
 
 end FilterAlsoDistributive
@@ -1178,7 +1178,7 @@ namespace FilteredJoinClosedCore
 variable {α : Type u}
 
 /-- 1⇒2 in Theorem 534 tuple. -/
-noncomputable def one_imp_two [Filtrator.Powerset.{u, v} α] : Filtrator.Primary.{u, v} α :=
+noncomputable def one_imp_two [Filtrator.OnPowerset α] : Filtrator.Primary α :=
   inferInstance
 
 /-- 2⇒3 in Theorem 534 tuple. -/
@@ -1209,8 +1209,8 @@ instance two_imp_four [Filtrator.Primary α] : Filtrator.CoreJoinAligned α := b
   exact three_imp_four (α := α)
 
 /-- 1⇒4 in Theorem 534 tuple. -/
-instance one_imp_four [Filtrator.Powerset.{u, v} α] : Filtrator.CoreJoinAligned α := by
-  letI : Filtrator.Primary.{u, v} α := one_imp_two (α := α)
+instance one_imp_four [Filtrator.OnPowerset α] : Filtrator.CoreJoinAligned α := by
+  letI : Filtrator.Primary α := one_imp_two (α := α)
   exact two_imp_four (α := α)
 
 end FilteredJoinClosedCore

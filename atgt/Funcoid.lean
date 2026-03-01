@@ -7,7 +7,7 @@ class Funcoid
     (α: Type u) (β: Type w)
     -- {a: PartialOrder α} {b: PartialOrder β}
     -- [Filtrator.Powerset α] [Filtrator.Powerset β]
-  extends PointfreeFuncoid (@Filtrator.Powerset.primary α).supset (@Filtrator.Powerset.primary b)
+  extends PointfreeFuncoid (setPartialOrder α) (setPartialOrder β)
 
 def relImage
     {α : Type u} {β : Type v}
