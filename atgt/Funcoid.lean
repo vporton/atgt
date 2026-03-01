@@ -10,8 +10,6 @@ universe u v w
 --     -- [Filtrator.Powerset α] [Filtrator.Powerset β]
 --   extends PointfreeFuncoid (setPartialOrder α) (setPartialOrder β)
 
-abbrev Funcoid (α: Type u) (β: Type w) := PointfreeFuncoid (setPartialOrder α) (setPartialOrder β)
-
 def relImage
     {α : Type u} {β : Type v}
     (r : α → β → Prop) (A : Set α) : Set β :=
@@ -156,28 +154,28 @@ theorem principalFuncoid_comp
       rcases hyPre with ⟨z, hzC, hyz⟩
       exact ⟨z, hzC, ⟨y, hxy, hyz⟩⟩
 
-abbrev FilterFuncoid (α : Type u) (β : Type v) :=
+abbrev Funcoid (α : Type u) (β : Type v) :=
   PointfreeFuncoid
     (Filtrator.suporder (α := PosetFilter (setPartialOrder α)))
     (Filtrator.suporder (α := PosetFilter (setPartialOrder β)))
 
 namespace Funcoid
 
-def fwd_set {α β : Type*} (f : FilterFuncoid α β) (x : Set α)
+def fwd_set {α β : Type*} (f : Funcoid α β) (x : Set α)
     : Filtrator.FilterOnPowerset β :=
   (PointfreeFuncoid.fwd f) (PosetFilter.principal x)
 
-def bwd_set {α β : Type*} (f : FilterFuncoid α β) (y : Set β)
+def bwd_set {α β : Type*} (f : Funcoid α β) (y : Set β)
     : Filtrator.FilterOnPowerset α :=
   (PointfreeFuncoid.bwd f) (PosetFilter.principal y)
 end Funcoid
 
 export Funcoid (fwd_set bwd_set)
 
-lemma fcd_bwd_set_inv {α β : Type*} (f : FilterFuncoid α β) (x : Set α)
+lemma fcd_bwd_set_inv {α β : Type*} (f : Funcoid α β) (x : Set α)
     : (Funcoid.fwd_set f) x = (Funcoid.bwd_set f.inv) x
   := rfl
 
-lemma fcd_fwd_set_inv {α β : Type*} (f : FilterFuncoid α β) (y : Set β)
+lemma fcd_fwd_set_inv {α β : Type*} (f : Funcoid α β) (y : Set β)
     : (Funcoid.bwd_set f) y = (Funcoid.fwd_set f.inv) y
   := rfl
