@@ -1,13 +1,16 @@
 import atgt.PointfreeFuncoid
 import atgt.Filtrator.Powerset
+import atgt.PosetFilter
 
 universe u v w
 
-class Funcoid
-    (α: Type u) (β: Type w)
-    -- {a: PartialOrder α} {b: PartialOrder β}
-    -- [Filtrator.Powerset α] [Filtrator.Powerset β]
-  extends PointfreeFuncoid (setPartialOrder α) (setPartialOrder β)
+-- class Funcoid
+--     (α: Type u) (β: Type w)
+--     -- {a: PartialOrder α} {b: PartialOrder β}
+--     -- [Filtrator.Powerset α] [Filtrator.Powerset β]
+--   extends PointfreeFuncoid (setPartialOrder α) (setPartialOrder β)
+
+abbrev Funcoid (α: Type u) (β: Type w) := PointfreeFuncoid (setPartialOrder α) (setPartialOrder β)
 
 def relImage
     {α : Type u} {β : Type v}
@@ -152,3 +155,12 @@ theorem principalFuncoid_comp
       rcases hx with ⟨y, hyPre, hxy⟩
       rcases hyPre with ⟨z, hzC, hyz⟩
       exact ⟨z, hzC, ⟨y, hxy, hyz⟩⟩
+
+abbrev FilterFuncoid (α : Type u) (β : Type v) :=
+  PointfreeFuncoid
+    (Filtrator.suporder (α := PosetFilter (setPartialOrder α)))
+    (Filtrator.suporder (α := PosetFilter (setPartialOrder β)))
+
+def Funcoid.fwd_set {α β : Type*} (f : FilterFuncoid α β) (x : Set α) :
+    PosetFilter (setPartialOrder β) :=
+  (PointfreeFuncoid.fwd f) (PosetFilter.principal x)
