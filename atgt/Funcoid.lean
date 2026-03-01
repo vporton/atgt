@@ -176,8 +176,8 @@ export Funcoid (fwd_set bwd_set)
 
 lemma fcd_bwd_set_inv {α β : Type*} (f : FilterFuncoid α β) (x : Set α)
     : (Funcoid.fwd_set f) x = (Funcoid.bwd_set f.inv) x
-  := sorry
+  := rfl
 
 lemma fcd_fwd_set_inv {α β : Type*} (f : FilterFuncoid α β) (y : Set β)
     : (Funcoid.bwd_set f) y = (Funcoid.fwd_set f.inv) y
-  := sorry
+  := rfl
