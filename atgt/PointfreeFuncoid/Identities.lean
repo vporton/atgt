@@ -4,12 +4,19 @@ import atgt.PointfreeFuncoid.Core
 Section 20.5 (Domain and range of a pointfree funcoid), items 1635--1648.
 -/
 
+infix:50 " ⊑ " => fun {α : Sort _} [LE α] (x y : α) => x ≤ y
+
 def PointfreeFuncoid.identity {α : Type u}
     (X : PartialOrder α) : PointfreeFuncoid X X where
   fwd := id
   bwd := id
   rev x y := by
     simpa using (meet_comm x y)
+
+def PointfreeFuncoid.IsReflexive
+    {α : Type u} {X : PartialOrder α}
+    (d : PointfreeFuncoid X X) : Prop :=
+  PointfreeFuncoid.identity X ⊑ d
 
 def PointfreeFuncoid.restrictedIdentity {α : Type u}
     {X : SemilatticeInf α} (a : α) :

@@ -11,6 +11,8 @@ section
 
 variable {α : Type u} [TopologicalSpace α]
 
+-- FIXME: Remove superfluous below.
+
 lemma neighborhoodFuncoid_fwd_singleton_eq_nhdsKer (y : α) :
     (neighborhoodFuncoid (inferInstance : TopologicalSpace α)).fwd ({y} : Set α) =
       nhdsKer ({y} : Set α) := by
