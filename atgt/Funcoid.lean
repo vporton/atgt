@@ -164,3 +164,7 @@ abbrev FilterFuncoid (α : Type u) (β : Type v) :=
 def Funcoid.fwd_set {α β : Type*} (f : FilterFuncoid α β) (x : Set α)
     : Filtrator.FilterOnPowerset β :=
   (PointfreeFuncoid.fwd f) (PosetFilter.principal x)
+
+def Funcoid.bwd_set {α β : Type*} (f : FilterFuncoid α β) (y : Set β)
+    : Filtrator.FilterOnPowerset α :=
+  (PointfreeFuncoid.bwd f) (PosetFilter.principal y)
