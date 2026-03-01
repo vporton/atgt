@@ -79,8 +79,14 @@ theorem self_is_limitPoint_singleton
     hIdLe.1 ({x} : Set α)
   simpa [PointfreeFuncoid.identity] using hx
 
--- def IsBinaryRelationLimit {α: Type u} {β: Type v} (d: α → β → Prop) (F: Filtrator.FilterOnPowerset β) (x: α) :=
---   IsFuncoidLimit (principalFuncoid d) F x
+def limitOfFuncoid {α β: Type*} (d: Funcoid β β) (f: Funcoid α β)
+    (hRefl : PointfreeFuncoid.IsReflexive d)
+    (hCont : ∃! g : Funcoid β (dual β),
+      IsFwdContinuation1618 (limitPointsOfSet d) g)
+    := (f ∘ (limitPointFuncoid d hRefl hCont)).image
 
--- def IsFunctionLimit {α: Type u} {β: Type v} (d: α → β) (F: Filtrator.FilterOnPowerset β) (x: α) :=
---   IsFuncoidLimit (principalFuncoidOfFunction d) F x
+-- def IsBinaryRelationLimit {α β: Type*} (d: Funcoid α β) (f: α → β → Prop) (x: β) :=
+--   limitOfFuncoid d (principalFuncoid f) x
+
+-- def IsFunctionLimit {α β: Type*} (d: Funcoid α β) (f: α → β) (x: β) :=
+--   limitOfFuncoid d (principalFuncoidOfFunction f) x
