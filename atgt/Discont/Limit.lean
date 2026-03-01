@@ -20,45 +20,47 @@ def IsFwdContinuation1618 {α : Type u} {β : Type v}
 
 def limitPointsOfSet {α : Type u}
     (d : Funcoid α α)
-    (s : Set α) : Set (dual α) :=
-  {y : dual α | IsLimitPointOfSet d s y}
+    (s : Set α) :=
+  {y : α | IsLimitPointOfSet d s y}
+
+class HasLimitPointContinuation {α : Type u}
+    (d : Funcoid α α) : Prop where
+  existsUnique :
+    ∃! f : Funcoid α (dual α),
+      IsFwdContinuation1618 (limitPointsOfSet d) f
 
 noncomputable def limitPointFuncoid {α : Type u}
     (d : Funcoid α α)
     (_hRefl : PointfreeFuncoid.IsReflexive d)
-    (hCont : ∃! f : Funcoid α (dual α),
-      IsFwdContinuation1618 (limitPointsOfSet d) f) :
+    [hCont : HasLimitPointContinuation d] :
     Funcoid α (dual α) :=
-  Classical.choose (ExistsUnique.exists hCont)
+  Classical.choose (ExistsUnique.exists hCont.existsUnique)
 
 theorem limitPointFuncoid_isContinuation
     {α : Type u}
     (d : Funcoid α α)
     (hRefl : PointfreeFuncoid.IsReflexive d)
-    (hCont : ∃! f : Funcoid α (dual α),
-      IsFwdContinuation1618 (limitPointsOfSet d) f) :
-    IsFwdContinuation1618 (limitPointsOfSet d) (limitPointFuncoid d hRefl hCont) :=
-  Classical.choose_spec (ExistsUnique.exists hCont)
+    [hCont : HasLimitPointContinuation d] :
+    IsFwdContinuation1618 (limitPointsOfSet d) (limitPointFuncoid d hRefl) :=
+  Classical.choose_spec (ExistsUnique.exists hCont.existsUnique)
 
 theorem limitPointFuncoid_fwd_eq_sInf_limitPointsOfSet
     {α : Type u}
     (d : Funcoid α α)
     (hRefl : PointfreeFuncoid.IsReflexive d)
-    (hCont : ∃! f : Funcoid α (dual α),
-      IsFwdContinuation1618 (limitPointsOfSet d) f)
+    [hCont : HasLimitPointContinuation d]
     (s : Set α) :
-    (limitPointFuncoid d hRefl hCont).fwd s =
+    (limitPointFuncoid d hRefl).fwd s =
       sInf {t : Set (dual α) | ∃ u : Set α, s ⊆ u ∧ t = limitPointsOfSet d u} :=
-  (limitPointFuncoid_isContinuation d hRefl hCont) s
+  (limitPointFuncoid_isContinuation d hRefl) s
 
 theorem limitPointFuncoid_fwd_set_eq_principal_sInf_limitPointsOfSet
     {α : Type u}
     (d : Funcoid α α)
     (hRefl : PointfreeFuncoid.IsReflexive d)
-    (hCont : ∃! f : Funcoid α (dual α),
-      IsFwdContinuation1618 (limitPointsOfSet d) f)
+    [hCont : HasLimitPointContinuation d]
     (s : Set α) :
-    (limitPointFuncoid d hRefl hCont).fwd_set s =
+    (limitPointFuncoid d hRefl).fwd_set s =
       PosetFilter.principal
         (sInf {t : Set (dual α) | ∃ u : Set α, s ⊆ u ∧ t = limitPointsOfSet d u}) := by
   simp [Funcoid.fwd_set, limitPointFuncoid_fwd_eq_sInf_limitPointsOfSet]
@@ -81,9 +83,8 @@ theorem self_is_limitPoint_singleton
 
 def limitOfFuncoid {α β: Type*} (d: Funcoid β β) (f: Funcoid α β)
     (hRefl : PointfreeFuncoid.IsReflexive d)
-    (hCont : ∃! g : Funcoid β (dual β),
-      IsFwdContinuation1618 (limitPointsOfSet d) g)
-    := (f ∘ (limitPointFuncoid d hRefl hCont)).image
+    [hCont : HasLimitPointContinuation d]
+    := (f ∘ (limitPointFuncoid d hRefl)).image
 
 -- def IsBinaryRelationLimit {α β: Type*} (d: Funcoid α β) (f: α → β → Prop) (x: β) :=
 --   limitOfFuncoid d (principalFuncoid f) x
