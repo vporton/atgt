@@ -356,10 +356,9 @@ theorem pointfree_funcoid_fwd_value
     {α : Type u} {β : Type v}
     [X : Filtrator α]
     [F : Filtrator.Primary β]
-    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
-    (Ldst : CompleteLattice (Filtrator.subset (α := β)))
+    [Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β))]
     (h_dst_core_order :
-      Bdst.toPartialOrder = Filtrator.suborder (α := β))
+      Bdst.toBooleanAlgebra.toPartialOrder = Filtrator.suborder (α := β))
     (h_src_sep_up : X.separator_up_property)
     (A : α → β)
     (f : PointfreeFuncoid X.suporder (Filtrator.suporder (α := β)))
@@ -367,17 +366,17 @@ theorem pointfree_funcoid_fwd_value
     (h_lower :
       ∀ X' : α, X' ∈ Filtrator.up x →
         (↑(@sInf (Filtrator.subset (α := β))
-          Ldst.toInfSet
+          Bdst.toCompleteLattice.toInfSet
           {A z | z ∈ Filtrator.up x}) : β) ≤ f.fwd X')
     (h_reverse :
       f.continuationSeparator x ⊆
         separator
           (↑(@sInf (Filtrator.subset (α := β))
-            Ldst.toInfSet
+            Bdst.toCompleteLattice.toInfSet
             {A z | z ∈ Filtrator.up x}) : β)) :
     f.fwd x =
       (@sInf (Filtrator.subset (α := β))
-        Ldst.toInfSet
+        Bdst.toCompleteLattice.toInfSet
         {A z | z ∈ Filtrator.up x}) := by
   -- The proof path is established in helpers above (Proposition 1615 separator form and
   -- separator-based value recovery). The remaining bridge is to identify the separator of
@@ -385,22 +384,22 @@ theorem pointfree_funcoid_fwd_value
   -- machinery (Theorem 572 / Proposition 579 route from the PDF proof).
   -- Once those two bridge inclusions and destination separability are supplied, use
   -- `theorem1617_of_separator_bridge`.
-  letI : BooleanAlgebra (Filtrator.subset (α := β)) := Bdst
+  letI : BooleanAlgebra (Filtrator.subset (α := β)) := Bdst.toBooleanAlgebra
   have h_sep_dst : IsSeparable β := by
     have h_strong_dst : IsStronglySeparable β := by
       simpa [Filtrator.supset, Filtrator.suporder] using
         (primary_imp_booleanStronglySeparableCore
           (α := β)
-          (Bcore := Bdst)
+          (Bcore := Bdst.toBooleanAlgebra)
           (hcoreOrder := h_dst_core_order))
     exact stronglySeparable_imp_separable h_strong_dst
   have hfinal :
       f.fwd x =
         (↑(@sInf (Filtrator.subset (α := β))
-          Ldst.toInfSet
+          Bdst.toCompleteLattice.toInfSet
           {A z | z ∈ Filtrator.up x}) : β) :=
     theorem1617_of_separator_bridge
-      (Ldst := Ldst)
+      (Ldst := Bdst.toCompleteLattice)
       (h_src_sep_up := h_src_sep_up)
       (h_sep_dst := h_sep_dst)
       (f := f) (x := x) (A := A) h_lower h_reverse
@@ -1037,7 +1036,6 @@ theorem theorem1618_pf_cont_f
         simpa [Sx, hf_seed x] using hy_sep_fx
       exact pointfree_funcoid_fwd_value
         (X := X.toFiltrator) (F := Y)
-        (Ldst := Bdst.toCompleteLattice)
         (h_dst_core_order := h_dst_core_order)
         (h_src_sep_up := h_sep_up_src)
         (A := A) (f := f) (x := x)
