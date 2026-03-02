@@ -349,61 +349,209 @@ theorem theorem1617_of_separator_bridge
   exact hsInf_eq_fx.symm
 
 /--
-Theorem 1617 (p. 317), literal value equation form:
+Theorem 1617 (p. 317), \label{pf-supfun-up} literal value equation form:
 `⟨f⟩ x = sInf (⟨⟨f⟩⟩ (up x))`.
 -/
+noncomputable def theorem1617_dstCompleteLattice
+    {β : Type v}
+    [F : Filtrator.Primary β]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
+    (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β)) :
+    CompleteLattice β := by
+  have hTop_core_B :
+      @OrderTop (Filtrator.subset (α := β))
+        Bdst.toPartialOrder.toLE :=
+    Bdst.toBoundedOrder.toOrderTop
+  have hBot_core_B :
+      @OrderBot (Filtrator.subset (α := β))
+        Bdst.toPartialOrder.toLE :=
+    Bdst.toBoundedOrder.toOrderBot
+  letI : OrderTop (Filtrator.subset (α := β)) := by
+    simpa [h_dst_core_order] using hTop_core_B
+  letI : OrderBot (Filtrator.subset (α := β)) := by
+    simpa [h_dst_core_order] using hBot_core_B
+  letI : OrderTop β := Filtrator.Primary.TopOfPrimaryFiltrator (α := β)
+  letI : OrderBot β := Filtrator.Primary.BotOfPrimaryFiltrator (α := β)
+  exact primary_distribCore_imp_completeLattice
+    (α := β)
+    (Dcore := Bdst.toDistribLattice)
+    (hcoreord := by
+      simpa using h_dst_core_order.symm)
+
+noncomputable def theorem1617_sInfUpImage
+    {α : Type u} {β : Type v}
+    [X : Filtrator α]
+    [Y : Filtrator.Primary β]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
+    (h_dst_core_order :
+      Bdst.toPartialOrder = Filtrator.suborder (α := β))
+    (f : PointfreeFuncoid X.suporder Y.suporder)
+    (x : α) : β :=
+  let Ldst : CompleteLattice β :=
+    theorem1617_dstCompleteLattice
+      (β := β) (F := Y) (Bdst := Bdst) h_dst_core_order
+  @sInf β Ldst.toInfSet {z : β | ∃ X' ∈ Filtrator.up x, z = f.fwd X'}
+
+lemma theorem1617_sInfUpImage_le
+    {α : Type u} {β : Type v}
+    [X : Filtrator α]
+    [Y : Filtrator.Primary β]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
+    (h_dst_core_order :
+      Bdst.toPartialOrder = Filtrator.suborder (α := β))
+    (hLorder :
+      (theorem1617_dstCompleteLattice
+        (β := β) (F := Y) (Bdst := Bdst) h_dst_core_order).toPartialOrder = Y.suporder)
+    (f : PointfreeFuncoid X.suporder Y.suporder)
+    (x X' : α)
+    (hX' : X' ∈ Filtrator.up x) :
+    theorem1617_sInfUpImage
+      (h_dst_core_order := h_dst_core_order) (f := f) x ≤ f.fwd X' := by
+  let Ldst : CompleteLattice β :=
+    theorem1617_dstCompleteLattice
+      (β := β) (F := Y) (Bdst := Bdst) h_dst_core_order
+  letI : CompleteLattice β := Ldst
+  have hLorder' : Ldst.toPartialOrder = Y.suporder := by
+    simpa [Ldst] using hLorder
+  have hle :
+      @LE.le β Ldst.toPartialOrder.toLE
+        (theorem1617_sInfUpImage
+          (h_dst_core_order := h_dst_core_order) (f := f) x) (f.fwd X') := by
+    simpa [theorem1617_sInfUpImage, Ldst] using
+      (sInf_le (s := ({z : β | ∃ Z ∈ Filtrator.up x, z = f.fwd Z} : Set β))
+        (a := f.fwd X')
+        (by
+          exact ⟨X', hX', rfl⟩))
+  simpa [hLorder'] using hle
+
+lemma fwd_le_theorem1617_sInfUpImage
+    {α : Type u} {β : Type v}
+    [X : Filtrator α]
+    [Y : Filtrator.Primary β]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
+    (h_dst_core_order :
+      Bdst.toPartialOrder = Filtrator.suborder (α := β))
+    (hLorder :
+      (theorem1617_dstCompleteLattice
+        (β := β) (F := Y) (Bdst := Bdst) h_dst_core_order).toPartialOrder = Y.suporder)
+    (f : PointfreeFuncoid X.suporder Y.suporder)
+    (x : α)
+    (hmono_fwd : Monotone f.fwd) :
+    f.fwd x ≤ theorem1617_sInfUpImage
+      (h_dst_core_order := h_dst_core_order) (f := f) x := by
+  let Ldst : CompleteLattice β :=
+    theorem1617_dstCompleteLattice
+      (β := β) (F := Y) (Bdst := Bdst) h_dst_core_order
+  letI : CompleteLattice β := Ldst
+  have hLorder' : Ldst.toPartialOrder = Y.suporder := by
+    simpa [Ldst] using hLorder
+  have hmono_fwd' :
+      ∀ a b : α, a ≤ b →
+        @LE.le β Ldst.toPartialOrder.toLE (f.fwd a) (f.fwd b) := by
+    intro a b hab
+    simpa [hLorder'] using hmono_fwd hab
+  have hle :
+      @LE.le β Ldst.toPartialOrder.toLE
+        (f.fwd x) (theorem1617_sInfUpImage
+          (h_dst_core_order := h_dst_core_order) (f := f) x) := by
+    simpa [theorem1617_sInfUpImage, Ldst] using
+      (le_sInf (s := ({z : β | ∃ Z ∈ Filtrator.up x, z = f.fwd Z} : Set β))
+        (a := f.fwd x)
+        (by
+          intro z hz
+          rcases hz with ⟨X', hX', rfl⟩
+          exact hmono_fwd' x X' hX'.2))
+  simpa [hLorder'] using hle
+
 theorem pointfree_funcoid_fwd_value
     {α : Type u} {β : Type v}
     [X : Filtrator α]
     [F : Filtrator.Primary β]
-    [Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β))]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_dst_core_order :
-      Bdst.toBooleanAlgebra.toPartialOrder = Filtrator.suborder (α := β))
+      Bdst.toPartialOrder = Filtrator.suborder (α := β))
     (h_src_sep_up : X.separator_up_property)
-    (A : α → β)
     (f : PointfreeFuncoid X.suporder (Filtrator.suporder (α := β)))
-    (x : α)
-    (h_lower :
+    (x : α) :
+    f.fwd x =
+      theorem1617_sInfUpImage
+        (h_dst_core_order := h_dst_core_order)
+        (f := f) x := by
+  have hLorder :
+      (theorem1617_dstCompleteLattice
+        (β := β) (Bdst := Bdst) h_dst_core_order).toPartialOrder =
+          Filtrator.suporder (α := β) := by
+    rfl
+  let zInf : β :=
+    theorem1617_sInfUpImage
+      (h_dst_core_order := h_dst_core_order)
+      (f := f) x
+  letI : BooleanAlgebra (Filtrator.subset (α := β)) := Bdst
+  have h_strong_dst : IsStronglySeparable β := by
+    simpa [Filtrator.supset, Filtrator.suporder] using
+      (primary_imp_booleanStronglySeparableCore
+        (α := β)
+        (Bcore := Bdst)
+        (hcoreOrder := h_dst_core_order))
+  have h_sep_dst : IsSeparable β := by
+    exact stronglySeparable_imp_separable h_strong_dst
+  have hmono_fwd : Monotone f.fwd := by
+    intro x z hxz
+    apply h_strong_dst
+    intro y hy
+    have hxy : meet (f.fwd x) y := (meet_comm y (f.fwd x)).1 hy
+    have hbwdx : meet (f.bwd y) x := (f.rev x y).1 hxy
+    have hbwdz : meet (f.bwd y) z := meet_mono_right hxz hbwdx
+    have hzy : meet (f.fwd z) y := (f.rev z y).2 hbwdz
+    exact (meet_comm y (f.fwd z)).2 hzy
+  have h_lower :
       ∀ X' : α, X' ∈ Filtrator.up x →
-        (↑(@sInf (Filtrator.subset (α := β))
-          Bdst.toCompleteLattice.toInfSet
-          {A z | z ∈ Filtrator.up x}) : β) ≤ f.fwd X')
-    (h_reverse :
+        zInf ≤ f.fwd X' := by
+    intro X' hX'
+    simpa [zInf] using
+      theorem1617_sInfUpImage_le
+        (h_dst_core_order := h_dst_core_order)
+        (hLorder := hLorder)
+        (f := f) (x := x) (X' := X') hX'
+  have hfwd_le_sInf :
+      f.fwd x ≤
+        zInf := by
+    simpa [zInf] using
+      fwd_le_theorem1617_sInfUpImage
+        (h_dst_core_order := h_dst_core_order)
+        (hLorder := hLorder)
+        (f := f) (x := x) hmono_fwd
+  have h_reverse :
       f.continuationSeparator x ⊆
         separator
-          (↑(@sInf (Filtrator.subset (α := β))
-            Bdst.toCompleteLattice.toInfSet
-            {A z | z ∈ Filtrator.up x}) : β)) :
-    f.fwd x =
-      (@sInf (Filtrator.subset (α := β))
-        Bdst.toCompleteLattice.toInfSet
-        {A z | z ∈ Filtrator.up x}) := by
-  -- The proof path is established in helpers above (Proposition 1615 separator form and
-  -- separator-based value recovery). The remaining bridge is to identify the separator of
-  -- `sInf (A '' Filtrator.up x)` with `continuationSeparator`, via generalized-filter-base
-  -- machinery (Theorem 572 / Proposition 579 route from the PDF proof).
-  -- Once those two bridge inclusions and destination separability are supplied, use
-  -- `theorem1617_of_separator_bridge`.
-  letI : BooleanAlgebra (Filtrator.subset (α := β)) := Bdst.toBooleanAlgebra
-  have h_sep_dst : IsSeparable β := by
-    have h_strong_dst : IsStronglySeparable β := by
-      simpa [Filtrator.supset, Filtrator.suporder] using
-        (primary_imp_booleanStronglySeparableCore
-          (α := β)
-          (Bcore := Bdst.toBooleanAlgebra)
-          (hcoreOrder := h_dst_core_order))
-    exact stronglySeparable_imp_separable h_strong_dst
-  have hfinal :
-      f.fwd x =
-        (↑(@sInf (Filtrator.subset (α := β))
-          Bdst.toCompleteLattice.toInfSet
-          {A z | z ∈ Filtrator.up x}) : β) :=
-    theorem1617_of_separator_bridge
-      (Ldst := Bdst.toCompleteLattice)
-      (h_src_sep_up := h_src_sep_up)
+          zInf := by
+    intro y hy
+    have hy_sep_fx : y ∈ separator (f.fwd x) := by
+      simpa [proposition1615_source (h_sep_up := h_src_sep_up) (f := f) (x := x)] using hy
+    exact (le_imp_separator_subset (a := f.fwd x)
+      (b := zInf)
+      hfwd_le_sInf) hy_sep_fx
+  have hsubset :
+      separator
+        zInf ⊆
+        f.continuationSeparator x :=
+    separator_subset_continuationSeparator_of_lower_bound
+      (f := f) (x := x) (z := zInf) h_lower
+  have hsep :
+      separator
+        zInf =
+        f.continuationSeparator x :=
+    Set.Subset.antisymm hsubset h_reverse
+  have hsInf_eq_fx :
+      zInf =
+      f.fwd x :=
+    continuation_value_of_separator
+      (h_sep_up := h_src_sep_up)
       (h_sep_dst := h_sep_dst)
-      (f := f) (x := x) (A := A) h_lower h_reverse
-  simpa using hfinal
+      (f := f) (x := x)
+      (z := zInf)
+      hsep
+  simpa [zInf] using hsInf_eq_fx.symm
 
 /--
 `pf-cont` function continuation formula (`\ref{pf-alpha-filter}`) written in the current
@@ -979,67 +1127,7 @@ theorem theorem1618_pf_cont_f
     h_rel_to_fwd f hf_rel
   have hf : PointfreeFuncoid.fwdContinuationFromCore
       (Bdst := Bdst) (A := A) (X := X.toFiltrator) (Y := Y.toFiltrator) f :=
-    by
-      intro x
-      let Sx : Set (Filtrator.subset (α := β)) := {A z | z ∈ Filtrator.up x}
-      have h_lower :
-          ∀ X' : α, X' ∈ Filtrator.up x →
-            (↑(@sInf (Filtrator.subset (α := β))
-              Bdst.toCompleteLattice.toInfSet Sx) : β) ≤ f.fwd X' := by
-        intro X' hX'
-        let SX' : Set (Filtrator.subset (α := β)) := {A z | z ∈ Filtrator.up X'}
-        have hSX'_subset : SX' ⊆ Sx := by
-          intro y hy
-          rcases hy with ⟨z, hz, hyz⟩
-          refine ⟨z, ?_, hyz⟩
-          exact ⟨hz.1, le_trans hX'.2 hz.2⟩
-        have hsInf_core :
-            @LE.le (Filtrator.subset (α := β))
-              Bdst.toBooleanAlgebra.toPartialOrder.toLE
-              (@sInf (Filtrator.subset (α := β))
-                Bdst.toCompleteLattice.toInfSet Sx)
-              (@sInf (Filtrator.subset (α := β))
-                Bdst.toCompleteLattice.toInfSet SX') := by
-          exact sInf_le_sInf hSX'_subset
-        have hsInf_beta :
-            (↑(@sInf (Filtrator.subset (α := β))
-              Bdst.toCompleteLattice.toInfSet Sx) : β) ≤
-              (↑(@sInf (Filtrator.subset (α := β))
-                Bdst.toCompleteLattice.toInfSet SX') : β) := by
-          have hsInf_core_sub :
-              @LE.le (Filtrator.subset (α := β))
-                (Filtrator.suborder (α := β)).toLE
-                (@sInf (Filtrator.subset (α := β))
-                  Bdst.toCompleteLattice.toInfSet Sx)
-                (@sInf (Filtrator.subset (α := β))
-                  Bdst.toCompleteLattice.toInfSet SX') := by
-            simpa [h_dst_core_order] using hsInf_core
-          exact hsInf_core_sub
-        have hX'fwd : f.fwd X' =
-            (↑(@sInf (Filtrator.subset (α := β))
-              Bdst.toCompleteLattice.toInfSet SX') : β) :=
-          hf_seed X'
-        calc
-          (↑(@sInf (Filtrator.subset (α := β))
-            Bdst.toCompleteLattice.toInfSet Sx) : β) ≤
-              (↑(@sInf (Filtrator.subset (α := β))
-                Bdst.toCompleteLattice.toInfSet SX') : β) := hsInf_beta
-          _ = f.fwd X' := hX'fwd.symm
-      have h_reverse :
-          f.continuationSeparator x ⊆
-            separator
-              (↑(@sInf (Filtrator.subset (α := β))
-                Bdst.toCompleteLattice.toInfSet Sx) : β) := by
-        intro y hy
-        have hy_sep_fx : y ∈ separator (f.fwd x) := by
-          simpa [proposition1615_source (h_sep_up := h_sep_up_src) (f := f) (x := x)] using hy
-        simpa [Sx, hf_seed x] using hy_sep_fx
-      exact pointfree_funcoid_fwd_value
-        (X := X.toFiltrator) (F := Y)
-        (h_dst_core_order := h_dst_core_order)
-        (h_src_sep_up := h_sep_up_src)
-        (A := A) (f := f) (x := x)
-        h_lower h_reverse
+    hf_seed
   refine ⟨f, hf, ?_⟩
   intro g hg
   exact (theorem1618_pf_cont_f_unique
