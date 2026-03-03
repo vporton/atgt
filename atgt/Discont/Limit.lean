@@ -105,8 +105,9 @@ def limitOfFuncoid {α β: Type*} (d: Funcoid β β) (f: Funcoid α β)
   let g : Funcoid α (dual β) := (limitPointFuncoid (d := d)) ∘ f
   g.image
 
-def limitOfRestrictedFuncoid {α β: Type*} (d: Funcoid β β) (f: Funcoid α β) (a: Set α) :=
-  limitOfFuncoid d (f.restrict a)
+-- FIXME
+-- def limitOfRestrictedFuncoid {α: Type u} {β: Type v} (d: Funcoid β β) (f: Funcoid α β) (a: α) :=
+--   limitOfFuncoid d ((PointfreeFuncoid.restrict f) a)
 
 -- FIXME
 -- def IsBinaryRelationLimit {α β: Type*} (d: Funcoid β β) (f: α → β → Prop) (x: β) :=
