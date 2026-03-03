@@ -16,7 +16,8 @@ def IsLimitPointOfSet {α : Type u}
 def IsFwdContinuation1618 {α : Type u} {β : Type v}
     (A : Set α → Set β) (f : Funcoid α β) : Prop :=
   ∀ s : Set α,
-    f.fwd s = sInf {t : Set β | ∃ u : Set α, s ⊆ u ∧ t = A u}
+    Funcoid.fwd_set f s =
+      PosetFilter.principal (sInf {t : Set β | ∃ u : Set α, s ⊆ u ∧ t = A u})
 
 def limitPointsOfSet {α : Type u}
     (d : Funcoid α α)
@@ -29,8 +30,8 @@ theorem isLimitPointOfSet_empty
     (x : dual α) :
     IsLimitPointOfSet d (∅ : Set α) x := by
   unfold IsLimitPointOfSet IsFuncoidLimit Funcoid.fwd_set
-  rw [principals_le_iff]
-  simp
+  intro s hs
+  simp [PosetFilter.principal]
 
 theorem limitPointsOfSet_empty_eq_univ
     {α : Type u}
@@ -47,8 +48,21 @@ theorem isLimitPointOfSet_union_iff
     IsLimitPointOfSet d (A ∪ B) x ↔
       IsLimitPointOfSet d A x ∧ IsLimitPointOfSet d B x := by
   unfold IsLimitPointOfSet IsFuncoidLimit Funcoid.fwd_set
-  rw [principals_le_iff, principals_le_iff, principals_le_iff]
-  simp [Set.union_subset_iff]
+  constructor
+  · intro h
+    constructor
+    · intro s hs
+      intro a ha
+      exact h hs (Or.inl ha)
+    · intro s hs
+      intro b hb
+      exact h hs (Or.inr hb)
+  · intro h
+    intro s hs
+    intro z hz
+    cases hz with
+    | inl hzA => exact h.1 hs hzA
+    | inr hzB => exact h.2 hs hzB
 
 theorem limitPointsOfSet_union_eq_inter
     {α : Type u}
@@ -74,7 +88,7 @@ axiom limitPointFuncoid_existsUnique_of_reflexive -- FIXME: Rename.
 
 noncomputable instance limitPointFuncoid {α : Type u}
     (d : Funcoid α α) :
-    PointfreeFuncoid (setPartialOrder α) (setPartialOrder (dual α)) :=
+    Funcoid α (dual α) :=
   Classical.choose (ExistsUnique.exists (limitPointFuncoid_existsUnique_of_reflexive d))
 
 theorem limitPointFuncoid_isContinuation
@@ -87,8 +101,9 @@ theorem limitPointFuncoid_fwd_eq_sInf_limitPointsOfSet
     {α : Type u}
     (d : Funcoid α α)
     (s : Set α) :
-    (limitPointFuncoid (d := d)).fwd s =
-      sInf {t : Set (dual α) | ∃ u : Set α, s ⊆ u ∧ t = limitPointsOfSet d u} :=
+    Funcoid.fwd_set (limitPointFuncoid (d := d)) s =
+      PosetFilter.principal
+        (sInf {t : Set (dual α) | ∃ u : Set α, s ⊆ u ∧ t = limitPointsOfSet d u}) :=
   (limitPointFuncoid_isContinuation d) s
 
 theorem limitPointFuncoid_fwd_set_eq_principal_sInf_limitPointsOfSet
@@ -98,12 +113,12 @@ theorem limitPointFuncoid_fwd_set_eq_principal_sInf_limitPointsOfSet
     Funcoid.fwd_set (limitPointFuncoid (d := d)) s =
       PosetFilter.principal
         (sInf {t : Set (dual α) | ∃ u : Set α, s ⊆ u ∧ t = limitPointsOfSet d u}) := by
-  simp [Funcoid.fwd_set, limitPointFuncoid_fwd_eq_sInf_limitPointsOfSet]
+  simpa using limitPointFuncoid_fwd_eq_sInf_limitPointsOfSet (d := d) (s := s)
 
-def limitOfFuncoid {α β: Type*} (d: Funcoid β β) (f: Funcoid α β)
+noncomputable def limitOfFuncoid {α β: Type*} (d: Funcoid β β) (f: Funcoid α β)
     :=
   let g : Funcoid α (dual β) := (limitPointFuncoid (d := d)) ∘ f
-  g.image
+  g.fwd (PosetFilter.principal (Set.univ : Set α))
 
 -- FIXME
 -- def limitOfRestrictedFuncoid {α: Type u} {β: Type v} (d: Funcoid β β) (f: Funcoid α β) (a: α) :=

@@ -4,10 +4,17 @@ import atgt.PosetFilter
 
 universe u v w
 
-abbrev Funcoid (α : Type u) (β : Type v) :=
+/-- Pointfree funcoids on raw powersets (legacy layer). -/
+abbrev SetFuncoid (α : Type u) (β : Type v) :=
   PointfreeFuncoid
     (setPartialOrder α)
     (setPartialOrder β)
+
+/-- A (non-pointfree) funcoid is pointfree on filters over powersets. -/
+abbrev Funcoid (α : Type u) (β : Type v) :=
+  PointfreeFuncoid
+    (inferInstance : PartialOrder (Filtrator.FilterOnPowerset α))
+    (inferInstance : PartialOrder (Filtrator.FilterOnPowerset β))
 
 def relImage
     {α : Type u} {β : Type v}
@@ -47,7 +54,7 @@ lemma meet_set_iff_nonempty
 def principalFuncoid
     {α : Type u} {β : Type v}
     (r : α → β → Prop) :
-    Funcoid α β where
+    SetFuncoid α β where
   fwd := relImage r
   bwd := relPreimage r
   rev A B := by
@@ -70,7 +77,7 @@ def principalFuncoid
 def principalFuncoidOfFunction
     {α : Type u} {β : Type v}
     (f : α → β) :
-    Funcoid α β :=
+    SetFuncoid α β :=
   principalFuncoid (fun x y => f x = y)
 
 lemma principalFuncoid_fwd_singleton
@@ -157,11 +164,11 @@ namespace Funcoid
 
 def fwd_set {α β : Type*} (f : Funcoid α β) (x : Set α)
     : Filtrator.FilterOnPowerset β :=
-  PosetFilter.principal ((PointfreeFuncoid.fwd f) x)
+  (PointfreeFuncoid.fwd f) (PosetFilter.principal x)
 
 def bwd_set {α β : Type*} (f : Funcoid α β) (y : Set β)
     : Filtrator.FilterOnPowerset α :=
-  PosetFilter.principal ((PointfreeFuncoid.bwd f) y)
+  (PointfreeFuncoid.bwd f) (PosetFilter.principal y)
 end Funcoid
 
 export Funcoid (fwd_set bwd_set)
