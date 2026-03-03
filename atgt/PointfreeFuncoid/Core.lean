@@ -22,6 +22,10 @@ lemma PointfreeFuncoid.ext {α: Type u}{β: Type v} {a : PartialOrder α} {b : P
   cases f; cases g;
   congr
 
+def PointfreeFuncoid.src {α: Type u}{β: Type v}{a: PartialOrder α}{b: PartialOrder β} (_: PointfreeFuncoid a b) := α
+
+def PointfreeFuncoid.dst {α: Type u}{β: Type v}{a: PartialOrder α}{b: PartialOrder β} (_: PointfreeFuncoid a b) := β
+
 instance PointfreeFuncoid.inv {u v}
   {a : PartialOrder u}{b : PartialOrder v}
   (f : @PointfreeFuncoid u v a b) :
