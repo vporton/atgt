@@ -225,8 +225,7 @@ lemma meet_filter_iff_pairwise_inter_nonempty
       intro hCempty
       have hEmptyMem : (∅ : Set α) ∈ H.elements := by simpa [hCempty] using hC
       have hLeast : is_least H := by
-        intro K
-        intro S hS
+        intro K S hS
         have hEmptyCar : (∅ : Set α) ∈ H.carrier := by
           simpa [H.carrier_eq_elements] using hEmptyMem
         have hSCar : S ∈ H.carrier := by

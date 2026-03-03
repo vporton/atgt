@@ -51,15 +51,11 @@ theorem isLimitPointOfSet_union_iff
   constructor
   · intro h
     constructor
-    · intro s hs
-      intro a ha
+    · intro s hs  a ha
       exact h hs (Or.inl ha)
-    · intro s hs
-      intro b hb
+    · intro s hs b hb
       exact h hs (Or.inr hb)
-  · intro h
-    intro s hs
-    intro z hz
+  · intro h s hs z hz
     cases hz with
     | inl hzA => exact h.1 hs hzA
     | inr hzB => exact h.2 hs hzB

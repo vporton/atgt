@@ -1265,7 +1265,7 @@ theorem theorem1618_pf_cont_f
     have hAJ :
         A J = A I ⊔ A J := by
       calc
-        A J = A (I ⊔ J) := by simpa [hsup]
+        A J = A (I ⊔ J) := by simp [hsup]
         _ = A I ⊔ A J := hA_sup' I J
     calc
       A I ≤ A I ⊔ A J := le_sup_left
@@ -1490,7 +1490,7 @@ theorem theorem1618_pf_cont_f
       _ =
           @sInf β Ldstβ.toInfSet
             {z : β | ∃ Z : Filtrator.subset (α := α), Z ∈ Filtrator.up_suborder x ∧ A Z = z} := by
-          simpa [hset]
+          simp [hset]
       _ =
           @sInf β Ldstβ.toInfSet
             {A Z | Z ∈ Filtrator.up_suborder x} := by
