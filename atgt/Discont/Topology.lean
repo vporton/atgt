@@ -45,7 +45,7 @@ theorem neighborhoodFuncoid_idempotent :
     _ = neighborhoodFuncoid (inferInstance : TopologicalSpace α) := by
           simp [neighborhoodFuncoid, hrel]
 
--- FIXME
+-- FIXME: Use L from the book.
 theorem tendstotop_iff_fcd
     (x : α) (y : β)
     [TopologicalSpace β]
