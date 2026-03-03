@@ -11,8 +11,6 @@ section
 
 variable {α : Type u} [TopologicalSpace α]
 
--- FIXME: Remove superfluous below.
-
 lemma neighborhoodFuncoid_fwd_singleton_eq_nhdsKer (y : α) :
     (neighborhoodFuncoid (inferInstance : TopologicalSpace α)).fwd ({y} : Set α) =
       nhdsKer ({y} : Set α) := by
@@ -133,36 +131,5 @@ theorem tendsto_id_nhds_iff_isFuncoidLimit_neighborhoodFuncoid
       exact le_of_eq (principal_nhdsKer_singleton y).symm
     exact (le_principal_iff).1 hle
   simpa [neighborhoodFuncoid_fwd_singleton_eq_nhdsKer] using hker
-
--- theorem tendsto_id_nhds_iff_isBinaryRelationLimit_neighborhoodRel
---     [AlexandrovDiscrete α] (x y : α) :
---     Filter.Tendsto (fun z : α => z) (nhds x) (nhds y) ↔
---       IsBinaryRelationLimit (neighborhoodRel (inferInstance : TopologicalSpace α))
---         (Filtrator.ofMathlibFilter (nhds x)) y := by
---   simpa [IsBinaryRelationLimit, neighborhoodFuncoid] using
---     tendsto_id_nhds_iff_isFuncoidLimit_neighborhoodFuncoid (x := x) (y := y)
-
--- theorem tendsto_id_nhds_iff_isBinaryRelationLimit_neighborhoodRel_of_fwd_singleton_mem_nhds
---     (x y : α)
---     (hmem :
---       (neighborhoodFuncoid (inferInstance : TopologicalSpace α)).fwd ({y} : Set α) ∈ nhds y) :
---     Filter.Tendsto (fun z : α => z) (nhds x) (nhds y) ↔
---       IsBinaryRelationLimit (neighborhoodRel (inferInstance : TopologicalSpace α))
---         (Filtrator.ofMathlibFilter (nhds x)) y := by
---   simpa [IsBinaryRelationLimit, neighborhoodFuncoid] using
---     tendsto_id_nhds_iff_isFuncoidLimit_neighborhoodFuncoid_of_fwd_singleton_mem_nhds
---       (x := x) (y := y) hmem
-
--- theorem tendsto_id_nhds_iff_isBinaryRelationLimit_neighborhoodRel_of_self_le_fwd_set
---     (x y : α)
---     (hself :
---       Filtrator.ofMathlibFilter (nhds y) ≤
---         Funcoid.fwd_set (neighborhoodFuncoid (inferInstance : TopologicalSpace α)) ({y} : Set α)) :
---     Filter.Tendsto (fun z : α => z) (nhds x) (nhds y) ↔
---       IsBinaryRelationLimit (neighborhoodRel (inferInstance : TopologicalSpace α))
---         (Filtrator.ofMathlibFilter (nhds x)) y := by
---   simpa [IsBinaryRelationLimit, neighborhoodFuncoid] using
---     tendsto_id_nhds_iff_isFuncoidLimit_neighborhoodFuncoid_of_self_le_fwd_set
---       (x := x) (y := y) hself
 
 end
