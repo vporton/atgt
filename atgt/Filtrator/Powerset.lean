@@ -25,6 +25,7 @@ variable {α : Type u}
 
 abbrev FilterOnPowerset (α: Type*) := PosetFilter (setPartialOrder α)
 
+-- FIXME: It does not specify the filtrator core.
 abbrev FiltratorOnPowerset (α: Type*) := Filtrator (FilterOnPowerset α)
 
 -- TODO: To support "dual" funcoids like L in "Discontinuous Analysis", need to also define it up to isomorphism.
