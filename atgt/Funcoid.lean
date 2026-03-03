@@ -4,12 +4,6 @@ import atgt.PosetFilter
 
 universe u v w
 
-/-- Pointfree funcoids on raw powersets (legacy layer). -/
-abbrev SetFuncoid (α : Type u) (β : Type v) :=
-  PointfreeFuncoid
-    (setPartialOrder α)
-    (setPartialOrder β)
-
 /-- A (non-pointfree) funcoid is pointfree on filters over powersets. -/
 abbrev Funcoid (α : Type u) (β : Type v) :=
   PointfreeFuncoid
@@ -54,7 +48,9 @@ lemma meet_set_iff_nonempty
 def principalFuncoid
     {α : Type u} {β : Type v}
     (r : α → β → Prop) :
-    SetFuncoid α β where
+    PointfreeFuncoid
+      (setPartialOrder α)
+      (setPartialOrder β) where
   fwd := relImage r
   bwd := relPreimage r
   rev A B := by
@@ -77,7 +73,9 @@ def principalFuncoid
 def principalFuncoidOfFunction
     {α : Type u} {β : Type v}
     (f : α → β) :
-    SetFuncoid α β :=
+    PointfreeFuncoid
+      (setPartialOrder α)
+      (setPartialOrder β) :=
   principalFuncoid (fun x y => f x = y)
 
 lemma principalFuncoid_fwd_singleton
