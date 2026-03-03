@@ -71,7 +71,7 @@ instance PointfreeFuncoid.instPartialOrder {α β : Type*}
 --   }
 
 def comp {α β γ: Type*}{X: PartialOrder α}{Y: PartialOrder β}{Z: PartialOrder γ}
-    (f: PointfreeFuncoid X Y) (g: PointfreeFuncoid Y Z)
+    (g: PointfreeFuncoid Y Z) (f: PointfreeFuncoid X Y)
     : PointfreeFuncoid X Z
     := {
         fwd := g.fwd ∘ f.fwd
@@ -91,13 +91,13 @@ def comp {α β γ: Type*}{X: PartialOrder α}{Y: PartialOrder β}{Z: PartialOrd
 infixr:80 " ∘ " => comp
 
 theorem comp_assoc{α β γ δ : Type*} {X: PartialOrder α}{Y: PartialOrder β}{Z: PartialOrder γ}{W: PartialOrder δ}
-    (f: PointfreeFuncoid X Y) (g: PointfreeFuncoid Y Z) (h: PointfreeFuncoid Z W)
-    : (f ∘ g) ∘ h = f ∘ (g ∘ h) := by
+    (h: PointfreeFuncoid Z W) (g: PointfreeFuncoid Y Z) (f: PointfreeFuncoid X Y)
+    : (h ∘ g) ∘ f = h ∘ (g ∘ f) := by
     ext <;> rfl
 
 theorem inv_comp {α β γ : Type*} {X: PartialOrder α}{Y: PartialOrder β}{Z: PartialOrder γ}
     (f: PointfreeFuncoid X Y) (g: PointfreeFuncoid Y Z)
-    : (f ∘ g).inv = g.inv ∘ f.inv := by
+    : (g ∘ f).inv = f.inv ∘ g.inv := by
     ext <;> rfl
 
 def PointfreeFuncoid.funcoid_rel {α: Type u}{β: Type v}{X: PartialOrder α}{Y: PartialOrder β}

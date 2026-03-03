@@ -101,10 +101,16 @@ theorem limitPointFuncoid_fwd_set_eq_principal_sInf_limitPointsOfSet
   simp [Funcoid.fwd_set, limitPointFuncoid_fwd_eq_sInf_limitPointsOfSet]
 
 def limitOfFuncoid {α β: Type*} (d: Funcoid β β) (f: Funcoid α β)
-    := (f ∘ (limitPointFuncoid (d := d))).image
+    :=
+  let g : Funcoid α (dual β) := (limitPointFuncoid (d := d)) ∘ f
+  g.image
 
-def IsBinaryRelationLimit {α β: Type*} (d: Funcoid β β) (f: α → β → Prop) (x: β) :=
-  limitOfFuncoid d (principalFuncoid f) x
+def limitOfRestrictedFuncoid {α β: Type*} (d: Funcoid β β) (f: Funcoid α β) (a: Set α) :=
+  limitOfFuncoid d (f.restrict a)
 
-def IsFunctionLimit {α β: Type*} (d: Funcoid β β) (f: α → β) (x: β) :=
-  limitOfFuncoid d (principalFuncoidOfFunction f) x
+-- FIXME
+-- def IsBinaryRelationLimit {α β: Type*} (d: Funcoid β β) (f: α → β → Prop) (x: β) :=
+--   limitOfFuncoid d (principalFuncoid f) x
+
+-- def IsFunctionLimit {α β: Type*} (d: Funcoid β β) (f: α → β) (x: β) :=
+--   limitOfFuncoid d (principalFuncoidOfFunction f) x

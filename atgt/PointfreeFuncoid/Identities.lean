@@ -57,7 +57,7 @@ def PointfreeFuncoid.restrict {α : Type u} {β : Type v}
     {X : SemilatticeInf α} {Y : PartialOrder β}
     (f : PointfreeFuncoid X.toPartialOrder Y) (a : α) :
     PointfreeFuncoid X.toPartialOrder Y :=
-  (PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f
+  f ∘ (PointfreeFuncoid.restrictedIdentity (X := X) a)
 
 def PointfreeFuncoid.image {α : Type u} {β : Type v}
     {X : PartialOrder α} {Y : PartialOrder β}

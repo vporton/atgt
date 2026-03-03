@@ -128,7 +128,7 @@ theorem principalFuncoid_comp
     {α : Type u} {β : Type v} {γ : Type w}
     (r : α → β → Prop) (s : β → γ → Prop) :
     principalFuncoid (relComp r s) =
-      (principalFuncoid r) ∘ (principalFuncoid s) := by
+      (principalFuncoid s) ∘ (principalFuncoid r) := by
   apply PointfreeFuncoid.ext
   · funext A
     ext z

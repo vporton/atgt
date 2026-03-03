@@ -245,7 +245,7 @@ theorem binaryProduct_comp
     [OrderBot α] [OrderBot β] [OrderBot γ]
     (a : α) (b : β)
     (f : PointfreeFuncoid Y Z) :
-    (binaryProduct (X := X) (Y := Y) a b) ∘ f =
+    f ∘ (binaryProduct (X := X) (Y := Y) a b) =
       (binaryProduct (X := X) (Y := Z) a (f.fwd b)) := by
   classical
   apply PointfreeFuncoid.ext
@@ -270,7 +270,7 @@ theorem binaryProduct_comp_inv
     [OrderBot α] [OrderBot β] [OrderBot γ]
     (a : α) (b : β)
     (g : PointfreeFuncoid Z X) :
-    g ∘ (binaryProduct (X := X) (Y := Y) a b) =
+    (binaryProduct (X := X) (Y := Y) a b) ∘ g =
       (binaryProduct (X := Z) (Y := Y) (g.bwd a) b) := by
   let B := binaryProduct (X := Y) (Y := X) b a
   let B' := binaryProduct (X := Y) (Y := Z) b (g.inv.fwd a)
@@ -286,14 +286,12 @@ theorem binaryProduct_comp_inv
   have bin_prod_eq' := by
     simpa [inv_inv_funcoid] using congrArg PointfreeFuncoid.inv bin_prod_eq
   have inv_comp_eq :
-    g ∘ B.inv = (B ∘ g.inv).inv := by
-    have h_inv := inv_comp (f := B) (g := g.inv)
-    simp [PointfreeFuncoid.inv] at h_inv
-    exact h_inv.symm
+    B.inv ∘ g = (g.inv ∘ B).inv := by
+    ext <;> rfl
   calc
-    g ∘ (binaryProduct (X := X) (Y := Y) a b) =
-        g ∘ B.inv := by rw [bin_prod_eq']
-    _ = (B ∘ g.inv).inv := by rw [inv_comp_eq]
+    (binaryProduct (X := X) (Y := Y) a b) ∘ g =
+        B.inv ∘ g := by rw [bin_prod_eq']
+    _ = (g.inv ∘ B).inv := by rw [inv_comp_eq]
     _ = B'.inv := by rw [h]
     _ = binaryProduct (X := Z) (Y := Y) (g.inv.fwd a) b := by
       rw [binaryProduct_inv (X := Y) (Y := Z) (a := b) (b := g.inv.fwd a)]
@@ -309,16 +307,16 @@ private theorem theorem1664_binaryProduct_glb_witness
     (f : PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)
     (a : α) (b : β) :
     let h :=
-      (PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f ∘
-        (PointfreeFuncoid.restrictedIdentity (X := Y) b)
+      (PointfreeFuncoid.restrictedIdentity (X := Y) b) ∘ f ∘
+        (PointfreeFuncoid.restrictedIdentity (X := X) a)
     h ≤ f ∧ h ≤ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a b) ∧
       ∀ g : PointfreeFuncoid X.toPartialOrder Y.toPartialOrder,
         g ≤ f →
         g ≤ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a b) →
         g ≤ h := by
   let h :=
-    (PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f ∘
-      (PointfreeFuncoid.restrictedIdentity (X := Y) b)
+    (PointfreeFuncoid.restrictedIdentity (X := Y) b) ∘ f ∘
+      (PointfreeFuncoid.restrictedIdentity (X := X) a)
   have h_src_strong : IsStronglySeparable α :=
     separable_imp_stronglySeparable h_src_sep
   have h_dst_strong : IsStronglySeparable β :=
@@ -424,11 +422,11 @@ theorem theorem1664_binaryProduct_glb
     (f : PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)
     (a : α) (b : β) :
     f ⊓ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a b) =
-      (PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f ∘
-        (PointfreeFuncoid.restrictedIdentity (X := Y) b) := by
+      (PointfreeFuncoid.restrictedIdentity (X := Y) b) ∘ f ∘
+        (PointfreeFuncoid.restrictedIdentity (X := X) a) := by
   let h :=
-    (PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f ∘
-      (PointfreeFuncoid.restrictedIdentity (X := Y) b)
+    (PointfreeFuncoid.restrictedIdentity (X := Y) b) ∘ f ∘
+      (PointfreeFuncoid.restrictedIdentity (X := X) a)
   have hle_iff' :
       ∀ p q : PointfreeFuncoid X.toPartialOrder Y.toPartialOrder,
         @LE.le (PointfreeFuncoid X.toPartialOrder Y.toPartialOrder)
@@ -481,8 +479,8 @@ theorem corollary1665_restrict_glb
       (h_src_sep := h_src_sep) (h_dst_sep := h_dst_sep)
       (f := f) (a := a) (b := (⊤ : β))
   have hh_eq :
-      (PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f ∘
-        (PointfreeFuncoid.restrictedIdentity (X := Y) (⊤ : β)) = f.restrict a := by
+      (PointfreeFuncoid.restrictedIdentity (X := Y) (⊤ : β)) ∘ f ∘
+        (PointfreeFuncoid.restrictedIdentity (X := X) a) = f.restrict a := by
     apply PointfreeFuncoid.ext
     · funext x
       simp [PointfreeFuncoid.restrict, comp, PointfreeFuncoid.restrictedIdentity]
@@ -490,8 +488,8 @@ theorem corollary1665_restrict_glb
       simp [PointfreeFuncoid.restrict, comp, PointfreeFuncoid.restrictedIdentity]
   calc
     f.restrict a =
-        (PointfreeFuncoid.restrictedIdentity (X := X) a) ∘ f ∘
-          (PointfreeFuncoid.restrictedIdentity (X := Y) (⊤ : β)) := hh_eq.symm
+        (PointfreeFuncoid.restrictedIdentity (X := Y) (⊤ : β)) ∘ f ∘
+          (PointfreeFuncoid.restrictedIdentity (X := X) a) := hh_eq.symm
     _ = f ⊓ (binaryProduct (X := X.toPartialOrder) (Y := Y.toPartialOrder) a (⊤ : β)) :=
       h_glb_eq.symm
 
