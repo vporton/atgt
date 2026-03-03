@@ -118,13 +118,15 @@ theorem limitPointFuncoid_fwd_set_eq_principal_sInf_limitPointsOfSet
 noncomputable def limitOfFuncoid {α β: Type*} (d: Funcoid β β) (f: Funcoid α β) :=
   ((limitPointFuncoid (d := d)) ∘ f).image
 
--- FIXME
--- def limitOfRestrictedFuncoid {α: Type u} {β: Type v} (d: Funcoid β β) (f: Funcoid α β) (a: α) :=
---   limitOfFuncoid d ((PointfreeFuncoid.restrict f) a)
+noncomputable def limitOfRestrictedFuncoid
+    {α: Type u} {β: Type v}
+    (d: Funcoid β β)
+    (f: Funcoid α β)
+    (a: Filtrator.FilterOnPowerset α) :=
+  ((limitPointFuncoid (d := d)) ∘ f).fwd a
 
--- FIXME
--- def IsBinaryRelationLimit {α β: Type*} (d: Funcoid β β) (f: α → β → Prop) (x: β) :=
---   limitOfFuncoid d (principalFuncoid f) x
+noncomputable def IsBinaryRelationLimit {α β: Type*} (d: Funcoid β β) (f: α → β → Prop) (a: Filtrator.FilterOnPowerset α) :=
+  limitOfRestrictedFuncoid d (principalFuncoid f) a
 
--- def IsFunctionLimit {α β: Type*} (d: Funcoid β β) (f: α → β) (x: β) :=
---   limitOfFuncoid d (principalFuncoidOfFunction f) x
+noncomputable def IsFunctionLimit  {α β: Type*} (d: Funcoid β β) (f: α → β) (a: Filtrator.FilterOnPowerset α) :=
+  limitOfRestrictedFuncoid d (principalFuncoidOfFunction f) a
