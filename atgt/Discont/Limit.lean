@@ -128,5 +128,5 @@ noncomputable def limitOfRestrictedFuncoid
 noncomputable def IsBinaryRelationLimit {α β: Type*} (d: Funcoid β β) (f: α → β → Prop) (a: Filtrator.FilterOnPowerset α) :=
   limitOfRestrictedFuncoid d (principalFuncoid f) a
 
-noncomputable def IsFunctionLimit  {α β: Type*} (d: Funcoid β β) (f: α → β) (a: Filtrator.FilterOnPowerset α) :=
+noncomputable def IsFunctionLimit {α β: Type*} (d: Funcoid β β) (f: α → β) (a: Filtrator.FilterOnPowerset α) :=
   limitOfRestrictedFuncoid d (principalFuncoidOfFunction f) a
