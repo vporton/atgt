@@ -45,6 +45,7 @@ lemma meet_set_iff_nonempty
     have hxEmpty : x ∈ (∅ : Set α) := hLeast ∅ hx
     simp at hxEmpty
 
+-- FIXME
 def principalFuncoid
     {α : Type u} {β : Type v}
     (r : α → β → Prop) :
