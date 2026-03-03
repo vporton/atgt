@@ -27,6 +27,8 @@ abbrev FilterOnPowerset (α: Type*) := PosetFilter (setPartialOrder α)
 
 abbrev FiltratorOnPowerset (α: Type*) := Filtrator (FilterOnPowerset α)
 
+-- TODO: To support "dual" funcoids like L in "Discontinuous Analysis", need to also define it up to isomorphism.
+
 /-- Canonical filtrator structure on powerset filters. -/
 instance instFiltratorOnPowerset (α : Type*) : FiltratorOnPowerset α :=
   FiltratorOfFilters (inst := setPartialOrder α)
