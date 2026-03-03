@@ -1073,9 +1073,9 @@ theorem theorem1618_pf_cont_r
 noncomputable def theorem1618_pf_cont_f_orderBot
     {β : Type v}
     [Y : Filtrator.Primary β]
-    [Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β))]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_dst_core_order :
-      Bdst.toBooleanAlgebra.toPartialOrder = Filtrator.suborder (α := β)) :
+      Bdst.toPartialOrder = Filtrator.suborder (α := β)) :
     OrderBot β := by
   letI : OrderBot (Filtrator.subset (α := β)) := by
     refine
@@ -1084,18 +1084,18 @@ noncomputable def theorem1618_pf_cont_f_orderBot
     intro a
     have hbot_le_core :
         @LE.le (Filtrator.subset (α := β))
-          Bdst.toBooleanAlgebra.toPartialOrder.toLE
+          Bdst.toPartialOrder.toLE
           (⊥ : Filtrator.subset (α := β)) a := by
-      exact Bdst.toBooleanAlgebra.bot_le a
+      exact Bdst.bot_le a
     simpa [h_dst_core_order] using hbot_le_core
   exact Filtrator.Primary.BotOfPrimaryFiltrator (F := Y)
 
 noncomputable def theorem1618_pf_cont_f_orderTop
     {β : Type v}
     [Y : Filtrator.Primary β]
-    [Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β))]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_dst_core_order :
-      Bdst.toBooleanAlgebra.toPartialOrder = Filtrator.suborder (α := β)) :
+      Bdst.toPartialOrder = Filtrator.suborder (α := β)) :
     OrderTop β := by
   letI : OrderTop (Filtrator.subset (α := β)) := by
     refine
@@ -1104,18 +1104,18 @@ noncomputable def theorem1618_pf_cont_f_orderTop
     intro a
     have hle_top_core :
         @LE.le (Filtrator.subset (α := β))
-          Bdst.toBooleanAlgebra.toPartialOrder.toLE
+          Bdst.toPartialOrder.toLE
           a (⊤ : Filtrator.subset (α := β)) := by
-      exact Bdst.toBooleanAlgebra.le_top a
+      exact Bdst.le_top a
     simpa [h_dst_core_order] using hle_top_core
   exact Filtrator.Primary.TopOfPrimaryFiltrator (F := Y)
 
 noncomputable def theorem1618_pf_cont_f_distrib
     {β : Type v}
     [Y : Filtrator.Primary β]
-    [Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β))]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_dst_core_order :
-      Bdst.toBooleanAlgebra.toPartialOrder = Filtrator.suborder (α := β)) :
+      Bdst.toPartialOrder = Filtrator.suborder (α := β)) :
     DistribLattice β := by
   letI : OrderBot β :=
     theorem1618_pf_cont_f_orderBot
@@ -1125,11 +1125,11 @@ noncomputable def theorem1618_pf_cont_f_distrib
       (Y := Y) (Bdst := Bdst) h_dst_core_order
   have hcoreord :
       Filtrator.suborder (α := β) =
-        Bdst.toBooleanAlgebra.toDistribLattice.toLattice.toSemilatticeInf.toPartialOrder := by
+        Bdst.toDistribLattice.toLattice.toSemilatticeInf.toPartialOrder := by
     simpa using h_dst_core_order.symm
   exact FilterAlsoDistributive.two_imp_three
     (α := β)
-    (Dcore := Bdst.toBooleanAlgebra.toDistribLattice)
+    (Dcore := Bdst.toDistribLattice)
     hcoreord
 
 /--
@@ -1142,9 +1142,9 @@ theorem theorem1618_pf_cont_f
     {α : Type u} {β : Type v}
     [X : Filtrator.Primary α] [Y : Filtrator.Primary β]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
-    [Bdst : CompleteBooleanAlgebra (Filtrator.subset (α := β))]
+    [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
-    (h_dst_core_order : Bdst.toBooleanAlgebra.toPartialOrder = Filtrator.suborder (α := β))
+    (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
     (h_sep_up_src : (X.toFiltrator).separator_up_property)
     (h_sep_up_dst : (Y.toFiltrator).separator_up_property)
     (A : Filtrator.subset (α := α) → β)
@@ -1163,7 +1163,7 @@ theorem theorem1618_pf_cont_f
     ∃! f : PointfreeFuncoid X.toFiltrator.suporder Y.toFiltrator.suporder,
       PointfreeFuncoid.fwdContinuationFromCore
         (Ldst := theorem1617_dstCompleteLattice
-          (β := β) (F := Y) (Bdst := Bdst.toBooleanAlgebra) h_dst_core_order)
+          (β := β) (F := Y) (Bdst := Bdst) h_dst_core_order)
         (A := A) (X := X.toFiltrator) (Y := Y.toFiltrator) f := by
   have h_sep_src : IsSeparable α :=
     separable_of_primary_boolean_core
@@ -1202,7 +1202,7 @@ theorem theorem1618_pf_cont_f
       simpa [h_src_core_order] using hab_sub
   have h_core_dst_le_iff_ambient
       (a b : Filtrator.subset (α := β)) :
-      (@LE.le (Filtrator.subset (α := β)) Bdst.toBooleanAlgebra.toPartialOrder.toLE a b) ↔ a.1 ≤ b.1 := by
+      (@LE.le (Filtrator.subset (α := β)) Bdst.toPartialOrder.toLE a b) ↔ a.1 ≤ b.1 := by
     constructor
     · intro hab
       have hab_sub :
@@ -1222,8 +1222,8 @@ theorem theorem1618_pf_cont_f
     have h_up_sub : Filtrator.up (⊥ : β) ⊆ Filtrator.up botCore.1 := by
       intro y hy
       have hbot_le_sub :
-          @LE.le (Filtrator.subset (α := β)) Bdst.toBooleanAlgebra.toPartialOrder.toLE
-            botCore ⟨y, hy.1⟩ := Bdst.toBooleanAlgebra.bot_le ⟨y, hy.1⟩
+          @LE.le (Filtrator.subset (α := β)) Bdst.toPartialOrder.toLE
+            botCore ⟨y, hy.1⟩ := Bdst.bot_le ⟨y, hy.1⟩
       have hbot_le_ambient : botCore.1 ≤ y :=
         (h_core_dst_le_iff_ambient botCore ⟨y, hy.1⟩).1 hbot_le_sub
       exact ⟨hy.1, hbot_le_ambient⟩
@@ -1279,7 +1279,7 @@ theorem theorem1618_pf_cont_f
     have hcore_lub :
         IsLUB ({I', J'} : Set (Filtrator.subset (α := β))) (I' ⊔ J') := by
       have hcore_lub_B :
-          @IsLUB (Filtrator.subset (α := β)) Bdst.toBooleanAlgebra.toPartialOrder.toLE
+          @IsLUB (Filtrator.subset (α := β)) Bdst.toPartialOrder.toLE
             ({I', J'} : Set (Filtrator.subset (α := β))) (I' ⊔ J') := by
         simpa using (isLUB_pair (a := I') (b := J'))
       simpa [h_dst_core_order] using hcore_lub_B
@@ -1418,10 +1418,10 @@ theorem theorem1618_pf_cont_f
       (hδ_sup_right := hδ_sup_right) with ⟨f, hf_rel, _⟩
   let Ldstβ : CompleteLattice β :=
     theorem1617_dstCompleteLattice
-      (β := β) (F := Y) (Bdst := Bdst.toBooleanAlgebra) h_dst_core_order
+      (β := β) (F := Y) (Bdst := Bdst) h_dst_core_order
   have h_sep_dst : IsSeparable β :=
     separable_of_primary_boolean_core
-      (γ := β) (Bcore := Bdst.toBooleanAlgebra) h_dst_core_order
+      (γ := β) (Bcore := Bdst) h_dst_core_order
   have h_core_eq :
       ∀ X0 : Filtrator.subset (α := α), f.fwd X0.1 = A X0 := by
     intro X0
