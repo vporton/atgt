@@ -7,10 +7,8 @@ universe u v w
 def IsFuncoidLimit {α: Type u} {β: Type v} (d: Funcoid α β) (F: Filtrator.FilterOnPowerset β) (x: α) :=
   F ≤ Funcoid.fwd_set d ({x} : Set α)
 
-abbrev dual (α : Type u) := OrderDual α -- TODO: superfluous
-
 def IsLimitPointOfSet {α : Type u}
-    (d : Funcoid α α) (s : Set α) (x : dual α) : Prop :=
+    (d : Funcoid α α) (s : Set α) (x : OrderDual α) : Prop :=
   IsFuncoidLimit d (PosetFilter.principal s) (OrderDual.ofDual x)
 
 def IsFwdContinuation1618 {α : Type u} {β : Type v}
@@ -27,7 +25,7 @@ def limitPointsOfSet {α : Type u}
 theorem isLimitPointOfSet_empty
     {α : Type u}
     (d : Funcoid α α)
-    (x : dual α) :
+    (x : OrderDual α) :
     IsLimitPointOfSet d (∅ : Set α) x := by
   unfold IsLimitPointOfSet IsFuncoidLimit Funcoid.fwd_set
   intro s hs
@@ -36,7 +34,7 @@ theorem isLimitPointOfSet_empty
 theorem limitPointsOfSet_empty_eq_univ
     {α : Type u}
     (d : Funcoid α α) :
-    limitPointsOfSet d (∅ : Set α) = (Set.univ : Set (dual α)) := by
+    limitPointsOfSet d (∅ : Set α) = (Set.univ : Set (OrderDual α)) := by
   ext x
   simp [limitPointsOfSet, isLimitPointOfSet_empty]
 
@@ -44,7 +42,7 @@ theorem isLimitPointOfSet_union_iff
     {α : Type u}
     (d : Funcoid α α)
     (A B : Set α)
-    (x : dual α) :
+    (x : OrderDual α) :
     IsLimitPointOfSet d (A ∪ B) x ↔
       IsLimitPointOfSet d A x ∧ IsLimitPointOfSet d B x := by
   unfold IsLimitPointOfSet IsFuncoidLimit Funcoid.fwd_set
@@ -71,7 +69,7 @@ theorem limitPointsOfSet_union_eq_inter
 
 /--
 Proposition 10 (assumed existence/uniqueness statement in this development):
-for reflexive `d`, there exists a unique dual pointfree funcoid whose forward continuation
+for reflexive `d`, there exists a unique OrderDual pointfree funcoid whose forward continuation
 equals `limitPointsOfSet d`.
 
 FIXME: The requirement to be reflexive seems superfluous.
@@ -79,12 +77,12 @@ FIXME: The requirement to be reflexive seems superfluous.
 axiom limitPointFuncoid_existsUnique_of_reflexive -- FIXME: Rename.
     {α : Type u}
     (d : Funcoid α α) :
-    ∃! f : Funcoid α (dual α),
+    ∃! f : Funcoid α (OrderDual α),
       IsFwdContinuation1618 (limitPointsOfSet d) f
 
 noncomputable instance limitPointFuncoid {α : Type u}
     (d : Funcoid α α) :
-    Funcoid α (dual α) :=
+    Funcoid α (OrderDual α) :=
   Classical.choose (ExistsUnique.exists (limitPointFuncoid_existsUnique_of_reflexive d))
 
 theorem limitPointFuncoid_isContinuation
@@ -99,7 +97,7 @@ theorem limitPointFuncoid_fwd_eq_sInf_limitPointsOfSet
     (s : Set α) :
     Funcoid.fwd_set (limitPointFuncoid (d := d)) s =
       PosetFilter.principal
-        (sInf {t : Set (dual α) | ∃ u : Set α, s ⊆ u ∧ t = limitPointsOfSet d u}) :=
+        (sInf {t : Set (OrderDual α) | ∃ u : Set α, s ⊆ u ∧ t = limitPointsOfSet d u}) :=
   (limitPointFuncoid_isContinuation d) s
 
 theorem limitPointFuncoid_fwd_set_eq_principal_sInf_limitPointsOfSet
@@ -108,7 +106,7 @@ theorem limitPointFuncoid_fwd_set_eq_principal_sInf_limitPointsOfSet
     (s : Set α) :
     Funcoid.fwd_set (limitPointFuncoid (d := d)) s =
       PosetFilter.principal
-        (sInf {t : Set (dual α) | ∃ u : Set α, s ⊆ u ∧ t = limitPointsOfSet d u}) := by
+        (sInf {t : Set (OrderDual α) | ∃ u : Set α, s ⊆ u ∧ t = limitPointsOfSet d u}) := by
   simpa using limitPointFuncoid_fwd_eq_sInf_limitPointsOfSet (d := d) (s := s)
 
 noncomputable def limitOfFuncoid {α β: Type*} (d: Funcoid β β) (f: Funcoid α β) :=
