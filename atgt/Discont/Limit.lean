@@ -162,7 +162,9 @@ lemma limitOfRestrictedFuncoid_eq
     (a: Filtrator.FilterOnPowerset α) :
     limitOfRestrictedFuncoid d f a =
       limitOfFuncoid d (restrictFuncoidViaOrderEq f hsrcOrder a) := by
-  sorry
+  cases hsrcOrder
+  simp [limitOfRestrictedFuncoid, limitOfFuncoid, restrictFuncoidViaOrderEq,
+    PointfreeFuncoid.image, PointfreeFuncoid.restrict, PointfreeFuncoid.restrictedIdentity, comp]
 
 noncomputable def IsBinaryRelationLimit {α β: Type*} (d: Funcoid β β) (f: α → β → Prop) (a: Filtrator.FilterOnPowerset α) :=
   limitOfRestrictedFuncoid d (principalFuncoid f) a
