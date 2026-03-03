@@ -128,7 +128,6 @@ noncomputable def limitOfRestrictedFuncoid
 noncomputable def restrictFuncoidViaOrderEq
     {α: Type u} {β: Type v}
     (f: Funcoid α β)
-    [SemilatticeInf (Filtrator.FilterOnPowerset α)]
     (hsrcOrder :
       (SemilatticeInf.toPartialOrder
         (self := (inferInstance : SemilatticeInf (Filtrator.FilterOnPowerset α)))) =
@@ -156,7 +155,6 @@ lemma limitOfRestrictedFuncoid_eq
     {α: Type u} {β: Type v}
     (d: Funcoid β β)
     (f: Funcoid α β)
-    [SemilatticeInf (Filtrator.FilterOnPowerset α)] -- FIXME: Don't assume, prove
     (hsrcOrder :
       (SemilatticeInf.toPartialOrder
         (self := (inferInstance : SemilatticeInf (Filtrator.FilterOnPowerset α)))) =

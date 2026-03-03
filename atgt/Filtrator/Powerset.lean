@@ -103,6 +103,29 @@ theorem toMathlibFilter_bijective :
     Function.Bijective (toMathlibFilter (α := α)) :=
   equivMathlibFilter (α := α).bijective
 
+/-- `FilterOnPowerset α` inherits binary infimum from Mathlib filters via the equivalence. -/
+instance instSemilatticeInfFilterOnPowerset (α : Type*) :
+    SemilatticeInf (FilterOnPowerset α) where
+  inf F G := ofMathlibFilter (α := α) (toMathlibFilter F ⊓ toMathlibFilter G)
+  inf_le_left := by
+    intro F G
+    change F.elements ⊆ (ofMathlibFilter (α := α) (toMathlibFilter F ⊓ toMathlibFilter G)).elements
+    intro s hs
+    exact (inf_le_left : toMathlibFilter F ⊓ toMathlibFilter G ≤ toMathlibFilter F) hs
+  inf_le_right := by
+    intro F G
+    change G.elements ⊆ (ofMathlibFilter (α := α) (toMathlibFilter F ⊓ toMathlibFilter G)).elements
+    intro s hs
+    exact (inf_le_right : toMathlibFilter F ⊓ toMathlibFilter G ≤ toMathlibFilter G) hs
+  le_inf := by
+    intro F G H hFG hFH
+    change (ofMathlibFilter (α := α) (toMathlibFilter G ⊓ toMathlibFilter H)).elements ⊆ F.elements
+    intro s hs
+    exact
+      (le_inf
+        (show toMathlibFilter F ≤ toMathlibFilter G from hFG)
+        (show toMathlibFilter F ≤ toMathlibFilter H from hFH)) hs
+
 end FilterCorrespondence
 
 export FilterCorrespondence (toMathlibFilter ofMathlibFilter equivMathlibFilter toMathlibFilter_bijective)
