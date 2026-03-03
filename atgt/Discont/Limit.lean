@@ -67,6 +67,7 @@ theorem limitPointsOfSet_union_eq_inter
   ext x
   simp [limitPointsOfSet, isLimitPointOfSet_union_iff]
 
+-- FIXME: Mean AI added an `axiom`.
 /--
 Proposition 10 (assumed existence/uniqueness statement in this development):
 for reflexive `d`, there exists a unique OrderDual pointfree funcoid whose forward continuation
