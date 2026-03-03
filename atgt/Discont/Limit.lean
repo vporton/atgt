@@ -125,6 +125,47 @@ noncomputable def limitOfRestrictedFuncoid
     (a: Filtrator.FilterOnPowerset α) :=
   ((limitPointFuncoid (d := d)) ∘ f).fwd a
 
+noncomputable def restrictFuncoidViaOrderEq
+    {α: Type u} {β: Type v}
+    (f: Funcoid α β)
+    [SemilatticeInf (Filtrator.FilterOnPowerset α)]
+    (hsrcOrder :
+      (SemilatticeInf.toPartialOrder
+        (self := (inferInstance : SemilatticeInf (Filtrator.FilterOnPowerset α)))) =
+      (inferInstance : PartialOrder (Filtrator.FilterOnPowerset α)))
+    (a : Filtrator.FilterOnPowerset α) :
+    Funcoid α β := by
+  let hfTy :
+      Funcoid α β =
+        PointfreeFuncoid
+          ((inferInstance : SemilatticeInf (Filtrator.FilterOnPowerset α)).toPartialOrder)
+          (inferInstance : PartialOrder (Filtrator.FilterOnPowerset β)) := by
+    simpa [Funcoid] using
+      congrArg
+        (fun X : PartialOrder (Filtrator.FilterOnPowerset α) =>
+          PointfreeFuncoid X (inferInstance : PartialOrder (Filtrator.FilterOnPowerset β)))
+        hsrcOrder.symm
+  let fSemi :
+      PointfreeFuncoid
+        ((inferInstance : SemilatticeInf (Filtrator.FilterOnPowerset α)).toPartialOrder)
+        (inferInstance : PartialOrder (Filtrator.FilterOnPowerset β)) :=
+    cast hfTy f
+  exact cast hfTy.symm (PointfreeFuncoid.restrict fSemi a)
+
+lemma limitOfRestrictedFuncoid_eq
+    {α: Type u} {β: Type v}
+    (d: Funcoid β β)
+    (f: Funcoid α β)
+    [SemilatticeInf (Filtrator.FilterOnPowerset α)] -- FIXME: Don't assume, prove
+    (hsrcOrder :
+      (SemilatticeInf.toPartialOrder
+        (self := (inferInstance : SemilatticeInf (Filtrator.FilterOnPowerset α)))) =
+      (inferInstance : PartialOrder (Filtrator.FilterOnPowerset α)))
+    (a: Filtrator.FilterOnPowerset α) :
+    limitOfRestrictedFuncoid d f a =
+      limitOfFuncoid d (restrictFuncoidViaOrderEq f hsrcOrder a) := by
+  sorry
+
 noncomputable def IsBinaryRelationLimit {α β: Type*} (d: Funcoid β β) (f: α → β → Prop) (a: Filtrator.FilterOnPowerset α) :=
   limitOfRestrictedFuncoid d (principalFuncoid f) a
 
