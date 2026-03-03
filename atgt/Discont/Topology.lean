@@ -45,11 +45,16 @@ theorem neighborhoodFuncoid_idempotent :
     _ = neighborhoodFuncoid (inferInstance : TopologicalSpace α) := by
           simp [neighborhoodFuncoid, hrel]
 
--- theorem tendsto_id_nhds_iff_isFuncoidLimit_neighborhoodFuncoid
---     (x y : α) :
---     Filter.Tendsto (fun z : α => z) (nhds x) (nhds y) ↔
---       IsFunctionLimit (neighborhoodFuncoid (inferInstance : TopologicalSpace α))
---         f (z.fwd (Filtrator.ofMathlibFilter (nhds x))) y := by
---   sorry
+-- FIXME
+theorem tendstotop_iff_fcd
+    (x : α) (y : β)
+    [TopologicalSpace β]
+    (f : α → β) :
+    Filter.Tendsto f (nhds x) (nhds y) ↔
+      IsFunctionLimit
+        (neighborhoodFuncoid (d : TopologicalSpace β))
+        f
+        (Filtrator.ofMathlibFilter (nhds x)) = (Filtrator.ofMathlibFilter (nhds y)) := by
+  sorry
 
 end
