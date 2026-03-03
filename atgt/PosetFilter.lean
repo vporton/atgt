@@ -227,6 +227,18 @@ instance {α: Type*}(U : PartialOrder α) : PartialOrder (PosetFilter U) where
     apply PosetFilterBase.ext_elements
     exact Set.Subset.antisymm hGF hFG
 
+instance {α : Type*} (U : PartialOrder α) [OrderTop α] : OrderTop (PosetFilter U) where
+  top := PosetFilter.principal (U := U) (⊤ : α)
+  le_top := by
+    intro F x hx
+    rcases F.non_empty with ⟨y, hy⟩
+    have hy' : y ∈ F.carrier := by
+      simpa [F.carrier_eq_elements] using hy
+    have htop_mem : (⊤ : α) ∈ F.carrier := F.upper' (le_top : y ≤ (⊤ : α)) hy'
+    have hx_eq_top : x = (⊤ : α) := le_antisymm le_top hx
+    have hx' : x ∈ F.carrier := hx_eq_top ▸ htop_mem
+    simpa [F.carrier_eq_elements] using hx'
+
 def PosetFilter.castOrderIso {α : Type*} {U V : PartialOrder α}
     (h : U = V) : PosetFilter U ≃o PosetFilter V where
   toEquiv :=
