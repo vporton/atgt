@@ -26,13 +26,15 @@ variable {α : Type u}
 abbrev FilterOnPowerset (α: Type*) := PosetFilter (setPartialOrder α)
 
 -- FIXME: It does not specify the filtrator core.
-abbrev FiltratorOnPowerset (α: Type*) := Filtrator (FilterOnPowerset α)
+class FiltratorOnPowerset (α: Type*) extends Filtrator (FilterOnPowerset α) where
+  subset_cond: subset = Set α -- FIXME: principal α instead
 
 -- TODO: To support "dual" funcoids like L in "Discontinuous Analysis", need to also define it up to isomorphism.
 
 /-- Canonical filtrator structure on powerset filters. -/
-instance instFiltratorOnPowerset (α : Type*) : FiltratorOnPowerset α :=
-  FiltratorOfFilters (inst := setPartialOrder α)
+instance instFiltratorOnPowerset (α : Type*) : FiltratorOnPowerset α := {
+  subset_cond := sorry
+}
 
 /--
 Assumed powerset-primary bridge: sets over `α` are treated as a primary filtrator.
