@@ -29,6 +29,7 @@ abbrev FilterOnPowerset (α: Type*) := PosetFilter (setPartialOrder α)
 class FiltratorOnPowerset (α: Type*) extends Filtrator (FilterOnPowerset α) where
   subset_cond: subset = Principals
 
+-- FIXME: It seems, that `Set α` is base instead of core!
 instance {α: Type*}: Coe (FiltratorOnPowerset α) (Filtrator.Primary (Set α)) where
   coe a := {
     le := (setPartialOrder α).le
