@@ -6,7 +6,7 @@ universe u v w t
 
 def Funcoid.Primary
     (α : Type u) (β : Type v)
-    [X: Filtrator.Primary (Set α)] [Y: Filtrator.Primary (Set β)] :=
+    [X: Filtrator.Primary (Set α)] [Y: Filtrator.Primary (Set β)] := -- FIXME: `Set ...` is core, not base.
   PointfreeFuncoid X.suporder Y.suporder
 
 /-- A (non-pointfree) funcoid is pointfree on filters over powersets. -/
@@ -25,6 +25,7 @@ def relPreimage
     (r : α → β → Prop) (B : Set β) : Set α :=
   {x : α | ∃ y ∈ B, r x y}
 
+-- FIXME: Exchange arguments.
 def relComp
     {α : Type u} {β : Type v} {γ : Type w}
     (r : α → β → Prop) (s : β → γ → Prop) : α → γ → Prop :=
