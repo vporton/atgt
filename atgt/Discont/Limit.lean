@@ -67,7 +67,6 @@ theorem limitPointsOfSet_union_eq_inter
   ext x
   simp [limitPointsOfSet, isLimitPointOfSet_union_iff]
 
--- FIXME: Mean AI added an `axiom`.
 /--
 Proposition 10 (assumed existence/uniqueness statement in this development):
 for reflexive `d`, there exists a unique OrderDual pointfree funcoid whose forward continuation
@@ -75,50 +74,63 @@ equals `limitPointsOfSet d`.
 
 FIXME: The requirement to be reflexive seems superfluous.
 -/
-axiom limitPointFuncoid_existsUnique_of_reflexive -- FIXME: Rename.
+noncomputable def limitPointFuncoid_existsUnique_of_reflexive -- FIXME: Rename.
     {α : Type u}
-    (d : Funcoid α α) :
-    ∃! f : Funcoid α (OrderDual α),
-      IsFwdContinuation1618 (limitPointsOfSet d) f
-
-noncomputable instance limitPointFuncoid {α : Type u}
-    (d : Funcoid α α) :
+    (d : Funcoid α α)
+    (h : ∃! f : Funcoid α (OrderDual α),
+      IsFwdContinuation1618 (limitPointsOfSet d) f) :
     Funcoid α (OrderDual α) :=
-  Classical.choose (ExistsUnique.exists (limitPointFuncoid_existsUnique_of_reflexive d))
+  Classical.choose (ExistsUnique.exists h)
+
+noncomputable def limitPointFuncoid {α : Type u}
+    (d : Funcoid α α) :
+    (h : ∃! f : Funcoid α (OrderDual α),
+      IsFwdContinuation1618 (limitPointsOfSet d) f) →
+    Funcoid α (OrderDual α) :=
+  limitPointFuncoid_existsUnique_of_reflexive d
 
 theorem limitPointFuncoid_isContinuation
     {α : Type u}
-    (d : Funcoid α α) :
-    IsFwdContinuation1618 (limitPointsOfSet d) (limitPointFuncoid (d := d)) :=
-  Classical.choose_spec (ExistsUnique.exists (limitPointFuncoid_existsUnique_of_reflexive d))
+    (d : Funcoid α α)
+    (h : ∃! f : Funcoid α (OrderDual α),
+      IsFwdContinuation1618 (limitPointsOfSet d) f) :
+    IsFwdContinuation1618 (limitPointsOfSet d) (limitPointFuncoid (d := d) h) :=
+  Classical.choose_spec (ExistsUnique.exists h)
 
 theorem limitPointFuncoid_fwd_eq_sInf_limitPointsOfSet
     {α : Type u}
     (d : Funcoid α α)
+    (h : ∃! f : Funcoid α (OrderDual α),
+      IsFwdContinuation1618 (limitPointsOfSet d) f)
     (s : Set α) :
-    Funcoid.fwd_set (limitPointFuncoid (d := d)) s =
+    Funcoid.fwd_set (limitPointFuncoid (d := d) h) s =
       PosetFilter.principal
         (sInf {t : Set (OrderDual α) | ∃ u : Set α, s ⊆ u ∧ t = limitPointsOfSet d u}) :=
-  (limitPointFuncoid_isContinuation d) s
+  (limitPointFuncoid_isContinuation d h) s
 
 theorem limitPointFuncoid_fwd_set_eq_principal_sInf_limitPointsOfSet
     {α : Type u}
     (d : Funcoid α α)
+    (h : ∃! f : Funcoid α (OrderDual α),
+      IsFwdContinuation1618 (limitPointsOfSet d) f)
     (s : Set α) :
-    Funcoid.fwd_set (limitPointFuncoid (d := d)) s =
+    Funcoid.fwd_set (limitPointFuncoid (d := d) h) s =
       PosetFilter.principal
         (sInf {t : Set (OrderDual α) | ∃ u : Set α, s ⊆ u ∧ t = limitPointsOfSet d u}) := by
-  simpa using limitPointFuncoid_fwd_eq_sInf_limitPointsOfSet (d := d) (s := s)
+  simpa using limitPointFuncoid_fwd_eq_sInf_limitPointsOfSet (d := d) (h := h) (s := s)
 
-noncomputable def limitOfFuncoid {α β: Type*} (d: Funcoid β β) (f: Funcoid α β) :=
-  ((limitPointFuncoid (d := d)) ∘ f).image
+noncomputable def limitOfFuncoid {α β: Type*} (d: Funcoid β β)
+    (h : ∃! g : Funcoid β (OrderDual β), IsFwdContinuation1618 (limitPointsOfSet d) g)
+    (f: Funcoid α β) :=
+  ((limitPointFuncoid (d := d) h) ∘ f).image
 
 noncomputable def limitOfRestrictedFuncoid
     {α: Type u} {β: Type v}
     (d: Funcoid β β)
+    (h : ∃! g : Funcoid β (OrderDual β), IsFwdContinuation1618 (limitPointsOfSet d) g)
     (f: Funcoid α β)
     (a: Filtrator.FilterOnPowerset α) :=
-  ((limitPointFuncoid (d := d)) ∘ f).fwd a
+  ((limitPointFuncoid (d := d) h) ∘ f).fwd a
 
 noncomputable def restrictFuncoidViaOrderEq
     {α: Type u} {β: Type v}
@@ -149,20 +161,25 @@ noncomputable def restrictFuncoidViaOrderEq
 lemma limitOfRestrictedFuncoid_eq
     {α: Type u} {β: Type v}
     (d: Funcoid β β)
+    (h : ∃! g : Funcoid β (OrderDual β), IsFwdContinuation1618 (limitPointsOfSet d) g)
     (f: Funcoid α β)
     (hsrcOrder :
       (SemilatticeInf.toPartialOrder
         (self := (inferInstance : SemilatticeInf (Filtrator.FilterOnPowerset α)))) =
       (inferInstance : PartialOrder (Filtrator.FilterOnPowerset α)))
     (a: Filtrator.FilterOnPowerset α) :
-    limitOfRestrictedFuncoid d f a =
-      limitOfFuncoid d (restrictFuncoidViaOrderEq f hsrcOrder a) := by
+    limitOfRestrictedFuncoid d h f a =
+      limitOfFuncoid d h (restrictFuncoidViaOrderEq f hsrcOrder a) := by
   cases hsrcOrder
   simp [limitOfRestrictedFuncoid, limitOfFuncoid, restrictFuncoidViaOrderEq,
     PointfreeFuncoid.image, PointfreeFuncoid.restrict, PointfreeFuncoid.restrictedIdentity, comp]
 
-noncomputable def IsBinaryRelationLimit {α β: Type*} (d: Funcoid β β) (f: α → β → Prop) (a: Filtrator.FilterOnPowerset α) :=
-  limitOfRestrictedFuncoid d (principalFuncoid f) a
+noncomputable def IsBinaryRelationLimit {α β: Type*} (d: Funcoid β β)
+    (h : ∃! g : Funcoid β (OrderDual β), IsFwdContinuation1618 (limitPointsOfSet d) g)
+    (f: α → β → Prop) (a: Filtrator.FilterOnPowerset α) :=
+  limitOfRestrictedFuncoid d h (principalFuncoid f) a
 
-noncomputable def IsFunctionLimit {α β: Type*} (d: Funcoid β β) (f: α → β) (a: Filtrator.FilterOnPowerset α) :=
-  limitOfRestrictedFuncoid d (principalFuncoidOfFunction f) a
+noncomputable def IsFunctionLimit {α β: Type*} (d: Funcoid β β)
+    (h : ∃! g : Funcoid β (OrderDual β), IsFwdContinuation1618 (limitPointsOfSet d) g)
+    (f: α → β) (a: Filtrator.FilterOnPowerset α) :=
+  limitOfRestrictedFuncoid d h (principalFuncoidOfFunction f) a

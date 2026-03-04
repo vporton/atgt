@@ -49,10 +49,13 @@ theorem neighborhoodFuncoid_idempotent :
 theorem tendstotop_iff_fcd
     (x : α) (y : β)
     [TopologicalSpace β]
+    (h : ∃! g : Funcoid β (OrderDual β),
+      IsFwdContinuation1618 (limitPointsOfSet (neighborhoodFuncoid (d : TopologicalSpace β))) g)
     (f : α → β) :
     Filter.Tendsto f (nhds x) (nhds y) ↔
       IsFunctionLimit
         (neighborhoodFuncoid (d : TopologicalSpace β))
+        h
         f
         (Filtrator.ofMathlibFilter (nhds x)) = (Filtrator.ofMathlibFilter (nhds y)) := by
   sorry
