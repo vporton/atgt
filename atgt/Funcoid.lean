@@ -9,12 +9,11 @@ def Funcoid.Primary
     [X: Filtrator.Primary (Set α)] [Y: Filtrator.Primary (Set β)] :=
   PointfreeFuncoid X.suporder Y.suporder
 
--- FIXME: "Normal" comment -> doccomment.
-/- A (non-pointfree) funcoid is pointfree on filters over powersets. -/
+/-- A (non-pointfree) funcoid is pointfree on filters over powersets. -/
 def Funcoid
     (α : Type u) (β : Type v)
-    [X: Filtrator.FiltratorOnPowerset.{u} α] [Y: Filtrator.FiltratorOnPowerset.{v} β] :=
-  Funcoid.Primary (X := X) (Y := Y) α β
+    [X: Filtrator.FiltratorOnPowerset α] [Y: Filtrator.FiltratorOnPowerset β] :=
+  Funcoid.Primary.{u, v, w, t} (X := X) (Y := Y) α β -- FIXME: Check universes.
 
 def relImage
     {α : Type u} {β : Type v}
