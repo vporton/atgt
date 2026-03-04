@@ -4,6 +4,7 @@ import atgt.PosetFilter
 instance FiltratorOfFilters {u : Type*} [inst : PartialOrder u] : Filtrator (PosetFilter inst) where
   subset := Principals (U := inst)
 
+-- FIXME: α should be core, not base.
 /- TODO: Rename?  -/
 class Filtrator.Primary (α: Type*) extends Filtrator α where
   is_primary : ∃ β: Type*, ∃ p: PartialOrder β,
