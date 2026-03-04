@@ -19,12 +19,13 @@ namespace Filtrator
 universe u v
 
 /-- A powerset-filtrator assumption, represented in this development via primarity. -/
-abbrev OnPowerset (α : Type u) := Filtrator.Primary.{u, v} α
+abbrev OnPowerset (α : Type u) := Filtrator.Primary.{u, v} α -- FIXME: should be `Set α`?
 
 variable {α : Type u}
 
 abbrev FilterOnPowerset (α: Type*) := PosetFilter (setPartialOrder α)
 
+-- FIXME: Should instead be `Filtrator.Primary`?
 class FiltratorOnPowerset (α: Type*) extends Filtrator (FilterOnPowerset α) where
   subset_cond: subset = Principals
 
@@ -32,6 +33,7 @@ class FiltratorOnPowerset (α: Type*) extends Filtrator (FilterOnPowerset α) wh
 
 /-- Canonical filtrator structure on powerset filters. -/
 instance instFiltratorOnPowerset (α : Type*) : FiltratorOnPowerset α := {
+  subset := sorry
   subset_cond := sorry
 }
 
