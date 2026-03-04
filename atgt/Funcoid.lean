@@ -12,12 +12,12 @@ abbrev Funcoid (α : Type u) (β : Type v) :=
 
 def Funcoid.Primary
     (α : Type u) (β : Type v)
-    [X: PartialOrder (Filtrator.OnPowerset α)] [Y: PartialOrder (Filtrator.OnPowerset β)] :=
-  PointfreeFuncoid X Y
+    [X: (Filtrator.Primary (Set α))] [Y: (Filtrator.Primary (Set β))] :=
+  PointfreeFuncoid X.suporder Y.suporder
 
 instance inst_fcd_kind
   (α : Type u) (β : Type v)
-  [X: PartialOrder (Filtrator.OnPowerset α)] [Y: PartialOrder (Filtrator.OnPowerset β)] :
+  [X: (Filtrator.Primary (Set α))] [Y: (Filtrator.Primary (Set β))] :
   Funcoid.Primary (X := X) (Y := Y) α β := sorry
 
 def relImage
