@@ -4,6 +4,8 @@ import atgt.PosetFilter
 
 universe u v w
 
+-- FIXME: Does PointfreeFuncoid fully describe a funcoid? Need also cores of filtrators.
+
 /-- A (non-pointfree) funcoid is pointfree on filters over powersets. -/
 abbrev Funcoid (α : Type u) (β : Type v) :=
   PointfreeFuncoid
