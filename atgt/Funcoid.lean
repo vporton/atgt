@@ -12,13 +12,14 @@ abbrev Funcoid (α : Type u) (β : Type v) :=
 
 def Funcoid.Primary
     (α : Type u) (β : Type v)
-    [X: (Filtrator.Primary (Set α))] [Y: (Filtrator.Primary (Set β))] :=
+    [X: Filtrator.Primary (Set α)] [Y: Filtrator.Primary (Set β)] :=
   PointfreeFuncoid X.suporder Y.suporder
 
-instance inst_fcd_kind
-  (α : Type u) (β : Type v)
-  [X: (Filtrator.Primary (Set α))] [Y: (Filtrator.Primary (Set β))] :
-  Funcoid.Primary (X := X) (Y := Y) α β := sorry
+-- FIXME: possily another X and Y (and also define `Funcoid` through `Funcoid.Primary`)
+def inst_fcd_kind
+    (α : Type u) (β : Type v)
+    [X: Filtrator.Primary (Set α)] [Y: Filtrator.Primary (Set β)] :
+    Funcoid.Primary (X := X) (Y := Y) α β = Funcoid α β := sorry
 
 def relImage
     {α : Type u} {β : Type v}
