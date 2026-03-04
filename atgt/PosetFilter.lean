@@ -168,6 +168,7 @@ def PosetFilter.principal {α: Type*} {U : PartialOrder α} (a : α) : PosetFilt
   · intro x y hxy hx
     exact le_trans hx hxy
 
+-- TODO: `//` instead of `|`?
 def Principals {α: Type*}{U : PartialOrder α} : Set (PosetFilter U) := { PosetFilter.principal a | a : α }
 
 def close_filter_base{α: Type*} {U : PartialOrder α}
