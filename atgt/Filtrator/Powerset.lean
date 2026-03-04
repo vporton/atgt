@@ -32,9 +32,9 @@ class FiltratorOnPowerset (α: Type*) extends Filtrator (FilterOnPowerset α) wh
 instance {α: Type*}: Coe (FiltratorOnPowerset α) (Filtrator.Primary (Set α)) where
   coe a := {
     le := (setPartialOrder α).le
-    le_refl := sorry
-    le_trans := sorry
-    le_antisymm := sorry
+    le_refl := (setPartialOrder α).le_refl
+    le_trans := (setPartialOrder α).le_trans
+    le_antisymm := (setPartialOrder α).le_antisymm
     subset := sorry
     is_primary := sorry
   }
