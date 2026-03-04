@@ -13,7 +13,7 @@ def Funcoid.Primary
 def Funcoid
     (α : Type u) (β : Type v)
     [X: Filtrator.FiltratorOnPowerset α] [Y: Filtrator.FiltratorOnPowerset β] :=
-  Funcoid.Primary.{u, v, w, t} (X := X) (Y := Y) α β -- FIXME: Check universes.
+  Funcoid.Primary.{u, v, w, t} (X := X) (Y := Y) α β
 
 def relImage
     {α : Type u} {β : Type v}

@@ -147,3 +147,5 @@ end FilterCorrespondence
 export FilterCorrespondence (toMathlibFilter ofMathlibFilter equivMathlibFilter toMathlibFilter_bijective)
 
 end Filtrator
+
+export Filtrator (FiltratorOnPowerset)
