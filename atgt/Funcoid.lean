@@ -126,22 +126,22 @@ def fwd_set {baseα baseβ : Type*} {α: Set baseα} {β: Set baseβ} (f : Funco
     : Filtrator.FilterOnPowerset β :=
   (PointfreeFuncoid.fwd f) (PosetFilter.principal x)
 
-def bwd_set {α β : Type*} (f : Funcoid α β) (y : Set β)
+def bwd_set {baseα baseβ : Type*} {α: Set baseα} {β: Set baseβ} (f : Funcoid α β) (y : Set β)
     : Filtrator.FilterOnPowerset α :=
   (PointfreeFuncoid.bwd f) (PosetFilter.principal y)
 end Funcoid
 
 export Funcoid (fwd_set bwd_set)
 
-lemma fcd_bwd_set_inv {α β : Type*} (f : Funcoid α β) (x : Set α)
+lemma fcd_bwd_set_inv {baseα baseβ : Type*} {α: Set baseα} {β: Set baseβ} (f : Funcoid α β) (x : Set α)
     : (Funcoid.fwd_set f) x = (Funcoid.bwd_set f.inv) x
   := rfl
 
-lemma fcd_fwd_set_inv {α β : Type*} (f : Funcoid α β) (y : Set β)
+lemma fcd_fwd_set_inv {baseα baseβ : Type*} {α: Set baseα} {β: Set baseβ} (f : Funcoid α β) (y : Set β)
     : (Funcoid.bwd_set f) y = (Funcoid.fwd_set f.inv) y
   := rfl
 
-def Funcoid.funcoid_rel_set (f: Funcoid α β) (a: Set α) (b: Set β) :=
+def Funcoid.funcoid_rel_set {baseα baseβ : Type*} {α: Set baseα} {β: Set baseβ} (f: Funcoid α β) (a: Set α) (b: Set β) :=
   PointfreeFuncoid.funcoid_rel f (PosetFilter.principal a) (PosetFilter.principal b)
 
 def relImageFilterBase
@@ -350,7 +350,8 @@ lemma relPreimageFilter_principal
       ⟨B, Set.Subset.rfl, hX⟩
 
 def principalFuncoid
-    {α : Type u} {β : Type v}
+    {baseα : Type u} {baseβ : Type v}
+    {α: Set baseα} {β: Set baseβ}
     (r : α → β → Prop) :
     Funcoid α β where
   fwd := relImageFilter r
@@ -402,13 +403,13 @@ def principalFuncoid
       exact hImgNE.mono hSubset
 
 def principalFuncoidOfFunction
-    {α : Type u} {β : Type v}
+    {baseα baseβ : Type*} {α: Set baseα} {β: Set baseβ}
     (f : α → β) :
     Funcoid α β :=
   principalFuncoid (fun x y => f x = y)
 
 lemma principalFuncoid_fwd_singleton
-    {α : Type u} {β : Type v}
+    {baseα baseβ : Type*} {α: Set baseα} {β: Set baseβ}
     (r : α → β → Prop) (x : α) :
     (Funcoid.fwd_set (principalFuncoid r)) ({x} : Set α) =
       PosetFilter.principal (relImage r ({x} : Set α)) := by
@@ -416,7 +417,7 @@ lemma principalFuncoid_fwd_singleton
     relImageFilter_principal (r := r) ({x} : Set α)
 
 lemma principalFuncoid_rel_singleton_singleton
-    {α : Type u} {β : Type v}
+    {baseα baseβ : Type*} {α: Set baseα} {β: Set baseβ}
     (r : α → β → Prop) (x : α) (y : β) :
     (principalFuncoid r).funcoid_rel (PosetFilter.principal ({x} : Set α)) (PosetFilter.principal ({y} : Set β)) ↔ r x y :=
   calc
@@ -439,7 +440,7 @@ lemma principalFuncoid_rel_singleton_singleton
         exact ⟨y, ⟨x, by simp, hxy⟩, by simp⟩
 
 theorem principalFuncoid_rel_iff_meet_graph_prod
-    {α : Type u} {β : Type v}
+    {baseα baseβ : Type*} {α: Set baseα} {β: Set baseβ}
     (r : α → β → Prop) (x : Set α) (y : Set β) :
     (principalFuncoid r).funcoid_rel_set x y ↔
       meet ({p : α × β | r p.1 p.2}) (x ×ˢ y) := by
@@ -461,14 +462,14 @@ theorem principalFuncoid_rel_iff_meet_graph_prod
       (meet_set_iff_nonempty (A := {p : α × β | r p.1 p.2}) (B := x ×ˢ y)).symm
 
 lemma principalFuncoidOfFunction_rel_singleton_singleton
-    {α : Type u} {β : Type v}
+    {baseα baseβ : Type*} {α: Set baseα} {β: Set baseβ}
     (f : α → β) (x : α) (y : β) :
     (principalFuncoidOfFunction f).funcoid_rel_set ({x} : Set α) ({y} : Set β) ↔ f x = y := by
   simpa [principalFuncoidOfFunction, Funcoid.funcoid_rel_set] using
     principalFuncoid_rel_singleton_singleton (r := fun a b => f a = b) x y
 
 theorem principalFuncoid_comp
-    {α : Type u} {β : Type v} {γ : Type w}
+    {baseα baseβ baseγ : Type*} {α: Set baseα} {β: Set baseβ} {γ: Set baseγ}
     (s : β → γ → Prop) (r : α → β → Prop) :
     principalFuncoid (relComp r s) =
       (principalFuncoid s) ∘ (principalFuncoid r) := by
