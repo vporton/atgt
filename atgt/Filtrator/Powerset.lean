@@ -18,17 +18,24 @@ namespace Filtrator
 
 universe u v
 
--- FIXME: Remove.
-/-- A powerset-filtrator assumption, represented in this development via primarity. -/
-abbrev OnPowerset (α : Type u) [Filtrator α] :=
-  Filtrator.Primary.{u, v} (Filtrator.subset (α := α))
-
 variable {α : Type u}
 
 abbrev FilterOnPowerset (α: Type*) := PosetFilter (setPartialOrder α)
 
-class FiltratorOnPowerset (α: Type*) extends Filtrator (FilterOnPowerset α) where
-  subset_cond: subset = Principals
+-- class FiltratorOnPowerset (α: Type*) extends Filtrator (FilterOnPowerset α) where
+--   subset_cond: subset = Principals
+
+-- FIXME: It seems that `Set (Set base)` is a wrong type.
+instance FiltratorOnPowerset {base: Type*} (α: Set (Set base)) : Filtrator.Primary α := {
+  subset := α
+  is_primary := sorry
+  core := sorry
+}
+
+-- FIXME
+def FiltratorOnPowerset.Primary {base: Type u} (α: Set base) :=
+  { F: Filtrator.Primary.{u, v} (Set α) //
+    Nonempty (FiltratorIso (FiltratorOnPowerset (α := α)) F.toFiltrator) }
 
 -- TODO: To support "dual" funcoids like L in "Discontinuous Analysis", need to also define it up to isomorphism.
 
