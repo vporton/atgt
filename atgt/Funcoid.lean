@@ -11,9 +11,10 @@ def Funcoid.Primary
 
 /-- A (non-pointfree) funcoid is pointfree on filters over powersets. -/
 def Funcoid
-    {baseα : Type u} (α: Set baseα) {baseβ : Type v} (β: Set baseβ)
-    [X: Filtrator.FiltratorOnPowerset (U := α)] [Y: Filtrator.FiltratorOnPowerset (U := β)] :=
-  Funcoid.Primary.{u, v, w, t} (X := X) (Y := Y) α β
+    (α : Type u) (β : Type v) :=
+  PointfreeFuncoid
+    (inferInstance : PartialOrder (Filtrator.FilterOnPowerset α))
+    (inferInstance : PartialOrder (Filtrator.FilterOnPowerset β))
 
 def relImage
     {α : Type u} {β : Type v}
