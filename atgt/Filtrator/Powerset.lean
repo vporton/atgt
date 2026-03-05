@@ -22,9 +22,7 @@ variable {α : Type u}
 
 abbrev FilterOnPowerset (α: Type*) := PosetFilter (setPartialOrder α)
 
--- class FiltratorOnPowerset (α: Type*) extends Filtrator (FilterOnPowerset α) where
---   subset_cond: subset = Principals
-
+/-- Canonical filtrator structure on powerset filters. -/
 instance FiltratorOnPowerset {base: Type*} {U: Set base} : Filtrator.Primary (Set.powerset U) := {
   subset := Set.powerset U
   is_primary := sorry
@@ -36,21 +34,6 @@ def FiltratorOnPowerset.Primary {base: Type u} {U: Set base} :=
     Nonempty (FiltratorIso (FiltratorOnPowerset (U := U)).toFiltrator F.toFiltrator) }
 
 -- TODO: To support "dual" funcoids like L in "Discontinuous Analysis", need to also define it up to isomorphism.
-
-/-- Canonical filtrator structure on powerset filters. -/
-instance instFiltratorOnPowerset (α : Type*) : FiltratorOnPowerset α := {
-  subset := sorry
-  subset_cond := sorry
-}
-
-/--
-Assumed powerset-primary bridge: sets over `α` are treated as a primary filtrator.
-
-This provides the explicit instance requested for developments that construct pointfree
-continuations over powerset orders.
--/
-axiom instPrimaryPowerset (α : Type*) :
-  Filtrator.Primary (Filtrator.subset (α := FilterOnPowerset α))
 
 namespace FilterCorrespondence
 
