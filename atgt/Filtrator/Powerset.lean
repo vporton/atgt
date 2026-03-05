@@ -22,7 +22,7 @@ variable {α : Type u}
 
 abbrev FilterOnPowerset (α: Type*) := PosetFilter (setPartialOrder α)
 
--- TODO: This seems unneeded, because I can deal without introducing dual funcoid L.
+-- TODO: This seems unneeded, but used in GeneralizedFilterBase.
 abbrev FiltratorOnPowerset.Primary {base: Type u} {U: Set base} :
     Type u := Filtrator.Primary.{u, u} (base := Set base) (Set.powerset U)
 
