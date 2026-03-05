@@ -46,8 +46,8 @@ namespace CoreEquivalence
 variable {α : Type u}
 
 /-- 1⇒2 in Theorem 572 tuple. -/
-noncomputable def one_imp_two [Filtrator α] [Filtrator.OnPowerset α] :
-    Filtrator.Primary (Filtrator.subset (α := α)) :=
+noncomputable def one_imp_two {U : Set α} [FiltratorOnPowerset.Primary (base := α) (U := U)] :
+    Filtrator.Primary (Set.powerset U) :=
   inferInstance
 
 /-- 2⇒3 in Theorem 572 tuple. -/
@@ -64,9 +64,10 @@ theorem mem_up_iff_exists_mem_up {A : Set α} [Filtrator.Primary A] {F : α}
     exact ⟨K.2, (le_iff_exists_base_le (S := S) (K := K)).2 ⟨L, hL, hLK.2⟩⟩
 
 /-- 1⇒3 in Theorem 572 tuple. -/
-theorem powerset_imp_mem_up_iff_exists_mem_up [Filtrator α] [Filtrator.OnPowerset α] {F : α}
-    (S : GeneralizedFilterBaseOf (α := α) (A := Filtrator.subset (α := α)) F)
-    (K : (subset : Set α)) :
+theorem powerset_imp_mem_up_iff_exists_mem_up {U : Set α}
+    [FiltratorOnPowerset.Primary (base := α) (U := U)] {F : Set α}
+    (S : GeneralizedFilterBaseOf (α := Set α) (A := Set.powerset U) F)
+    (K : (Filtrator.subset (α := Set α))) :
     K.1 ∈ Filtrator.up F ↔ ∃ L ∈ S.base.elements, K.1 ∈ Filtrator.up L.1 := by
   exact mem_up_iff_exists_mem_up (S := S) (K := K)
 
@@ -79,8 +80,8 @@ namespace BotInBaseCharacterization
 variable {α : Type u}
 
 /-- 1⇒2 in Corollary 573 tuple. -/
-noncomputable def one_imp_two [Filtrator α] [Filtrator.OnPowerset α] :
-    Filtrator.Primary (Filtrator.subset (α := α)) :=
+noncomputable def one_imp_two {U : Set α} [FiltratorOnPowerset.Primary (base := α) (U := U)] :
+    Filtrator.Primary (Set.powerset U) :=
   inferInstance
 
 /-- 2⇒3 in Corollary 573 tuple. -/
@@ -117,8 +118,8 @@ namespace NoBotBase
 variable {α : Type u}
 
 /-- 1⇒2 in Theorem 574 tuple. -/
-noncomputable def one_imp_two [Filtrator α] [Filtrator.OnPowerset α] :
-    Filtrator.Primary (Filtrator.subset (α := α)) :=
+noncomputable def one_imp_two {U : Set α} [FiltratorOnPowerset.Primary (base := α) (U := U)] :
+    Filtrator.Primary (Set.powerset U) :=
   inferInstance
 
 /-- 2⇒3 in Theorem 574 tuple. -/
@@ -149,8 +150,8 @@ namespace PairwiseMeetNoBot
 variable {α : Type u}
 
 /-- 1⇒2 in Corollary 575 tuple. -/
-noncomputable def one_imp_two [Filtrator α] [Filtrator.OnPowerset α] :
-    Filtrator.Primary (Filtrator.subset (α := α)) :=
+noncomputable def one_imp_two {U : Set α} [FiltratorOnPowerset.Primary (base := α) (U := U)] :
+    Filtrator.Primary (Set.powerset U) :=
   inferInstance
 
 /-- 2⇒3 in Corollary 575 tuple. -/
@@ -189,8 +190,8 @@ namespace Prefilteredness
 variable (α : Type u)
 
 /-- 1⇒2 in Theorem 576 tuple. -/
-noncomputable def one_imp_two [Filtrator α] [Filtrator.OnPowerset α] :
-    Filtrator.Primary (Filtrator.subset (α := α)) :=
+noncomputable def one_imp_two {U : Set α} [FiltratorOnPowerset.Primary (base := α) (U := U)] :
+    Filtrator.Primary (Set.powerset U) :=
   inferInstance
 
 /--
