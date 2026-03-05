@@ -114,7 +114,7 @@ lemma meet_set_iff_nonempty
 
 namespace Funcoid
 
-def fwd_set {baseα baseβ : Type*} {α: Set baseα} {β: Set baseβ} (f : Funcoid.Primary α β) (x : Set α)
+def fwd_set {baseα baseβ : Type*} {α: Set baseα} {β: Set baseβ} (f : Funcoid α β) (x : Set α)
     : Filtrator.FilterOnPowerset β :=
   (PointfreeFuncoid.fwd f) (PosetFilter.principal x)
 
