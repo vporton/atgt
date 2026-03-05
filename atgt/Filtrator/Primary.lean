@@ -4,11 +4,11 @@ import atgt.PosetFilter
 instance FiltratorOfFilters {u : Type*} [inst : PartialOrder u] : Filtrator (PosetFilter inst) where
   subset := Principals (U := inst)
 
--- FIXME: α should be core, not base.
-/- TODO: Rename?  -/
-class Filtrator.Primary (α: Type*) extends Filtrator α where
+/- TODO: Rename? -/
+class Filtrator.Primary {base: Type*} (α: Set base) extends Filtrator base where
   is_primary : ∃ β: Type*, ∃ p: PartialOrder β,
     Nonempty (FiltratorIso (FiltratorOfFilters (inst := p)) toFiltrator)
+  core : subset = α
 
 theorem Filtrator.filtered_of_filters {β : Type u} (p : PartialOrder β) :
   Filtrator.Filtered (PosetFilter p) := by
@@ -47,15 +47,15 @@ theorem Filtrator.Filtered.of_iso {α β : Type*} [i : Filtrator α] [j : Filtra
   have hyx_pre : iso.toRelIso.symm y ≤ iso.toRelIso.symm x := h.is_filtered _ _ h_preimage_up
   exact (iso.toRelIso.symm.map_rel_iff).1 hyx_pre
 
-theorem Filtrator.primary_imp_filtered {α : Type*} [Filtrator.Primary α] :
-    Filtrator.Filtered α := by
+theorem Filtrator.primary_imp_filtered {base: Type*} (α: Set base) [Filtrator.Primary α] :
+    Filtrator.Filtered base := by
   rcases (‹Filtrator.Primary α›).is_primary with ⟨β, p, ⟨iso⟩⟩
   exact Filtrator.Filtered.of_iso (h := Filtrator.filtered_of_filters p) iso
 
-theorem Filtrator.isomorphicToPrimary_imp_filtered {α : Type*} [i : Filtrator α]
-    (h : ∃ (β : Type*) (hprim : Filtrator.Primary β),
+theorem Filtrator.isomorphicToPrimary_imp_filtered {base: Type*} [i : Filtrator base]
+    (h : ∃ (β : Set Type*) (hprim : Filtrator.Primary β),
       Nonempty (FiltratorIso (Filtrator.Primary.toFiltrator (self := hprim)) i)) :
-    Filtrator.Filtered α := by
+    Filtrator.Filtered base := by
   rcases h with ⟨β, hprim, ⟨iso⟩⟩
   letI : Filtrator.Primary β := hprim
   exact Filtrator.Filtered.of_iso (h := Filtrator.primary_imp_filtered (α := β)) iso
@@ -64,12 +64,13 @@ namespace Filtrator.Primary
 
 open Filtrator
 
-variable {α : Type u}
+variable {base : Type u}
+variable {α : Set base}
 
 section primary_core
 variable [Primary α]
 
-theorem order_determined (a b : α) : a ≤ b ↔ up b ⊆ up a := by
+theorem order_determined (a b : base) : a ≤ b ↔ up b ⊆ up a := by
   let h_filtered := Filtrator.primary_imp_filtered (α := α)
   constructor
   · intro hab y hy
@@ -77,7 +78,7 @@ theorem order_determined (a b : α) : a ≤ b ↔ up b ⊆ up a := by
   · intro h_sub
     exact h_filtered.is_filtered _ _ h_sub
 
-theorem exists_up_in_subset (x : α) : ∃ y : subset, x ≤ y.1 := by
+theorem exists_up_in_subset (x : base) : ∃ y : subset, x ≤ y.1 := by
   have ⟨β, p, ⟨iso⟩⟩ := (‹Primary α›).is_primary
   -- iso : FiltratorIso (FiltratorOfFilters p) i
   let iso_inv := iso.symm
@@ -101,7 +102,7 @@ theorem exists_up_in_subset (x : α) : ∃ y : subset, x ≤ y.1 := by
     simpa using this
   exact iso.symm.map_rel_iff.mp hp
 
-theorem directed_up_in_subset (x : α) (a b : subset) (ha : x ≤ a.1) (hb : x ≤ b.1) :
+theorem directed_up_in_subset (x : base) (a b : subset) (ha : x ≤ a.1) (hb : x ≤ b.1) :
     ∃ c : subset, x ≤ c.1 ∧ c.1 ≤ a.1 ∧ c.1 ≤ b.1 := by
   have ⟨β, p, ⟨iso⟩⟩ := (‹Primary α›).is_primary
   let iso_inv := iso.symm
@@ -167,7 +168,7 @@ theorem directed_up_in_subset (x : α) (a b : subset) (ha : x ≤ a.1) (hb : x �
 
 attribute [local instance] Filtrator.suborder
 
-def to_poset_filter (x : α) : PosetFilter (Filtrator.suborder (α := α)) :=
+def to_poset_filter (x : base) (α: Set base) : PosetFilter (Filtrator.suborder (α := base)) :=
   { elements := Filtrator.up_suborder (x := x)
     non_empty := by
       let ⟨y, hy⟩ := exists_up_in_subset x
@@ -180,15 +181,15 @@ def to_poset_filter (x : α) : PosetFilter (Filtrator.suborder (α := α)) :=
       exact le_trans ha hab
     carrier_eq_elements := rfl }
 
-def up_is_filter (x : α) :
-    PosetFilter (Filtrator.suborder (α := α)) :=
+def up_is_filter (x : base) {α: Set base} :
+    PosetFilter (Filtrator.suborder (α := base)) :=
   -- Obvious 461, first direction: the upper set of any core element is a filter.
   to_poset_filter x
 
 /-- The canonical map from α to filters on its suborder. -/
 noncomputable def to_filters_iso :
     FiltratorIso (Filtrator.Primary.toFiltrator (self := ‹Primary α›))
-      (FiltratorOfFilters (inst := Filtrator.suborder (α := α))) := by
+      (FiltratorOfFilters (inst := Filtrator.suborder (α := base))) := by
   let h_prim := (‹Primary α›).is_primary
   let β := Classical.choose h_prim
   let h_prim_beta := Classical.choose_spec h_prim
@@ -258,7 +259,7 @@ noncomputable def to_filters_iso :
   }
 
   -- Redefine filters_iso correctly using map logic (Order Iso).
-  let filters_iso' : PosetFilter (U := p) ≃o PosetFilter (U := Filtrator.suborder (α := α)) := {
+  let filters_iso' : PosetFilter (U := p) ≃o PosetFilter (U := Filtrator.suborder (α := base)) := {
     toFun := fun F => {
       elements := sub_iso '' F.elements
       non_empty := by obtain ⟨x, hx⟩ := F.non_empty; use sub_iso x; exact ⟨x, hx, rfl⟩
@@ -371,7 +372,7 @@ noncomputable def to_filters_iso :
          rw [h1]
          have hprincipal (x : β) :
              filters_iso' (PosetFilter.principal (U := p) x) =
-               PosetFilter.principal (U := Filtrator.suborder (α := α)) (sub_iso x) := by
+               PosetFilter.principal (U := Filtrator.suborder (α := base)) (sub_iso x) := by
            apply PosetFilter.ext
            apply PosetFilterBase.ext_elements
            ext y
@@ -400,8 +401,8 @@ noncomputable def to_filters_iso :
              simpa using hs.trans (by simp)
   }
 
-theorem exists_filter_for_up (F : PosetFilter (Filtrator.suborder (α := α))) :
-    ∃ x : α, to_filters_iso.toRelIso x = F := by
+theorem exists_filter_for_up (F : PosetFilter (Filtrator.suborder (α := base))) :
+    ∃ x : base, to_filters_iso.toRelIso x = F := by
   -- Conversely to Obvious 461: every suborder filter comes from some up-set.
   use (to_filters_iso.toRelIso).symm F
   exact (to_filters_iso.toRelIso).apply_symm_apply F
@@ -468,13 +469,15 @@ lemma image_principals_eq_up_suborder
     simpa [sub_iso_toFun] using hz_map
 
 section primary_other
+variable {base: Type*}
+variable (x : base) {α: Set base}
 variable [Primary α]
 
 /--
 Bridge theorem: the canonical `to_filters_iso` map coincides with the concrete filter
 `to_poset_filter`.
 -/
-theorem to_filters_iso_eq_to_poset_filter (x : α) :
+theorem to_filters_iso_eq_to_poset_filter :
     to_filters_iso.toRelIso x = to_poset_filter (α := α) x := by
   classical
   let h_prim := (‹Primary α›).is_primary
