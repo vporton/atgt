@@ -31,10 +31,9 @@ instance FiltratorOnPowerset {base: Type*} {U: Set base} : Filtrator.Primary (Se
   core := sorry
 }
 
--- FIXME
-def FiltratorOnPowerset.Primary {base: Type u} (α: Set base) :=
-  { F: Filtrator.Primary.{u, v} (Set α) //
-    Nonempty (FiltratorIso (FiltratorOnPowerset (α := α)) F.toFiltrator) }
+def FiltratorOnPowerset.Primary {base: Type u} {U: Set base} :=
+  { F: Filtrator.Primary (Set.powerset U) //
+    Nonempty (FiltratorIso (FiltratorOnPowerset (U := U)).toFiltrator F.toFiltrator) }
 
 -- TODO: To support "dual" funcoids like L in "Discontinuous Analysis", need to also define it up to isomorphism.
 
