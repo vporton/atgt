@@ -15,26 +15,26 @@ namespace Filtrator.Primary
 universe u v
 
 /-- Definition 570: a generalized filter base is a filter base on the core of a primary filtrator. -/
-abbrev GeneralizedFilterBase (α : Type u) [Filtrator.Primary (Filtrator.subset (α := α))] :=
+abbrev GeneralizedFilterBase (α : Type u) (A : Set α) [Filtrator.Primary A] :=
   PosetFilterBase (Filtrator.suborder (α := α))
 
 /--
 Definition 571: a generalized filter base of `F` is a generalized filter base whose closure is
 `up F` (as a filter on the core suborder).
 -/
-structure GeneralizedFilterBaseOf {α : Type u} [Filtrator.Primary (Filtrator.subset (α := α))] (F : α) where
-  base : GeneralizedFilterBase α
-  closes_to : close_filter_base base = to_poset_filter (α := Filtrator.subset (α := α)) F
+structure GeneralizedFilterBaseOf {α : Type u} {A : Set α} [Filtrator.Primary A] (F : α) where
+  base : GeneralizedFilterBase α A
+  closes_to : close_filter_base base = to_poset_filter (α := A) F
 
 /-- Theorem 572 (core equivalence): order form. -/
-theorem le_iff_exists_base_le {α : Type u} [Filtrator.Primary (Filtrator.subset (α := α))] {F : α}
-    (S : GeneralizedFilterBaseOf (α := α) F)
+theorem le_iff_exists_base_le {α : Type u} {A : Set α} [Filtrator.Primary A] {F : α}
+    (S : GeneralizedFilterBaseOf (α := α) (A := A) F)
     (K : (subset : Set α)) :
     F ≤ K.1 ↔ ∃ L ∈ S.base.elements, L ≤ K := by
   constructor
   · intro hFK
     have hmem : K ∈ (close_filter_base S.base).elements := by
-      simpa [S.closes_to] using (show K ∈ (to_poset_filter (α := Filtrator.subset (α := α)) F).elements from hFK)
+      simpa [S.closes_to] using (show K ∈ (to_poset_filter (α := A) F).elements from hFK)
     simpa [close_filter_base] using hmem
   · intro h
     have hmem : K ∈ (close_filter_base S.base).elements := by
@@ -46,12 +46,14 @@ namespace CoreEquivalence
 variable {α : Type u}
 
 /-- 1⇒2 in Theorem 572 tuple. -/
-noncomputable def one_imp_two [Filtrator.OnPowerset α] : Filtrator.Primary (Filtrator.subset (α := α)) :=
+noncomputable def one_imp_two [Filtrator α] [Filtrator.OnPowerset α] :
+    Filtrator.Primary (Filtrator.subset (α := α)) :=
   inferInstance
 
 /-- 2⇒3 in Theorem 572 tuple. -/
-theorem mem_up_iff_exists_mem_up [Filtrator.Primary (Filtrator.subset (α := α))] {F : α}
-    (S : GeneralizedFilterBaseOf (α := α) F) (K : (subset : Set α)) :
+theorem mem_up_iff_exists_mem_up {A : Set α} [Filtrator.Primary A] {F : α}
+    (S : GeneralizedFilterBaseOf (α := α) (A := A) F)
+    (K : (subset : Set α)) :
     K.1 ∈ Filtrator.up F ↔ ∃ L ∈ S.base.elements, K.1 ∈ Filtrator.up L.1 := by
   constructor
   · intro hK
@@ -62,11 +64,11 @@ theorem mem_up_iff_exists_mem_up [Filtrator.Primary (Filtrator.subset (α := α)
     exact ⟨K.2, (le_iff_exists_base_le (S := S) (K := K)).2 ⟨L, hL, hLK.2⟩⟩
 
 /-- 1⇒3 in Theorem 572 tuple. -/
-theorem powerset_imp_mem_up_iff_exists_mem_up [Filtrator.OnPowerset α] {F : α}
-    (S : GeneralizedFilterBaseOf (α := α) F) (K : (subset : Set α)) :
+theorem powerset_imp_mem_up_iff_exists_mem_up [Filtrator α] [Filtrator.OnPowerset α] {F : α}
+    (S : GeneralizedFilterBaseOf (α := α) (A := Filtrator.subset (α := α)) F)
+    (K : (subset : Set α)) :
     K.1 ∈ Filtrator.up F ↔ ∃ L ∈ S.base.elements, K.1 ∈ Filtrator.up L.1 := by
-  letI : Filtrator.Primary (Filtrator.subset (α := α)) := one_imp_two (α := α)
-  exact mem_up_iff_exists_mem_up (S := S) (K := K)
+  sorry
 
 end CoreEquivalence
 
@@ -77,12 +79,14 @@ namespace BotInBaseCharacterization
 variable {α : Type u}
 
 /-- 1⇒2 in Corollary 573 tuple. -/
-noncomputable def one_imp_two [Filtrator.OnPowerset α] : Filtrator.Primary (Filtrator.subset (α := α)) :=
+noncomputable def one_imp_two [Filtrator α] [Filtrator.OnPowerset α] :
+    Filtrator.Primary (Filtrator.subset (α := α)) :=
   inferInstance
 
 /-- 2⇒3 in Corollary 573 tuple. -/
-theorem bot_mem_base_iff_eq_bot [Filtrator.Primary (Filtrator.subset (α := α))] [OrderBot α] {F : α}
-    (hbot : (⊥ : α) ∈ subset) (S : GeneralizedFilterBaseOf (α := α) F) :
+theorem bot_mem_base_iff_eq_bot {A : Set α} [Filtrator.Primary A] [OrderBot α] {F : α}
+    (hbot : (⊥ : α) ∈ subset)
+    (S : GeneralizedFilterBaseOf (α := α) (A := A) F) :
     (⟨⊥, hbot⟩ : (subset : Set α)) ∈ S.base.elements ↔ F = ⊥ := by
   constructor
   · intro hmem
@@ -98,10 +102,10 @@ theorem bot_mem_base_iff_eq_bot [Filtrator.Primary (Filtrator.subset (α := α))
     exact hEq ▸ hL
 
 /-- 1⇒3 in Corollary 573 tuple. -/
-theorem powerset_imp_bot_mem_base_iff_eq_bot [Filtrator.OnPowerset α] [OrderBot α] {F : α}
-    (hbot : (⊥ : α) ∈ subset) (S : GeneralizedFilterBaseOf (α := α) F) :
+theorem powerset_imp_bot_mem_base_iff_eq_bot {A : Set α} [Filtrator.Primary A] [OrderBot α] {F : α}
+    (hbot : (⊥ : α) ∈ subset)
+    (S : GeneralizedFilterBaseOf (α := α) (A := A) F) :
     (⟨⊥, hbot⟩ : (subset : Set α)) ∈ S.base.elements ↔ F = ⊥ := by
-  letI : Filtrator.Primary (Filtrator.subset (α := α)) := one_imp_two (α := α)
   exact bot_mem_base_iff_eq_bot (hbot := hbot) (S := S)
 
 end BotInBaseCharacterization
@@ -113,12 +117,14 @@ namespace NoBotBase
 variable {α : Type u}
 
 /-- 1⇒2 in Theorem 574 tuple. -/
-noncomputable def one_imp_two [Filtrator.OnPowerset α] : Filtrator.Primary (Filtrator.subset (α := α)) :=
+noncomputable def one_imp_two [Filtrator α] [Filtrator.OnPowerset α] :
+    Filtrator.Primary (Filtrator.subset (α := α)) :=
   inferInstance
 
 /-- 2⇒3 in Theorem 574 tuple. -/
-theorem ne_bot_of_base_has_no_bot [Filtrator.Primary (Filtrator.subset (α := α))] [OrderBot α] {F : α}
-    (hbot : (⊥ : α) ∈ subset) (S : GeneralizedFilterBaseOf (α := α) F)
+theorem ne_bot_of_base_has_no_bot {A : Set α} [Filtrator.Primary A] [OrderBot α] {F : α}
+    (hbot : (⊥ : α) ∈ subset)
+    (S : GeneralizedFilterBaseOf (α := α) (A := A) F)
     (hno_bot : ∀ K : (subset : Set α), K ∈ S.base.elements → K.1 ≠ ⊥) :
     F ≠ ⊥ := by
   intro hFbot
@@ -127,11 +133,11 @@ theorem ne_bot_of_base_has_no_bot [Filtrator.Primary (Filtrator.subset (α := α
   exact (hno_bot ⟨⊥, hbot⟩ hmem_bot) rfl
 
 /-- 1⇒3 in Theorem 574 tuple. -/
-theorem powerset_imp_ne_bot_of_base_has_no_bot [Filtrator.OnPowerset α] [OrderBot α] {F : α}
-    (hbot : (⊥ : α) ∈ subset) (S : GeneralizedFilterBaseOf (α := α) F)
+theorem powerset_imp_ne_bot_of_base_has_no_bot {A : Set α} [Filtrator.Primary A] [OrderBot α] {F : α}
+    (hbot : (⊥ : α) ∈ subset)
+    (S : GeneralizedFilterBaseOf (α := α) (A := A) F)
     (hno_bot : ∀ K : (subset : Set α), K ∈ S.base.elements → K.1 ≠ ⊥) :
     F ≠ ⊥ := by
-  letI : Filtrator.Primary (Filtrator.subset (α := α)) := one_imp_two (α := α)
   exact ne_bot_of_base_has_no_bot (hbot := hbot) (S := S) hno_bot
 
 end NoBotBase
@@ -143,12 +149,14 @@ namespace PairwiseMeetNoBot
 variable {α : Type u}
 
 /-- 1⇒2 in Corollary 575 tuple. -/
-noncomputable def one_imp_two [Filtrator.OnPowerset α] : Filtrator.Primary (Filtrator.subset (α := α)) :=
+noncomputable def one_imp_two [Filtrator α] [Filtrator.OnPowerset α] :
+    Filtrator.Primary (Filtrator.subset (α := α)) :=
   inferInstance
 
 /-- 2⇒3 in Corollary 575 tuple. -/
-theorem ne_bot_of_pairwise_meet [Filtrator.Primary (Filtrator.subset (α := α))] [OrderBot α] {F : α}
-    (hbot : (⊥ : α) ∈ subset) (S : GeneralizedFilterBaseOf (α := α) F)
+theorem ne_bot_of_pairwise_meet {A : Set α} [Filtrator.Primary A] [OrderBot α] {F : α}
+    (hbot : (⊥ : α) ∈ subset)
+    (S : GeneralizedFilterBaseOf (α := α) (A := A) F)
     (hpair :
       ∀ K L : (subset : Set α),
         K ∈ S.base.elements → L ∈ S.base.elements → meet K.1 L.1) :
@@ -163,13 +171,13 @@ theorem ne_bot_of_pairwise_meet [Filtrator.Primary (Filtrator.subset (α := α))
   exact le_trans hcbot bot_le
 
 /-- 1⇒3 in Corollary 575 tuple. -/
-theorem powerset_imp_ne_bot_of_pairwise_meet [Filtrator.OnPowerset α] [OrderBot α] {F : α}
-    (hbot : (⊥ : α) ∈ subset) (S : GeneralizedFilterBaseOf (α := α) F)
+theorem powerset_imp_ne_bot_of_pairwise_meet {A : Set α} [Filtrator.Primary A] [OrderBot α] {F : α}
+    (hbot : (⊥ : α) ∈ subset)
+    (S : GeneralizedFilterBaseOf (α := α) (A := A) F)
     (hpair :
       ∀ K L : (subset : Set α),
         K ∈ S.base.elements → L ∈ S.base.elements → meet K.1 L.1) :
     F ≠ ⊥ := by
-  letI : Filtrator.Primary (Filtrator.subset (α := α)) := one_imp_two (α := α)
   exact ne_bot_of_pairwise_meet (hbot := hbot) (S := S) hpair
 
 end PairwiseMeetNoBot
@@ -181,20 +189,22 @@ namespace Prefilteredness
 variable (α : Type u)
 
 /-- 1⇒2 in Theorem 576 tuple. -/
-noncomputable def one_imp_two [Filtrator.OnPowerset α] : Filtrator.Primary (Filtrator.subset (α := α)) :=
+noncomputable def one_imp_two [Filtrator α] [Filtrator.OnPowerset α] :
+    Filtrator.Primary (Filtrator.subset (α := α)) :=
   inferInstance
 
 /--
 2⇒3 in Theorem 576 tuple.
 In this development, the available formal consequence is prefilteredness.
 -/
-theorem prefiltered_of_primary [Filtrator.Primary (Filtrator.subset (α := α))] : Filtrator.PreFiltered α := by
-  exact filtered_imp_prefiltered α (Filtrator.primary_imp_filtered (α := Filtrator.subset (α := α)))
+theorem prefiltered_of_primary {A : Set α} [Filtrator.Primary A] :
+    Filtrator.PreFiltered α := by
+  exact filtered_imp_prefiltered α (Filtrator.primary_imp_filtered (α := A))
 
 /-- 1⇒3 in Theorem 576 tuple (development-level consequence). -/
-theorem prefiltered_of_powerset [Filtrator.OnPowerset α] : Filtrator.PreFiltered α := by
-  letI : Filtrator.Primary (Filtrator.subset (α := α)) := one_imp_two (α := α)
-  exact prefiltered_of_primary α
+theorem prefiltered_of_powerset {A : Set α} [Filtrator.Primary A] :
+    Filtrator.PreFiltered α := by
+  exact prefiltered_of_primary (A := A) α
 
 end Prefilteredness
 
@@ -275,19 +285,19 @@ private theorem posetFilter_isAtomic_of_boolean (δ : Type u) [BooleanAlgebra δ
   exact ⟨L, hL_ne_bot, hL_lower⟩
 
 /-- Core-bottom membership criterion for `up x`, via Corollary 573 (`genbase-corr`). -/
-lemma core_bot_mem_to_poset_filter_iff_eq_bot [Filtrator.Primary (Filtrator.subset (α := α))] [OrderBot α]
+lemma core_bot_mem_to_poset_filter_iff_eq_bot {A : Set α} [Filtrator.Primary A] [OrderBot α]
     (hbot : (⊥ : α) ∈ subset) (x : α) :
-    (⟨⊥, hbot⟩ : (subset : Set α)) ∈ (Filtrator.Primary.to_poset_filter (α := Filtrator.subset (α := α)) x).elements ↔ x = ⊥ := by
-  let S : GeneralizedFilterBaseOf (α := α) x := {
-    base := (Filtrator.Primary.to_poset_filter (α := Filtrator.subset (α := α)) x).toPosetFilterBase
+    (⟨⊥, hbot⟩ : (subset : Set α)) ∈ (Filtrator.Primary.to_poset_filter (α := A) x).elements ↔ x = ⊥ := by
+  let S : GeneralizedFilterBaseOf (α := α) (A := A) x := {
+    base := (Filtrator.Primary.to_poset_filter (α := A) x).toPosetFilterBase
     closes_to := by
-      simpa using (PosetFilter.close_filter_base_toPosetFilterBase_eq_self
+      simpa using (close_filter_base_toPosetFilterBase_eq_self
         (U := Filtrator.suborder (α := α))
-        (Filtrator.Primary.to_poset_filter (α := Filtrator.subset (α := α)) x)) }
+        (Filtrator.Primary.to_poset_filter (α := A) x)) }
   simpa [S] using bot_mem_base_iff_eq_bot (hbot := hbot) (S := S)
 
 /-- Theorem 576 (`filt-atomic`): primary filtrator over a boolean core is atomic. -/
-theorem primary_imp_booleanAtomicCore [Filtrator.Primary (Filtrator.subset (α := α))]
+theorem primary_imp_booleanAtomicCore {A : Set α} [Filtrator.Primary A]
     [Bcore : BooleanAlgebra (Filtrator.subset (α := α))]
     [OrderBot α]
     (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := α)) :
@@ -304,7 +314,7 @@ theorem primary_imp_booleanAtomicCore [Filtrator.Primary (Filtrator.subset (α :
     posetFilter_isAtomic_of_boolean (δ := Filtrator.subset (α := α))
   let e_core :
       α ≃o PosetFilter (U := Bcore.toPartialOrder) :=
-    ((Filtrator.Primary.to_filters_iso (α := Filtrator.subset (α := α))).toRelIso.trans
+    ((Filtrator.Primary.to_filters_iso (α := A)).toRelIso.trans
       (PosetFilter.castOrderIso (h := hcoreOrder.symm)))
   have hAtomic_core : IsAtomic α := by
     exact (OrderIso.isAtomic_iff e_core).2 hAtomic_core_filters

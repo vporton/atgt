@@ -46,11 +46,11 @@ lemma isStronglySeparable_of_orderIso {β γ : Type u} [PartialOrder β] [Partia
 
 /-- Proposition 579 core step with the correct assumption locus:
 the core type is boolean, so the boolean-core order is strongly separable. -/
-theorem primary_imp_booleanStronglySeparableCore [Filtrator.Primary α]
+theorem primary_imp_booleanStronglySeparableCore {A : Set α} [Filtrator.Primary A]
     [Bcore : BooleanAlgebra (Filtrator.subset (α := α))]
     (hcoreOrder :
       Bcore.toPartialOrder = Filtrator.suborder (α := α)) :
-    @IsStronglySeparable (Filtrator.supset (α := α)) (Filtrator.suporder (α := α)) := by
+    IsStronglySeparable α := by
   letI : PartialOrder (Filtrator.subset (α := α)) := Bcore.toPartialOrder
   have hstar_free :
       Filtrator.strongly_star_separable
@@ -78,9 +78,9 @@ theorem primary_imp_booleanStronglySeparableCore [Filtrator.Primary α]
     exact hcoreOrder ▸ hstrong_filters
   have hstrong_core : IsStronglySeparable α :=
     isStronglySeparable_of_orderIso
-      (e := ((Filtrator.Primary.to_filters_iso (α := α)).toRelIso).symm)
+      (e := ((Filtrator.Primary.to_filters_iso (α := A)).toRelIso).symm)
       hstrong_filters_suborder
-  simpa [Filtrator.supset, Filtrator.suporder] using hstrong_core
+  exact hstrong_core
 
 end StrongSeparability
 
