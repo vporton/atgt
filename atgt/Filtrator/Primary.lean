@@ -180,7 +180,7 @@ def to_poset_filter (x : base) : PosetFilter (Filtrator.suborder (α := base)) :
       exact le_trans ha hab
     carrier_eq_elements := rfl }
 
-def up_is_filter (x : base) {α: Set base} :
+def up_is_filter (x : base) :
     PosetFilter (Filtrator.suborder (α := base)) :=
   -- Obvious 461, first direction: the upper set of any core element is a filter.
   to_poset_filter x
