@@ -25,9 +25,8 @@ abbrev FilterOnPowerset (α: Type*) := PosetFilter (setPartialOrder α)
 -- class FiltratorOnPowerset (α: Type*) extends Filtrator (FilterOnPowerset α) where
 --   subset_cond: subset = Principals
 
--- FIXME: It seems that `Set (Set base)` is a wrong type.
-instance FiltratorOnPowerset {base: Type*} (α: Set (Set base)) : Filtrator.Primary α := {
-  subset := α
+instance FiltratorOnPowerset {base: Type*} {U: Set base} : Filtrator.Primary (Set.powerset U) := {
+  subset := Set.powerset U
   is_primary := sorry
   core := sorry
 }
