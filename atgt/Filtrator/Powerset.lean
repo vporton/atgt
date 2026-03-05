@@ -33,8 +33,6 @@ def FiltratorOnPowerset.Primary {base: Type u} {U: Set base} :=
   { F: Filtrator.Primary (Set.powerset U) //
     Nonempty (FiltratorIso (FiltratorOnPowerset (U := U)).toFiltrator F.toFiltrator) }
 
--- TODO: To support "dual" funcoids like L in "Discontinuous Analysis", need to also define it up to isomorphism.
-
 namespace FilterCorrespondence
 
 /-- Convert a `FilterOnPowerset` to a Mathlib `Filter`. -/
