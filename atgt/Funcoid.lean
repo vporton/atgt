@@ -10,7 +10,7 @@ universe u v w t
 --     [X: Filtrator.FiltratorOnPowerset.Primary (U := α)] [Y: Filtrator.FiltratorOnPowerset.Primary (U := β)] :=
 --   PointfreeFuncoid X.suporder Y.suporder
 
--- -- FIXME: Should have principals, not sets, as cores.
+-- TODO: Should have principals, not sets, as cores.
 -- /-- A (non-pointfree) funcoid is pointfree on filters over powersets. -/
 -- def Funcoid
 --     {baseα : Type u} (α: Set baseα) {baseβ : Type v} (β: Set baseβ) :=
