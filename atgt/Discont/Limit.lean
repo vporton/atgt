@@ -43,6 +43,10 @@ def point_limitOfFunction {baseα baseβ: Type*} {α: Set baseα} {β: Set base�
 
 end PointLimits
 
+export PointLimits (
+  IsLimitPointOfFilter limitPointsOfFilter
+  point_limitOfFuncoid point_limitOfRestrictedFuncoid point_limitOfRestrictedFuncoid_eq
+  point_limitOfBinaryRelation point_limitOfFunction)
 namespace FilterLimits
 
 def filt_limitOfFuncoid {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ} (d: Funcoid β β)
@@ -69,3 +73,6 @@ def filt_limitOfFunction {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ
   filt_limitOfRestrictedFuncoid d (principalFuncoidOfFunction f) a
 
 end FilterLimits
+
+export FilterLimits (filt_limitOfFuncoid filt_limitOfRestrictedFuncoid filt_limitOfRestrictedFuncoid_eq
+  filt_limitOfBinaryRelation filt_limitOfFunction)
