@@ -37,11 +37,11 @@ noncomputable def filt_limitOfRestrictedFuncoid
     (a: Filtrator.FilterOnPowerset α) :=
   (d ∘ f).fwd a
 
-noncomputable def filt_IsBinaryRelationLimit {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ} (d: Funcoid β β)
+noncomputable def filt_limitOfBinaryRelation {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ} (d: Funcoid β β)
     (f: α → β → Prop) (a: FilterOnPowerset α) :=
   filt_limitOfRestrictedFuncoid d (principalFuncoid f) a
 
-noncomputable def filt_IsFunctionLimit {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ} (d: Funcoid β β)
+noncomputable def filt_limitOfFunction {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ} (d: Funcoid β β)
     (f: α → β) (a: Filtrator.FilterOnPowerset α) :=
   filt_limitOfRestrictedFuncoid d (principalFuncoidOfFunction f) a
 
