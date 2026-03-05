@@ -700,10 +700,12 @@ def freeStar_principals : Set (FreeStar (α := α)) :=
 def freeStar_filtrator : Filtrator (FreeStar (α := α)) :=
   Filtrator.of_subset (freeStar_principals α)
 
-def freeStar_filtrator_primary : Filtrator.Primary (FreeStar (α := α)) := by
+def freeStar_filtrator_primary :
+    Filtrator.Primary (Filtrator.subset (α := FreeStar (α := α))) := by
   refine
     { toFiltrator := freeStar_filtrator α
-      is_primary := ?_ }
+      is_primary := ?_
+      core := rfl }
   refine ⟨_, (inferInstance : PartialOrder α), ?_⟩
   let comp : PosetFilter (U := (inferInstance : PartialOrder α)) ≃o FreeStar (α := α) :=
     ((filterSetOrderIsoPosetFilter (α := α)).symm.trans
@@ -727,7 +729,7 @@ def freeStar_filtrator_primary : Filtrator.Primary (FreeStar (α := α)) := by
     simp [hcomp_eval, freeStar_principal, filterSet_principal]
 
 theorem freeStar_filtrator_is_primary :
-    ∃ hprim : Filtrator.Primary.{u, u} (FreeStar (α := α)),
+    ∃ hprim : Filtrator.Primary.{u, u} (Filtrator.subset (α := FreeStar (α := α))),
       hprim.toFiltrator = freeStar_filtrator α := by
   exact ⟨freeStar_filtrator_primary (α := α), rfl⟩
 

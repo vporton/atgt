@@ -20,7 +20,8 @@ universe u v
 
 -- FIXME: Remove.
 /-- A powerset-filtrator assumption, represented in this development via primarity. -/
-abbrev OnPowerset (α : Type u) := Filtrator.Primary.{u, v} α -- FIXME: should be `Set α`?
+abbrev OnPowerset (α : Type u) [Filtrator α] :=
+  Filtrator.Primary.{u, v} (Filtrator.subset (α := α))
 
 variable {α : Type u}
 
@@ -28,17 +29,6 @@ abbrev FilterOnPowerset (α: Type*) := PosetFilter (setPartialOrder α)
 
 class FiltratorOnPowerset (α: Type*) extends Filtrator (FilterOnPowerset α) where
   subset_cond: subset = Principals
-
--- FIXME: It seems, that `Set α` is base instead of core!
-instance {α: Type*}: Coe (FiltratorOnPowerset α) (Filtrator.Primary (Set α)) where
-  coe a := {
-    le := (setPartialOrder α).le
-    le_refl := (setPartialOrder α).le_refl
-    le_trans := (setPartialOrder α).le_trans
-    le_antisymm := (setPartialOrder α).le_antisymm
-    subset := sorry
-    is_primary := sorry
-  }
 
 -- TODO: To support "dual" funcoids like L in "Discontinuous Analysis", need to also define it up to isomorphism.
 
@@ -54,7 +44,8 @@ Assumed powerset-primary bridge: sets over `α` are treated as a primary filtrat
 This provides the explicit instance requested for developments that construct pointfree
 continuations over powerset orders.
 -/
-axiom instPrimaryPowerset (α : Type*) : Filtrator.Primary (Set α)
+axiom instPrimaryPowerset (α : Type*) :
+  Filtrator.Primary (Filtrator.subset (α := FilterOnPowerset α))
 
 namespace FilterCorrespondence
 

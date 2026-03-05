@@ -171,9 +171,8 @@ attribute [local instance] Filtrator.suborder
 def to_poset_filter (x : base) : PosetFilter (Filtrator.suborder (α := base)) :=
   { elements := Filtrator.up_suborder (x := x)
     non_empty := by
-      let ⟨y, hy⟩ := exists_up_in_subset x
-      use y
-      exact hy
+      rcases exists_up_in_subset (α := α) x with ⟨y, hy⟩
+      exact ⟨y, hy⟩
     cap_elements := fun {a b} ha hb => by
       exact directed_up_in_subset x a b ha hb
     carrier := Filtrator.up_suborder (x := x)
@@ -412,17 +411,17 @@ end primary_core
 /-- For an isomorphism from filters on `β`, the induced principal map sends the
 elements of `iso.symm x` exactly to `up_suborder x`. -/
 lemma image_principals_eq_up_suborder
-    [i : Filtrator α] {β : Type*} (p : PartialOrder β)
+    {γ : Type*} [i : Filtrator γ] {β : Type*} (p : PartialOrder β)
     (iso : FiltratorIso (FiltratorOfFilters (inst := p)) i)
-    (x : α) :
-    (let sub_iso_toFun : β → @Filtrator.subset α i :=
+    (x : γ) :
+    (let sub_iso_toFun : β → @Filtrator.subset γ i :=
       fun z => ⟨iso.toRelIso (PosetFilter.principal (U := p) z), by
         rw [← iso.core_match]
         exact ⟨PosetFilter.principal (U := p) z, ⟨z, rfl⟩, rfl⟩⟩
     sub_iso_toFun '' (iso.toRelIso.symm x).elements) =
-      @Filtrator.up_suborder α i x := by
+      @Filtrator.up_suborder γ i x := by
   classical
-  let sub_iso_toFun : β → @Filtrator.subset α i :=
+  let sub_iso_toFun : β → @Filtrator.subset γ i :=
     fun z => ⟨iso.toRelIso (PosetFilter.principal (U := p) z), by
       rw [← iso.core_match]
       exact ⟨PosetFilter.principal (U := p) z, ⟨z, rfl⟩, rfl⟩⟩
@@ -437,7 +436,7 @@ lemma image_principals_eq_up_suborder
       (iso.toRelIso.map_rel_iff).2 hz_le
     simpa using hz_map
   · intro hy
-    have hcore_symm : iso.toRelIso.symm '' (@Filtrator.subset α i) = Principals (U := p) := by
+    have hcore_symm : iso.toRelIso.symm '' (@Filtrator.subset γ i) = Principals (U := p) := by
       apply Set.ext
       intro F
       constructor
@@ -451,7 +450,7 @@ lemma image_principals_eq_up_suborder
         rw [← iso.core_match]
         exact ⟨F, hF, rfl⟩
     have hy_princ : iso.toRelIso.symm y.1 ∈ Principals (U := p) := by
-      have : iso.toRelIso.symm y.1 ∈ iso.toRelIso.symm '' (@Filtrator.subset α i) := by
+      have : iso.toRelIso.symm y.1 ∈ iso.toRelIso.symm '' (@Filtrator.subset γ i) := by
         exact ⟨y.1, y.2, rfl⟩
       simpa [hcore_symm] using this
     rcases hy_princ with ⟨z, hz_eq⟩
@@ -489,14 +488,16 @@ theorem to_filters_iso_eq_to_poset_filter :
   apply PosetFilter.ext
   apply PosetFilterBase.ext_elements
   simpa [to_filters_iso, to_poset_filter, h_prim, β, h_prim_beta, p, iso_nonempty, iso] using
-    (image_principals_eq_up_suborder (p := p) (iso := iso) (x := x))
+    (@Filtrator.Primary.image_principals_eq_up_suborder base
+      (Filtrator.Primary.toFiltrator (self := ‹Primary α›))
+      β p iso x)
 
 /--
 Every filter on the core suborder is the upper set filter of some element.
 This is the concrete form used by Section 5.8 proofs.
 -/
 theorem exists_to_poset_filter_eq (F : PosetFilter (Filtrator.suborder (α := base))) :
-    ∃ x : α, to_poset_filter (α := α) x = F := by
+    ∃ x : base, to_poset_filter (α := α) x = F := by
   rcases exists_filter_for_up (α := α) F with ⟨x, hx⟩
   refine ⟨x, ?_⟩
   calc
