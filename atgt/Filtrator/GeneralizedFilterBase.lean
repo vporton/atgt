@@ -68,7 +68,7 @@ theorem powerset_imp_mem_up_iff_exists_mem_up [Filtrator α] [Filtrator.OnPowers
     (S : GeneralizedFilterBaseOf (α := α) (A := Filtrator.subset (α := α)) F)
     (K : (subset : Set α)) :
     K.1 ∈ Filtrator.up F ↔ ∃ L ∈ S.base.elements, K.1 ∈ Filtrator.up L.1 := by
-  sorry
+  exact mem_up_iff_exists_mem_up (S := S) (K := K)
 
 end CoreEquivalence
 
