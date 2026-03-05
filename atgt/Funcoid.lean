@@ -5,19 +5,25 @@ import atgt.PosetFilter
 universe u v w t
 
 -- TODO: This seems unneeded, because I can deal without introducing dual funcoid L.
-def Funcoid.Primary
-    {baseα : Type u} (α: Set baseα) {baseβ : Type v} (β: Set baseβ)
-    [X: Filtrator.FiltratorOnPowerset.Primary (U := α)] [Y: Filtrator.FiltratorOnPowerset.Primary (U := β)] :=
-  PointfreeFuncoid X.suporder Y.suporder
+-- def Funcoid.Primary
+--     {baseα : Type u} (α: Set baseα) {baseβ : Type v} (β: Set baseβ)
+--     [X: Filtrator.FiltratorOnPowerset.Primary (U := α)] [Y: Filtrator.FiltratorOnPowerset.Primary (U := β)] :=
+--   PointfreeFuncoid X.suporder Y.suporder
 
--- FIXME: Should have principals, not sets, as cores.
-/-- A (non-pointfree) funcoid is pointfree on filters over powersets. -/
+-- -- FIXME: Should have principals, not sets, as cores.
+-- /-- A (non-pointfree) funcoid is pointfree on filters over powersets. -/
+-- def Funcoid
+--     {baseα : Type u} (α: Set baseα) {baseβ : Type v} (β: Set baseβ) :=
+--   Funcoid.Primary
+--     (X := Filtrator.FiltratorOnPowerset (U := α))
+--     (Y := Filtrator.FiltratorOnPowerset (U := β))
+--     α β
+
 def Funcoid
     {baseα : Type u} (α: Set baseα) {baseβ : Type v} (β: Set baseβ) :=
-  Funcoid.Primary
-    (X := Filtrator.FiltratorOnPowerset (U := α))
-    (Y := Filtrator.FiltratorOnPowerset (U := β))
-    α β
+  PointfreeFuncoid
+    (inferInstance: PartialOrder (Filtrator.FilterOnPowerset α))
+    (inferInstance: PartialOrder (Filtrator.FilterOnPowerset β))
 
 def relImage
     {α : Type u} {β : Type v}
