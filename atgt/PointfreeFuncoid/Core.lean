@@ -357,8 +357,8 @@ Theorem 1617 (p. 317), \label{pf-supfun-up} literal value equation form:
 `⟨f⟩ x = sInf (⟨⟨f⟩⟩ (up x))`.
 -/
 noncomputable def theorem1617_dstCompleteLattice
-    {β : Type v}
-    [F : Filtrator.Primary β]
+    {β : Type v} {B : Set β}
+    [F : Filtrator.Primary B]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β)) :
     CompleteLattice β := by
@@ -374,8 +374,8 @@ noncomputable def theorem1617_dstCompleteLattice
     simpa [h_dst_core_order] using hTop_core_B
   letI : OrderBot (Filtrator.subset (α := β)) := by
     simpa [h_dst_core_order] using hBot_core_B
-  letI : OrderTop β := Filtrator.Primary.TopOfPrimaryFiltrator (α := β)
-  letI : OrderBot β := Filtrator.Primary.BotOfPrimaryFiltrator (α := β)
+  letI : OrderTop β := Filtrator.Primary.TopOfPrimaryFiltrator (α := B)
+  letI : OrderBot β := Filtrator.Primary.BotOfPrimaryFiltrator (α := B)
   exact primary_distribCore_imp_completeLattice
     (α := β)
     (Dcore := Bdst.toDistribLattice)
@@ -383,9 +383,9 @@ noncomputable def theorem1617_dstCompleteLattice
       simpa using h_dst_core_order.symm)
 
 noncomputable def theorem1617_sInfUpImage
-    {α : Type u} {β : Type v}
+    {α : Type u} {β : Type v} {B : Set β}
     [X : Filtrator α]
-    [Y : Filtrator.Primary β]
+    [Y : Filtrator.Primary B]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_dst_core_order :
       Bdst.toPartialOrder = Filtrator.suborder (α := β))
@@ -397,9 +397,9 @@ noncomputable def theorem1617_sInfUpImage
   @sInf β Ldst.toInfSet {z : β | ∃ X' ∈ Filtrator.up x, z = f.fwd X'}
 
 lemma theorem1617_sInfUpImage_le
-    {α : Type u} {β : Type v}
+    {α : Type u} {β : Type v} {B : Set β}
     [X : Filtrator α]
-    [Y : Filtrator.Primary β]
+    [Y : Filtrator.Primary B]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_dst_core_order :
       Bdst.toPartialOrder = Filtrator.suborder (α := β))
@@ -429,9 +429,9 @@ lemma theorem1617_sInfUpImage_le
   simpa [hLorder'] using hle
 
 lemma fwd_le_theorem1617_sInfUpImage
-    {α : Type u} {β : Type v}
+    {α : Type u} {β : Type v} {B : Set β}
     [X : Filtrator α]
-    [Y : Filtrator.Primary β]
+    [Y : Filtrator.Primary B]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_dst_core_order :
       Bdst.toPartialOrder = Filtrator.suborder (α := β))
@@ -468,9 +468,9 @@ lemma fwd_le_theorem1617_sInfUpImage
   simpa [hLorder'] using hle
 
 theorem pointfree_funcoid_fwd_value
-    {α : Type u} {β : Type v}
+    {α : Type u} {β : Type v} {B : Set β}
     [X : Filtrator α]
-    [F : Filtrator.Primary β]
+    [F : Filtrator.Primary B]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_dst_core_order :
       Bdst.toPartialOrder = Filtrator.suborder (α := β))
@@ -587,10 +587,10 @@ open AlternativePrimaryFiltrators
 open AlternativePrimaryFiltrators.PrincipalConstructions
 
 lemma principal_core_separator_iff_meet
-    {β : Type u} [Filtrator.Primary β]
+    {β : Type u} {B : Set β} [Filtrator.Primary B]
     (b : β) (y : Filtrator.subset (α := β)) :
     (PosetFilter.principal (U := Filtrator.suborder (α := β)) y ∈
-      separator (Filtrator.Primary.to_poset_filter (α := β) b)) ↔ meet b y.1 := by
+      separator (Filtrator.Primary.to_poset_filter (α := B) b)) ↔ meet b y.1 := by
   have hsep : y.1 ∈ separator b ↔
       Filtrator.Primary.to_filters_iso.toRelIso y.1 ∈
         separator (Filtrator.Primary.to_filters_iso.toRelIso b) :=
@@ -601,22 +601,22 @@ lemma principal_core_separator_iff_meet
       PosetFilter.principal (U := Filtrator.suborder (α := β)) y := by
     calc
       Filtrator.Primary.to_filters_iso.toRelIso y.1 =
-          Filtrator.Primary.to_poset_filter (α := β) y.1 :=
-        Filtrator.Primary.to_filters_iso_eq_to_poset_filter (α := β) y.1
+          Filtrator.Primary.to_poset_filter (α := B) y.1 :=
+        Filtrator.Primary.to_filters_iso_eq_to_poset_filter (α := B) y.1
       _ = PosetFilter.principal (U := Filtrator.suborder (α := β)) y := by
         ext z
         rfl
   have hb : Filtrator.Primary.to_filters_iso.toRelIso b =
-      Filtrator.Primary.to_poset_filter (α := β) b :=
-    Filtrator.Primary.to_filters_iso_eq_to_poset_filter (α := β) b
+      Filtrator.Primary.to_poset_filter (α := B) b :=
+    Filtrator.Primary.to_filters_iso_eq_to_poset_filter (α := B) b
   have hfinal : y.1 ∈ separator b ↔
       PosetFilter.principal (U := Filtrator.suborder (α := β)) y ∈
-        separator (Filtrator.Primary.to_poset_filter (α := β) b) := by
+        separator (Filtrator.Primary.to_poset_filter (α := B) b) := by
     simpa [hy, hb] using hsep
   simpa [separator, meet_comm] using hfinal.symm
 
 lemma exists_core_value_of_freeStar
-    {β : Type u} [Filtrator.Primary β]
+    {β : Type u} {B : Set β} [Filtrator.Primary B]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
     (S : @FreeStar (Filtrator.subset (α := β)) Bdst.toPartialOrder) :
@@ -630,7 +630,7 @@ lemma exists_core_value_of_freeStar
     PosetFilter.ThroughEquiv.toPosetFilter F_through
   let F_sub : PosetFilter (U := Filtrator.suborder (α := β)) :=
     PosetFilter.castOrderIso h_dst_core_order F_pos
-  rcases Filtrator.Primary.exists_to_poset_filter_eq (α := β) F_sub with ⟨b, hb⟩
+  rcases Filtrator.Primary.exists_to_poset_filter_eq (α := B) F_sub with ⟨b, hb⟩
   refine ⟨b, ?_⟩
   intro y
   have h1 : y ∈ (@FreeStar.elements (Filtrator.subset (α := β)) Bdst.toPartialOrder S) ↔
@@ -674,7 +674,7 @@ lemma exists_core_value_of_freeStar
       PosetFilter.principal (U := Filtrator.suborder (α := β)) y ∈
         separator F_sub ↔
       PosetFilter.principal (U := Filtrator.suborder (α := β)) y ∈
-        separator (Filtrator.Primary.to_poset_filter (α := β) b) := by
+        separator (Filtrator.Primary.to_poset_filter (α := B) b) := by
     simp [hb]
   calc
     y ∈ (@FreeStar.elements (Filtrator.subset (α := β)) Bdst.toPartialOrder S) ↔
@@ -687,12 +687,12 @@ lemma exists_core_value_of_freeStar
         separator F_sub := h3
     _ ↔
       PosetFilter.principal (U := Filtrator.suborder (α := β)) y ∈
-        separator (Filtrator.Primary.to_poset_filter (α := β) b) := h4
+        separator (Filtrator.Primary.to_poset_filter (α := B) b) := h4
     _ ↔ meet b y.1 := principal_core_separator_iff_meet (b := b) (y := y)
 
 lemma delta_left_mono_core
-    {α : Type u} {β : Type v}
-    [Filtrator.Primary α] [Filtrator.Primary β]
+    {α : Type u} {β : Type v} {A : Set α} {B : Set β}
+    [Filtrator.Primary A] [Filtrator.Primary B]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     (δ : α → β → Prop)
     (hδ_sup_left :
@@ -710,8 +710,8 @@ lemma delta_left_mono_core
   exact h_eq.2 (Or.inl hIK)
 
 lemma delta_left_antitone_not_core
-    {α : Type u} {β : Type v}
-    [Filtrator.Primary α] [Filtrator.Primary β]
+    {α : Type u} {β : Type v} {A : Set α} {B : Set β}
+    [Filtrator.Primary A] [Filtrator.Primary B]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     (δ : α → β → Prop)
     (hδ_sup_left :
@@ -724,8 +724,8 @@ lemma delta_left_antitone_not_core
   exact hJ (delta_left_mono_core (δ := δ) (hδ_sup_left := hδ_sup_left) hIJ hI)
 
 lemma delta_right_mono_core
-    {α : Type u} {β : Type v}
-    [Filtrator.Primary α] [Filtrator.Primary β]
+    {α : Type u} {β : Type v} {A : Set α} {B : Set β}
+    [Filtrator.Primary A] [Filtrator.Primary B]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (δ : α → β → Prop)
     (hδ_sup_right :
@@ -743,8 +743,8 @@ lemma delta_right_mono_core
   exact h_eq.2 (Or.inl hKI)
 
 noncomputable def relRightCoreFreeStar
-    {α : Type u} {β : Type v}
-    [Filtrator.Primary α] [Filtrator.Primary β]
+    {α : Type u} {β : Type v} {A : Set α} {B : Set β}
+    [Filtrator.Primary A] [Filtrator.Primary B]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
@@ -766,7 +766,7 @@ noncomputable def relRightCoreFreeStar
       non_univ := ?_
       cup_not_elements := ?_ }
   · intro h_univ
-    rcases Filtrator.Primary.exists_up_in_subset (α := α) x with ⟨X0, hX0⟩
+    rcases Filtrator.Primary.exists_up_in_subset (α := A) x with ⟨X0, hX0⟩
     have hbot_mem : (⊥ : Filtrator.subset (α := β)) ∈
         {y : Filtrator.subset (α := β) | ∀ X' ∈ Filtrator.up x, δ X' y.1} := by
       exact h_univ ▸ Set.mem_univ (⊥ : Filtrator.subset (α := β))
@@ -783,7 +783,7 @@ noncomputable def relRightCoreFreeStar
       rcases hXb_pair with ⟨hXb_up, hXb_nδ⟩
       let Xa' : Filtrator.subset (α := α) := ⟨Xa, hXa_up.1⟩
       let Xb' : Filtrator.subset (α := α) := ⟨Xb, hXb_up.1⟩
-      rcases Filtrator.Primary.directed_up_in_subset (α := α) x Xa' Xb' hXa_up.2 hXb_up.2 with
+      rcases Filtrator.Primary.directed_up_in_subset (α := A) x Xa' Xb' hXa_up.2 hXb_up.2 with
         ⟨Xc, hXc_up, hXc_le_Xa, hXc_le_Xb⟩
       have hXc_le_Xa_core : @LE.le (Filtrator.subset (α := α)) Bsrc.toPartialOrder.toLE Xc Xa' := by
         have hsub : @LE.le (Filtrator.subset (α := α)) (Filtrator.suborder (α := α)).toLE Xc Xa' := hXc_le_Xa
@@ -829,8 +829,8 @@ noncomputable def relRightCoreFreeStar
       exact ⟨hna, hnb⟩
 
 noncomputable def relLeftCoreFreeStar
-    {α : Type u} {β : Type v}
-    [Filtrator.Primary α] [Filtrator.Primary β]
+    {α : Type u} {β : Type v} {A : Set α} {B : Set β}
+    [Filtrator.Primary A] [Filtrator.Primary B]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_dst_core_order : Bdst.toPartialOrder = Filtrator.suborder (α := β))
@@ -855,8 +855,8 @@ noncomputable def relLeftCoreFreeStar
     y
 
 lemma separable_of_primary_boolean_core
-    {γ : Type u}
-    [Filtrator.Primary γ]
+    {γ : Type u} {C : Set γ}
+    [Filtrator.Primary C]
     [Bcore : BooleanAlgebra (Filtrator.subset (α := γ))]
     (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ)) :
     IsSeparable γ := by
@@ -867,8 +867,9 @@ lemma separable_of_primary_boolean_core
   exact stronglySeparable_imp_separable hstrong
 
 noncomputable def theorem1618_rel_witness
-    {α : Type u} {β : Type v}
-    [X : Filtrator.Primary α] [Y : Filtrator.Primary β]
+    {α : Type u} {β : Type v} {A : Set α} {B : Set β}
+    [X : Filtrator.Primary A]
+    [Y : Filtrator.Primary B]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
@@ -1034,8 +1035,9 @@ Existence is constructed from the core relation assumptions (book proof path:
 free stars on the core, then corresponding core filters, then a pointfree funcoid).
 -/
 theorem theorem1618_pf_cont_r
-    {α : Type u} {β : Type v}
-    [X : Filtrator.Primary α] [Y : Filtrator.Primary β]
+    {α : Type u} {β : Type v} {A : Set α} {B : Set β}
+    [X : Filtrator.Primary A]
+    [Y : Filtrator.Primary B]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
@@ -1075,8 +1077,8 @@ theorem theorem1618_pf_cont_r
     (f := f) (g := g) hf hg).symm
 
 noncomputable def theorem1618_pf_cont_f_orderBot
-    {β : Type v}
-    [Y : Filtrator.Primary β]
+    {β : Type v} {B : Set β}
+    [Y : Filtrator.Primary B]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_dst_core_order :
       Bdst.toPartialOrder = Filtrator.suborder (α := β)) :
@@ -1095,8 +1097,8 @@ noncomputable def theorem1618_pf_cont_f_orderBot
   exact Filtrator.Primary.BotOfPrimaryFiltrator (F := Y)
 
 noncomputable def theorem1618_pf_cont_f_orderTop
-    {β : Type v}
-    [Y : Filtrator.Primary β]
+    {β : Type v} {B : Set β}
+    [Y : Filtrator.Primary B]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_dst_core_order :
       Bdst.toPartialOrder = Filtrator.suborder (α := β)) :
@@ -1115,8 +1117,8 @@ noncomputable def theorem1618_pf_cont_f_orderTop
   exact Filtrator.Primary.TopOfPrimaryFiltrator (F := Y)
 
 noncomputable def theorem1618_pf_cont_f_distrib
-    {β : Type v}
-    [Y : Filtrator.Primary β]
+    {β : Type v} {B : Set β}
+    [Y : Filtrator.Primary B]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_dst_core_order :
       Bdst.toPartialOrder = Filtrator.suborder (α := β)) :
@@ -1143,8 +1145,9 @@ Existence is obtained by reducing to the relation form (`\ref{pf-cont-r}`) and t
 the relation-to-function bridge.
 -/
 theorem theorem1618_pf_cont_f
-    {α : Type u} {β : Type v}
-    [X : Filtrator.Primary α] [Y : Filtrator.Primary β]
+    {α : Type u} {β : Type v} {A : Set α} {B : Set β}
+    [X : Filtrator.Primary A]
+    [Y : Filtrator.Primary B]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
@@ -1221,7 +1224,8 @@ theorem theorem1618_pf_cont_f
       simpa [h_dst_core_order] using hab_sub
   have h_core_dst_bot_eq_bot :
       ((⊥ : Filtrator.subset (α := β)).1 : β) = (⊥ : β) := by
-    let hFiltered : Filtrator.Filtered β := Filtrator.primary_imp_filtered (α := β)
+    let hFiltered : Filtrator.Filtered β :=
+      Filtrator.primary_imp_filtered (α := B)
     let botCore : Filtrator.subset (α := β) := (⊥ : Filtrator.subset (α := β))
     have h_up_sub : Filtrator.up (⊥ : β) ⊆ Filtrator.up botCore.1 := by
       intro y hy

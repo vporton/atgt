@@ -244,15 +244,15 @@ theorem theorem1650
   exact hsrc.trans (hbridge y).symm
 
 lemma separable_of_primary_boolean_core
-    {α : Type u}
-    [Filtrator.Primary α]
+    {α : Type u} {A : Set α}
+    [Filtrator.Primary A]
     [Bcore : BooleanAlgebra (Filtrator.subset (α := α))]
     (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := α)) :
     IsSeparable α := by
   have hstrong : IsStronglySeparable α := by
     simpa [Filtrator.supset, Filtrator.suporder] using
       (primary_imp_booleanStronglySeparableCore
-        (α := α) (Bcore := Bcore) (hcoreOrder := hcoreOrder))
+        (A := A) (Bcore := Bcore) (hcoreOrder := hcoreOrder))
   exact stronglySeparable_imp_separable hstrong
 
 lemma filterSet_meet_of_forall_not_compl
@@ -316,8 +316,8 @@ lemma filterSet_meet_of_forall_not_compl
 This is a consequence of filters on a boolean lattice being determined by their
 upper sets in the core: if `F` meets every principal filter in `G`, then `F` meets `G`. -/
 lemma separator_up_of_primary_boolean_core
-    {γ : Type u}
-    [F : Filtrator.Primary γ]
+    {γ : Type u} {C : Set γ}
+    [F : Filtrator.Primary C]
     [Bcore : BooleanAlgebra (Filtrator.subset (α := γ))]
     (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ)) :
     F.toFiltrator.separator_up_property := by
@@ -328,9 +328,9 @@ lemma separator_up_of_primary_boolean_core
   · intro hall
     letI : PartialOrder (Filtrator.subset (α := γ)) := Bcore.toPartialOrder
     let Fx_sub : PosetFilter (U := Filtrator.suborder (α := γ)) :=
-      Filtrator.Primary.to_poset_filter (α := γ) x
+      Filtrator.Primary.to_poset_filter (α := C) x
     let Fy_sub : PosetFilter (U := Filtrator.suborder (α := γ)) :=
-      Filtrator.Primary.to_poset_filter (α := γ) y
+      Filtrator.Primary.to_poset_filter (α := C) y
     let Fx_core : PosetFilter (U := Bcore.toPartialOrder) :=
       PosetFilter.castOrderIso (h := hcoreOrder.symm) Fx_sub
     let Fy_core : PosetFilter (U := Bcore.toPartialOrder) :=
@@ -409,14 +409,14 @@ lemma separator_up_of_primary_boolean_core
             simpa [Fy_core, Fx_core] using hsep_fy_core)
     have hsep_yx : y ∈ separator x := by
       have hsep_filters :
-          Filtrator.Primary.to_filters_iso.toRelIso y ∈
-            separator (Filtrator.Primary.to_filters_iso.toRelIso x) := by
+          (Filtrator.Primary.to_filters_iso (α := C)).toRelIso y ∈
+            separator ((Filtrator.Primary.to_filters_iso (α := C)).toRelIso x) := by
         simpa [Fy_sub, Fx_sub,
-          Filtrator.Primary.to_filters_iso_eq_to_poset_filter (α := γ) y,
-          Filtrator.Primary.to_filters_iso_eq_to_poset_filter (α := γ) x] using hsep_fy_sub
+          Filtrator.Primary.to_filters_iso_eq_to_poset_filter (α := C) y,
+          Filtrator.Primary.to_filters_iso_eq_to_poset_filter (α := C) x] using hsep_fy_sub
       exact
         (StrongSeparability.orderIso_mem_separator_iff
-          (e := Filtrator.Primary.to_filters_iso.toRelIso)
+          (e := (Filtrator.Primary.to_filters_iso (α := C)).toRelIso)
           (x := y) (a := x)).2 hsep_filters
     have hmeet_yx : meet y x := by
       simpa [separator] using hsep_yx
@@ -492,13 +492,13 @@ lemma core_order_le_iff_ambient
 /-- Coercion behavior of core bottom: for primary filtrators over boolean cores,
 the core bottom coerces to the ambient bottom. -/
 lemma core_bot_coe_eq_bot
-    {γ : Type u}
-    [Filtrator.Primary γ]
+    {γ : Type u} {C : Set γ}
+    [Filtrator.Primary C]
     [Bcore : BooleanAlgebra (Filtrator.subset (α := γ))]
     [OrderBot γ]
     (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ)) :
     ((⊥ : Filtrator.subset (α := γ)).1 : γ) = (⊥ : γ) := by
-  let hFiltered : Filtrator.Filtered γ := Filtrator.primary_imp_filtered (α := γ)
+  let hFiltered : Filtrator.Filtered γ := Filtrator.primary_imp_filtered (α := C)
   let botCore : Filtrator.subset (α := γ) := (⊥ : Filtrator.subset (α := γ))
   have h_up_sub : Filtrator.up (⊥ : γ) ⊆ Filtrator.up botCore.1 := by
     intro y hy
@@ -583,11 +583,11 @@ lemma core_sup_coe_eq_sup
 /-- Ambient-atom version of Theorem 496 (`atoms-join`) on core joins, under a
 coercion-to-ambient-join compatibility hypothesis. -/
 lemma atoms_coreJoin_eq_union_ambient
-    {γ : Type u}
+    {γ : Type u} {C : Set γ}
     [D : DistribLattice γ]
     [hTop : @OrderTop γ D.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
     [hBot : @OrderBot γ D.toLattice.toSemilatticeInf.toPartialOrder.toPreorder.toLE]
-    [F : Filtrator.Primary γ]
+    [F : Filtrator.Primary C]
     [Bcore : DistribLattice (Filtrator.subset (α := γ))]
     [OrderBot γ]
     (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ))
@@ -602,7 +602,7 @@ lemma atoms_coreJoin_eq_union_ambient
   let _ := hTop
   let IJ : Filtrator.subset (α := γ) := @Max.max (Filtrator.subset (α := γ))
     (SemilatticeSup.toMax (α := Filtrator.subset (α := γ))) I J
-  have hFiltered : Filtrator.Filtered γ := Filtrator.primary_imp_filtered (α := γ)
+  have hFiltered : Filtrator.Filtered γ := Filtrator.primary_imp_filtered (α := C)
   have hJoinAligned : Filtrator.CoreJoinAligned γ :=
     FilteredJoinClosedCore.three_imp_four (α := γ)
   have h_core_sup_coe : (IJ.1 : γ) = I.1 ⊔ J.1 := by
@@ -698,8 +698,8 @@ lemma atoms_coreJoin_eq_union_ambient
 
 /-- Ambient bottom derived from a primary boolean core. -/
 noncomputable def orderBot_of_primary_boolean_core
-    {γ : Type u}
-    [F : Filtrator.Primary γ]
+    {γ : Type u} {C : Set γ}
+    [F : Filtrator.Primary C]
     [Bcore : BooleanAlgebra (Filtrator.subset (α := γ))]
     (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ)) :
     OrderBot γ := by
@@ -716,8 +716,8 @@ noncomputable def orderBot_of_primary_boolean_core
 
 /-- Ambient distributive lattice derived from a primary boolean core. -/
 noncomputable def distribLattice_of_primary_boolean_core
-    {γ : Type u}
-    [F : Filtrator.Primary γ]
+    {γ : Type u} {C : Set γ}
+    [F : Filtrator.Primary C]
     [Bcore : BooleanAlgebra (Filtrator.subset (α := γ))]
     (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ)) :
     DistribLattice γ := by
@@ -743,8 +743,8 @@ noncomputable def distribLattice_of_primary_boolean_core
 
 /-- `OrderTop` witness for a distributive lattice order, transported from ambient order via `hord`. -/
 noncomputable def orderTop_of_distrib_via_hord
-    {γ : Type u}
-    [F : Filtrator.Primary γ]
+    {γ : Type u} {C : Set γ}
+    [F : Filtrator.Primary C]
     [Bcore : BooleanAlgebra (Filtrator.subset (α := γ))]
     (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ))
     (hord : ∀ a b : γ, a ≤ b ↔
@@ -772,8 +772,8 @@ noncomputable def orderTop_of_distrib_via_hord
 
 /-- `OrderBot` witness for a distributive lattice order, transported from ambient order via `hord`. -/
 noncomputable def orderBot_of_distrib_via_hord
-    {γ : Type u}
-    [F : Filtrator.Primary γ]
+    {γ : Type u} {C : Set γ}
+    [F : Filtrator.Primary C]
     [Bcore : BooleanAlgebra (Filtrator.subset (α := γ))]
     (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ))
     (hord : ∀ a b : γ, a ≤ b ↔
@@ -792,8 +792,8 @@ noncomputable def orderBot_of_distrib_via_hord
 
 /-- Ambient complete lattice derived from a primary boolean core (via AdvancedProperties). -/
 noncomputable def completeLattice_of_primary_boolean_core
-    {γ : Type u}
-    [F : Filtrator.Primary γ]
+    {γ : Type u} {C : Set γ}
+    [F : Filtrator.Primary C]
     [Bcore : BooleanAlgebra (Filtrator.subset (α := γ))]
     (hcoreOrder : Bcore.toPartialOrder = Filtrator.suborder (α := γ)) :
     CompleteLattice γ := by
@@ -819,8 +819,8 @@ noncomputable def completeLattice_of_primary_boolean_core
 
 /-- `atomicRelationCondition1654` specialized to primary boolean cores. -/
 def atomicRelationCondition1654_pb
-    {α : Type u} {β : Type v}
-    [X : Filtrator.Primary α] [Y : Filtrator.Primary β]
+    {α : Type u} {β : Type v} {As : Set α} {Bs : Set β}
+    [X : Filtrator.Primary As] [Y : Filtrator.Primary Bs]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
@@ -834,8 +834,8 @@ def atomicRelationCondition1654_pb
 
 /-- `relContinuationFromAtoms1654` specialized to primary boolean cores. -/
 def relContinuationFromAtoms1654_pb
-    {α : Type u} {β : Type v}
-    [X : Filtrator.Primary α] [Y : Filtrator.Primary β]
+    {α : Type u} {β : Type v} {As : Set α} {Bs : Set β}
+    [X : Filtrator.Primary As] [Y : Filtrator.Primary Bs]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
@@ -850,8 +850,8 @@ def relContinuationFromAtoms1654_pb
 
 /-- `atomicFunctionCondition1654` specialized to primary boolean cores. -/
 def atomicFunctionCondition1654_pb
-    {α : Type u} {β : Type v}
-    [X : Filtrator.Primary α] [Y : Filtrator.Primary β]
+    {α : Type u} {β : Type v} {As : Set α} {Bs : Set β}
+    [X : Filtrator.Primary As] [Y : Filtrator.Primary Bs]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
@@ -865,8 +865,8 @@ def atomicFunctionCondition1654_pb
 
 /-- `fwdContinuationFromAtoms1654` specialized to primary boolean cores. -/
 def fwdContinuationFromAtoms1654_pb
-    {α : Type u} {β : Type v}
-    [X : Filtrator.Primary α] [Y : Filtrator.Primary β]
+    {α : Type u} {β : Type v} {As : Set α} {Bs : Set β}
+    [X : Filtrator.Primary As] [Y : Filtrator.Primary Bs]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
@@ -887,8 +887,8 @@ The construction follows the book proof: lift `δ` to a core relation
 `relContinuationFromCore` to `relContinuationFromAtoms1654` via corollary 1652
 and the atomic relation condition. -/
 lemma theorem1654_item2_exists
-    {α : Type u} {β : Type v}
-    [X : Filtrator.Primary α] [Y : Filtrator.Primary β]
+    {α : Type u} {β : Type v} {As : Set α} {Bs : Set β}
+    [X : Filtrator.Primary As] [Y : Filtrator.Primary Bs]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
@@ -1092,10 +1092,10 @@ lemma theorem1654_item2_exists
         simpa [supDst] using hδ_sup_right K I' J') with ⟨f, hf_core, _⟩
   have hAtomic_src : IsAtomic α :=
     Filtrator.Primary.primary_imp_booleanAtomicCore
-      (α := α) (Bcore := Bsrc) (hcoreOrder := h_src_core_order)
+      (A := As) (Bcore := Bsrc) (hcoreOrder := h_src_core_order)
   have hAtomic_dst : IsAtomic β :=
     Filtrator.Primary.primary_imp_booleanAtomicCore
-      (α := β) (Bcore := Bdst) (hcoreOrder := h_dst_core_order)
+      (A := Bs) (Bcore := Bdst) (hcoreOrder := h_dst_core_order)
   letI : IsAtomic α := hAtomic_src
   letI : IsAtomic β := hAtomic_dst
   refine ⟨f, ?_⟩
@@ -1123,8 +1123,8 @@ The construction follows the book proof: define `α'` on core by
 `α'(X) = ⊔{A(a) | a ∈ atoms X}`, show it preserves ⊥ and ⊔,
 apply theorem 1618 (`pf-cont`), and verify the continuation property. -/
 lemma theorem1654_item1_exists
-    {α : Type u} {β : Type v}
-    [Filtrator.Primary α] [Filtrator.Primary β]
+    {α : Type u} {β : Type v} {As : Set α} {Bs : Set β}
+    [Filtrator.Primary As] [Filtrator.Primary Bs]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
@@ -1182,8 +1182,8 @@ whose forward function on atoms matches the given function `A`.
 Existence is constructed via theorem 1618 (`pf-cont`).
 -/
 theorem theorem1654_item1
-    {α : Type u} {β : Type v}
-    [Filtrator.Primary α] [Filtrator.Primary β]
+    {α : Type u} {β : Type v} {As : Set α} {Bs : Set β}
+    [Filtrator.Primary As] [Filtrator.Primary Bs]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
@@ -1249,8 +1249,8 @@ Existence is constructed via theorem 1618 (`pf-cont`) by lifting `δ` to a core 
 `δ'(X, Y) ↔ ∃ x ∈ atoms X, ∃ y ∈ atoms Y, δ x y`.
 -/
 theorem theorem1654_item2
-    {α : Type u} {β : Type v}
-    [Filtrator.Primary α] [Filtrator.Primary β]
+    {α : Type u} {β : Type v} {As : Set α} {Bs : Set β}
+    [Filtrator.Primary As] [Filtrator.Primary Bs]
     [Bsrc : BooleanAlgebra (Filtrator.subset (α := α))]
     [Bdst : BooleanAlgebra (Filtrator.subset (α := β))]
     (h_src_core_order : Bsrc.toPartialOrder = Filtrator.suborder (α := α))
