@@ -26,13 +26,13 @@ abbrev FilterOnPowerset (α: Type*) := PosetFilter (setPartialOrder α)
 abbrev FiltratorOnPowerset.Primary {base: Type u} {U: Set base} :
     Type u := Filtrator.Primary.{u, u} (base := Set base) (Set.powerset U)
 
-/-- Canonical filtrator structure on powerset filters. -/
-instance FiltratorOnPowerset {base: Type*} {U: Set base}
-    : FiltratorOnPowerset.Primary (U := U) := {
-      subset := Set.powerset U
-      is_primary := sorry
-      core := sorry
-    }
+-- /-- Canonical filtrator structure on powerset filters. -/
+-- instance FiltratorOnPowerset {base: Type*} {U: Set base}
+--     : FiltratorOnPowerset.Primary (U := U) := {
+--       subset := Set.powerset U
+--       is_primary := sorry
+--       core := sorry
+--     }
 
 namespace FilterCorrespondence
 
@@ -127,4 +127,4 @@ export FilterCorrespondence (toMathlibFilter ofMathlibFilter equivMathlibFilter 
 
 end Filtrator
 
-export Filtrator (FiltratorOnPowerset)
+-- export Filtrator (FiltratorOnPowerset)
