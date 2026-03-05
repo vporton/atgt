@@ -5,14 +5,14 @@ import atgt.PosetFilter
 universe u v w t
 
 def Funcoid.Primary
-    (α : Type u) (β : Type v)
-    [X: Filtrator.FiltratorOnPowerset.Primary α] [Y: Filtrator.FiltratorOnPowerset.Primary β] :=
+    {baseα : Type u} (α: Set baseα) {baseβ : Type v} (β: Set baseβ)
+    [X: Filtrator.FiltratorOnPowerset.Primary (U := α)] [Y: Filtrator.FiltratorOnPowerset.Primary (U := β)] :=
   PointfreeFuncoid X.suporder Y.suporder
 
 /-- A (non-pointfree) funcoid is pointfree on filters over powersets. -/
 def Funcoid
-    (α : Type u) (β : Type v)
-    [X: Filtrator.FiltratorOnPowerset α] [Y: Filtrator.FiltratorOnPowerset β] :=
+    {baseα : Type u} (α: Set baseα) {baseβ : Type v} (β: Set baseβ)
+    [X: Filtrator.FiltratorOnPowerset (U := α)] [Y: Filtrator.FiltratorOnPowerset (U := β)] :=
   Funcoid.Primary.{u, v, w, t} (X := X) (Y := Y) α β
 
 def relImage
