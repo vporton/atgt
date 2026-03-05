@@ -29,9 +29,7 @@ instance FiltratorOnPowerset {base: Type*} {U: Set base} : Filtrator.Primary (Se
   core := sorry
 }
 
-def FiltratorOnPowerset.Primary {base: Type u} {U: Set base} :=
-  { F: Filtrator.Primary (Set.powerset U) //
-    Nonempty (FiltratorIso (FiltratorOnPowerset (U := U)).toFiltrator F.toFiltrator) }
+abbrev FiltratorOnPowerset.Primary {base: Type u} {U: Set base} := Filtrator.Primary (Set.powerset U)
 
 namespace FilterCorrespondence
 
