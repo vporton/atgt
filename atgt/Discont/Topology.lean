@@ -46,13 +46,13 @@ theorem neighborhoodFuncoid_idempotent :
 
 theorem tendstotop_iff_fcd
     {baseα : Type*} {α: Set baseα} {baseβ : Type*} {β: Set baseβ}
-    (x : α) (y : β)
+    (X : Filter α) (y : β)
     [TopologicalSpace α] [d: TopologicalSpace β]
     (f : α → β) :
-    Filter.Tendsto f (nhds x) (nhds y) ↔
+    Filter.Tendsto f X (nhds y) ↔
       point_limitOfFunction
         (neighborhoodFuncoid d) f
-        (Filtrator.ofMathlibFilter (nhds x)) y := by
+        (Filtrator.ofMathlibFilter X) y := by
   sorry
 
 end
