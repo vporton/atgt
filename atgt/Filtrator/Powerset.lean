@@ -127,4 +127,4 @@ export FilterCorrespondence (toMathlibFilter ofMathlibFilter equivMathlibFilter 
 
 end Filtrator
 
--- export Filtrator (FiltratorOnPowerset)
+export Filtrator (FilterOnPowerset)

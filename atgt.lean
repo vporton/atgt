@@ -7,5 +7,5 @@ import atgt.AlternativePrimaryFiltrators
 import atgt.PointfreeFuncoid
 import atgt.Funcoid
 import atgt.Funcoid.Topology
--- import atgt.Discont.Limit
+import atgt.Discont.Limit
 -- import atgt.Discont.Topology
