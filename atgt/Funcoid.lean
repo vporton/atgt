@@ -4,11 +4,13 @@ import atgt.PosetFilter
 
 universe u v w t
 
+-- TODO: This seems unneeded, because I can deal without introducing dual funcoid L.
 def Funcoid.Primary
     {baseα : Type u} (α: Set baseα) {baseβ : Type v} (β: Set baseβ)
     [X: Filtrator.FiltratorOnPowerset.Primary (U := α)] [Y: Filtrator.FiltratorOnPowerset.Primary (U := β)] :=
   PointfreeFuncoid X.suporder Y.suporder
 
+-- FIXME: Should have principals, not sets, as cores.
 /-- A (non-pointfree) funcoid is pointfree on filters over powersets. -/
 def Funcoid
     {baseα : Type u} (α: Set baseα) {baseβ : Type v} (β: Set baseβ) :=
