@@ -22,12 +22,16 @@ variable {α : Type u}
 
 abbrev FilterOnPowerset (α: Type*) := PosetFilter (setPartialOrder α)
 
-/-- Canonical filtrator structure on powerset filters. -/
-instance FiltratorOnPowerset {base: Type*} {U: Set base}
-    [h : Filtrator.Primary (Set.powerset U)] : Filtrator.Primary (Set.powerset U) := h
-
 abbrev FiltratorOnPowerset.Primary {base: Type u} {U: Set base} :
     Type u := Filtrator.Primary.{u, u} (base := Set base) (Set.powerset U)
+
+/-- Canonical filtrator structure on powerset filters. -/
+instance FiltratorOnPowerset {base: Type*} {U: Set base}
+    : FiltratorOnPowerset.Primary (U := U) := {
+      subset := Set.powerset U
+      is_primary := sorry
+      core := sorry
+    }
 
 namespace FilterCorrespondence
 
