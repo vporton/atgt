@@ -3,7 +3,7 @@
 import atgt.Filtrator.GeneralizedFilterBase
 import atgt.Filtrator.Powerset
 import atgt.Filtrator.AdvancedProperties
--- import atgt.AlternativePrimaryFiltrators
+import atgt.AlternativePrimaryFiltrators
 -- import atgt.PointfreeFuncoid
 -- import atgt.Funcoid
 -- import atgt.Funcoid.Topology
