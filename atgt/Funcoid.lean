@@ -35,10 +35,9 @@ def relPreimage
     (r : α → β → Prop) (B : Set β) : Set α :=
   {x : α | ∃ y ∈ B, r x y}
 
--- FIXME: Exchange arguments.
 def relComp
     {α : Type u} {β : Type v} {γ : Type w}
-    (r : α → β → Prop) (s : β → γ → Prop) : α → γ → Prop :=
+    (s : β → γ → Prop) (r : α → β → Prop) : α → γ → Prop :=
   fun x z => ∃ y, r x y ∧ s y z
 
 lemma relImage_mono
@@ -64,7 +63,7 @@ lemma relPreimage_mono
 lemma relImage_relComp
     {α : Type u} {β : Type v} {γ : Type w}
     (r : α → β → Prop) (s : β → γ → Prop) (A : Set α) :
-    relImage (relComp r s) A = relImage s (relImage r A) := by
+    relImage (relComp s r) A = relImage s (relImage r A) := by
   ext z
   constructor
   · intro hz
@@ -78,7 +77,7 @@ lemma relImage_relComp
 lemma relPreimage_relComp
     {α : Type u} {β : Type v} {γ : Type w}
     (r : α → β → Prop) (s : β → γ → Prop) (C : Set γ) :
-    relPreimage (relComp r s) C = relPreimage r (relPreimage s C) := by
+    relPreimage (relComp s r) C = relPreimage r (relPreimage s C) := by
   ext x
   constructor
   · intro hx
@@ -471,7 +470,7 @@ lemma principalFuncoidOfFunction_rel_singleton_singleton
 theorem principalFuncoid_comp
     {baseα baseβ baseγ : Type*} {α: Set baseα} {β: Set baseβ} {γ: Set baseγ}
     (s : β → γ → Prop) (r : α → β → Prop) :
-    principalFuncoid (relComp r s) =
+    principalFuncoid (relComp s r) =
       (principalFuncoid s) ∘ (principalFuncoid r) := by
   apply PointfreeFuncoid.ext
   · funext F
@@ -480,14 +479,14 @@ theorem principalFuncoid_comp
     ext Z
     constructor
     · intro hZ
-      rcases (mem_relImageFilter_iff (r := relComp r s) (F := F) (Y := Z)).1 hZ with
+      rcases (mem_relImageFilter_iff (r := relComp s r) (F := F) (Y := Z)).1 hZ with
         ⟨A, hAF, hAZ⟩
       have hAImgMem : relImage r A ∈ (relImageFilter r F).elements :=
         (mem_relImageFilter_iff (r := r) (F := F) (Y := relImage r A)).2
           ⟨A, hAF, Set.Subset.rfl⟩
       have hAImgSub : relImage s (relImage r A) ⊆ Z := by
         calc
-          relImage s (relImage r A) = relImage (relComp r s) A :=
+          relImage s (relImage r A) = relImage (relComp s r) A :=
             (relImage_relComp r s A).symm
           _ ⊆ Z := hAZ
       exact (mem_relImageFilter_iff (r := s) (F := relImageFilter r F) (Y := Z)).2
@@ -497,13 +496,13 @@ theorem principalFuncoid_comp
         ⟨B, hBMem, hBZ⟩
       rcases (mem_relImageFilter_iff (r := r) (F := F) (Y := B)).1 hBMem with
         ⟨A, hAF, hAB⟩
-      have hAZ : relImage (relComp r s) A ⊆ Z := by
+      have hAZ : relImage (relComp s r) A ⊆ Z := by
         calc
-          relImage (relComp r s) A = relImage s (relImage r A) :=
+          relImage (relComp s r) A = relImage s (relImage r A) :=
             relImage_relComp r s A
           _ ⊆ relImage s B := relImage_mono s hAB
           _ ⊆ Z := hBZ
-      exact (mem_relImageFilter_iff (r := relComp r s) (F := F) (Y := Z)).2
+      exact (mem_relImageFilter_iff (r := relComp s r) (F := F) (Y := Z)).2
         ⟨A, hAF, hAZ⟩
   · funext G
     apply PosetFilter.ext
@@ -511,14 +510,14 @@ theorem principalFuncoid_comp
     ext X
     constructor
     · intro hX
-      rcases (mem_relPreimageFilter_iff (r := relComp r s) (G := G) (X := X)).1 hX with
+      rcases (mem_relPreimageFilter_iff (r := relComp s r) (G := G) (X := X)).1 hX with
         ⟨C, hCG, hCX⟩
       have hCPreMem : relPreimage s C ∈ (relPreimageFilter s G).elements :=
         (mem_relPreimageFilter_iff (r := s) (G := G) (X := relPreimage s C)).2
           ⟨C, hCG, Set.Subset.rfl⟩
       have hCPreSub : relPreimage r (relPreimage s C) ⊆ X := by
         calc
-          relPreimage r (relPreimage s C) = relPreimage (relComp r s) C :=
+          relPreimage r (relPreimage s C) = relPreimage (relComp s r) C :=
             (relPreimage_relComp r s C).symm
           _ ⊆ X := hCX
       exact (mem_relPreimageFilter_iff (r := r) (G := relPreimageFilter s G) (X := X)).2
@@ -528,11 +527,11 @@ theorem principalFuncoid_comp
         ⟨B, hBMem, hBX⟩
       rcases (mem_relPreimageFilter_iff (r := s) (G := G) (X := B)).1 hBMem with
         ⟨C, hCG, hCB⟩
-      have hCX : relPreimage (relComp r s) C ⊆ X := by
+      have hCX : relPreimage (relComp s r) C ⊆ X := by
         calc
-          relPreimage (relComp r s) C = relPreimage r (relPreimage s C) :=
+          relPreimage (relComp s r) C = relPreimage r (relPreimage s C) :=
             relPreimage_relComp r s C
           _ ⊆ relPreimage r B := relPreimage_mono r hCB
           _ ⊆ X := hBX
-      exact (mem_relPreimageFilter_iff (r := relComp r s) (G := G) (X := X)).2
+      exact (mem_relPreimageFilter_iff (r := relComp s r) (G := G) (X := X)).2
         ⟨C, hCG, hCX⟩
