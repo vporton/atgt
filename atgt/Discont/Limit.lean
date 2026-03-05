@@ -28,7 +28,7 @@ namespace FilterLimits
 
 noncomputable def filt_limitOfFuncoid {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ} (d: Funcoid β β)
     (f: Funcoid α β) :=
-  (d ∘ f).image -- FIXME: Define it without `limitPointFuncoid`
+  (d ∘ f).image
 
 noncomputable def filt_limitOfRestrictedFuncoid
     {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ}
@@ -36,49 +36,6 @@ noncomputable def filt_limitOfRestrictedFuncoid
     (f: Funcoid α β)
     (a: Filtrator.FilterOnPowerset α) :=
   (d ∘ f).fwd a
-
--- FIXME
-noncomputable def restrictFuncoidViaOrderEq
-    {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ}
-    (f: Funcoid α β)
-    (hsrcOrder : -- FIXME: Deduce it rather than assume.
-      (SemilatticeInf.toPartialOrder
-        (self := (inferInstance : SemilatticeInf (FilterOnPowerset α)))) =
-      (inferInstance : PartialOrder (FilterOnPowerset α)))
-    (a : FilterOnPowerset α) :
-    Funcoid α β := by
-  let hfTy :
-      Funcoid α β =
-        PointfreeFuncoid
-          ((inferInstance : SemilatticeInf (Filtrator.FilterOnPowerset α)).toPartialOrder)
-          (inferInstance : PartialOrder (Filtrator.FilterOnPowerset β)) := by
-    simpa [Funcoid] using
-      congrArg
-        (fun X : PartialOrder (Filtrator.FilterOnPowerset α) =>
-          PointfreeFuncoid X (inferInstance : PartialOrder (Filtrator.FilterOnPowerset β)))
-        hsrcOrder.symm
-  let fSemi :
-      PointfreeFuncoid
-        ((inferInstance : SemilatticeInf (Filtrator.FilterOnPowerset α)).toPartialOrder)
-        (inferInstance : PartialOrder (Filtrator.FilterOnPowerset β)) :=
-    cast hfTy f
-  exact cast hfTy.symm (PointfreeFuncoid.restrict fSemi a)
-
--- FIXME
-lemma filt_limitOfRestrictedFuncoid_eq
-    {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ}
-    (d: Funcoid β β)
-    (f: Funcoid α β)
-    (hsrcOrder :
-      (SemilatticeInf.toPartialOrder
-        (self := (inferInstance : SemilatticeInf (Filtrator.FilterOnPowerset α)))) =
-      (inferInstance : PartialOrder (Filtrator.FilterOnPowerset α)))
-    (a: Filtrator.FilterOnPowerset α) :
-    filt_limitOfRestrictedFuncoid d f a =
-      filt_limitOfFuncoid d (restrictFuncoidViaOrderEq f hsrcOrder a) := by
-  cases hsrcOrder
-  simp [filt_limitOfRestrictedFuncoid, filt_limitOfFuncoid, restrictFuncoidViaOrderEq,
-    PointfreeFuncoid.image, PointfreeFuncoid.restrict, PointfreeFuncoid.restrictedIdentity, comp]
 
 noncomputable def filt_IsBinaryRelationLimit {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ} (d: Funcoid β β)
     (f: α → β → Prop) (a: FilterOnPowerset α) :=
