@@ -11,18 +11,18 @@ def closureRel {α : Type u} (t : TopologicalSpace α) (x y : α) : Prop :=
   letI : TopologicalSpace α := t
   ∀ F : Set α, IsClosed F → x ∈ F → y ∈ F
 
-def neighborhoodFuncoid {α : Type u} (t : TopologicalSpace α) :
+def neighborhoodFuncoid {baseα : Type u} {α: Set baseα} (t : TopologicalSpace α) :
     Funcoid α α :=
   principalFuncoid (neighborhoodRel t)
 
-def closureFuncoid {α : Type u} (t : TopologicalSpace α) :
+def closureFuncoid {baseα : Type u} {α: Set baseα} (t : TopologicalSpace α) :
     Funcoid α α :=
   principalFuncoid (closureRel t)
 
-def converseRel {α : Type u} (r : α → α → Prop) : α → α → Prop :=
+def converseRel {baseα : Type u} {α: Set baseα} (r : α → α → Prop) : α → α → Prop :=
   fun x y => r y x
 
-lemma relImage_converse_eq_relPreimage {α : Type u} (r : α → α → Prop) (A : Set α) :
+lemma relImage_converse_eq_relPreimage {baseα : Type u} {α: Set baseα} (r : α → α → Prop) (A : Set α) :
     relImage (converseRel r) A = relPreimage r A := by
   ext x
   constructor
@@ -31,7 +31,7 @@ lemma relImage_converse_eq_relPreimage {α : Type u} (r : α → α → Prop) (A
   · rintro ⟨y, hyA, hxy⟩
     exact ⟨y, hyA, hxy⟩
 
-lemma relPreimage_converse_eq_relImage {α : Type u} (r : α → α → Prop) (A : Set α) :
+lemma relPreimage_converse_eq_relImage {baseα : Type u} {α: Set baseα} (r : α → α → Prop) (A : Set α) :
     relPreimage (converseRel r) A = relImage r A := by
   ext x
   constructor
@@ -40,7 +40,7 @@ lemma relPreimage_converse_eq_relImage {α : Type u} (r : α → α → Prop) (A
   · rintro ⟨y, hyA, hxy⟩
     exact ⟨y, hyA, hxy⟩
 
-lemma closureRel_iff_converseNeighborhoodRel {α : Type u} (t : TopologicalSpace α) :
+lemma closureRel_iff_converseNeighborhoodRel {baseα : Type u} {α: Set baseα} (t : TopologicalSpace α) :
     closureRel t = converseRel (neighborhoodRel t) := by
   letI : TopologicalSpace α := t
   funext x y
@@ -59,7 +59,7 @@ lemma closureRel_iff_converseNeighborhoodRel {α : Type u} (t : TopologicalSpace
       h (Fᶜ) (isOpen_compl_iff.2 hF) hyFc
     exact hxFc hxF
 
-lemma principalFuncoid_inv_eq_converse {α : Type u} (r : α → α → Prop) :
+lemma principalFuncoid_inv_eq_converse {baseα : Type u} {α: Set baseα} (r : α → α → Prop) :
     (principalFuncoid r).inv = principalFuncoid (converseRel r) := by
   apply PointfreeFuncoid.ext
   · funext G
@@ -93,7 +93,7 @@ lemma principalFuncoid_inv_eq_converse {α : Type u} (r : α → α → Prop) :
       exact (mem_relImageFilter_iff (r := r) (F := G) (Y := X)).2
         ⟨Y, hYG, by simpa [relPreimage_converse_eq_relImage (r := r) (A := Y)] using hYX⟩
 
-theorem neighborhoodFuncoid_inv {α : Type u} (t : TopologicalSpace α) :
+theorem neighborhoodFuncoid_inv {baseα : Type u} {α: Set baseα} (t : TopologicalSpace α) :
     (neighborhoodFuncoid t).inv = closureFuncoid t := by
   calc
     (neighborhoodFuncoid t).inv
@@ -104,19 +104,19 @@ theorem neighborhoodFuncoid_inv {α : Type u} (t : TopologicalSpace α) :
           simp [closureRel_iff_converseNeighborhoodRel t]
     _ = closureFuncoid t := rfl
 
-theorem closureFuncoid_inv {α : Type u} (t : TopologicalSpace α) :
+theorem closureFuncoid_inv {baseα : Type u} {α: Set baseα} (t : TopologicalSpace α) :
     (closureFuncoid t).inv = neighborhoodFuncoid t := by
   have h := neighborhoodFuncoid_inv t
   simpa [inv_inv_funcoid, closureFuncoid] using (congrArg PointfreeFuncoid.inv h).symm
 
-def circ {α : Type u} (f : Funcoid α α) : Funcoid α α := f
+def circ {baseα : Type u} {α: Set baseα} (f : Funcoid α α) : Funcoid α α := f
 
-def nearnessFuncoid {α : Type u} (t : TopologicalSpace α) :
+def nearnessFuncoid {baseα : Type u} {α: Set baseα} (t : TopologicalSpace α) :
     Funcoid α α :=
   circ (closureFuncoid t).inv
 
 theorem nearnessFuncoid_fwd_singleton_eq_neighborhoodFuncoid_fwd_singleton
-    {α : Type u} (t : TopologicalSpace α) (x : α)
+    {baseα : Type u} {α: Set baseα} (t : TopologicalSpace α) (x : α)
     (_hsep : @TopologicalSpace.SeparableSpace α t) :
     Funcoid.fwd_set (nearnessFuncoid t) ({x} : Set α) =
       Funcoid.fwd_set (neighborhoodFuncoid t) ({x} : Set α) := by
