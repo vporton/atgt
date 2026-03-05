@@ -29,6 +29,10 @@ def point_limitOfRestrictedFuncoid
     (a: Filtrator.FilterOnPowerset α) :=
   limitPointsOfFilter d (f.fwd a)
 
+theorem point_limitOfRestrictedFuncoid_eq {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ}
+    (d: Funcoid β β) (f: Funcoid α β) (a: Filtrator.FilterOnPowerset α) :
+  point_limitOfRestrictedFuncoid d f a = point_limitOfFuncoid d (PointfreeFuncoid.restrict f a) := sorry
+
 def point_limitOfBinaryRelation {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ} (d: Funcoid β β)
     (f: α → β → Prop) (a: FilterOnPowerset α) :=
   point_limitOfRestrictedFuncoid d (principalFuncoid f) a
@@ -51,6 +55,10 @@ def filt_limitOfRestrictedFuncoid
     (f: Funcoid α β)
     (a: Filtrator.FilterOnPowerset α) :=
   (d ∘ f).fwd a
+
+theorem filt_limitOfRestrictedFuncoid_eq {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ}
+    (d: Funcoid β β) (f: Funcoid α β) (a: Filtrator.FilterOnPowerset α) :
+  filt_limitOfRestrictedFuncoid d f a = filt_limitOfFuncoid d (PointfreeFuncoid.restrict f a) := sorry
 
 def filt_limitOfBinaryRelation {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ} (d: Funcoid β β)
     (f: α → β → Prop) (a: FilterOnPowerset α) :=
