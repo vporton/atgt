@@ -10,38 +10,53 @@ universe u v w
 
 namespace PointLimits
 
-def IsFuncoidLimit {baseα baseβ : Type*} {α: Set baseα} {β: Set baseβ} (d: Funcoid α β) (F: Filtrator.FilterOnPowerset β) (x: α) :=
+def IsLimitPointOfFilter {baseα baseβ : Type*} {α: Set baseα} {β: Set baseβ} (d: Funcoid α β) (F: Filtrator.FilterOnPowerset β) (x: α) :=
   F ≤ Funcoid.fwd_set d ({x} : Set α)
-
-def IsLimitPointOfFilter {baseα : Type u} {α: Set baseα}
-    (d : Funcoid α α) (s : FilterOnPowerset α) (x: α) : Prop :=
-  IsFuncoidLimit d s x
 
 def limitPointsOfFilter {baseα : Type u} {α: Set baseα}
     (d : Funcoid α α)
     (s : FilterOnPowerset α) :=
   {y : α | IsLimitPointOfFilter d s y}
 
+def point_limitOfFuncoid {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ} (d: Funcoid β β)
+    (f: Funcoid α β) :=
+  limitPointsOfFilter d f.image
+
+def point_limitOfRestrictedFuncoid
+    {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ}
+    (d: Funcoid β β)
+    (f: Funcoid α β)
+    (a: Filtrator.FilterOnPowerset α) :=
+  limitPointsOfFilter d (f.fwd a)
+
+def point_limitOfBinaryRelation {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ} (d: Funcoid β β)
+    (f: α → β → Prop) (a: FilterOnPowerset α) :=
+  point_limitOfRestrictedFuncoid d (principalFuncoid f) a
+
+def point_limitOfFunction {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ} (d: Funcoid β β)
+    (f: α → β) (a: Filtrator.FilterOnPowerset α) :=
+  point_limitOfRestrictedFuncoid d (principalFuncoidOfFunction f) a
+
 end PointLimits
 
 namespace FilterLimits
 
-noncomputable def filt_limitOfFuncoid {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ} (d: Funcoid β β)
+def filt_limitOfFuncoid {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ} (d: Funcoid β β)
     (f: Funcoid α β) :=
   (d ∘ f).image
 
-noncomputable def filt_limitOfRestrictedFuncoid
+def filt_limitOfRestrictedFuncoid
     {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ}
     (d: Funcoid β β)
     (f: Funcoid α β)
     (a: Filtrator.FilterOnPowerset α) :=
   (d ∘ f).fwd a
 
-noncomputable def filt_limitOfBinaryRelation {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ} (d: Funcoid β β)
+def filt_limitOfBinaryRelation {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ} (d: Funcoid β β)
     (f: α → β → Prop) (a: FilterOnPowerset α) :=
   filt_limitOfRestrictedFuncoid d (principalFuncoid f) a
 
-noncomputable def filt_limitOfFunction {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ} (d: Funcoid β β)
+def filt_limitOfFunction {baseα baseβ: Type*} {α: Set baseα} {β: Set baseβ} (d: Funcoid β β)
     (f: α → β) (a: Filtrator.FilterOnPowerset α) :=
   filt_limitOfRestrictedFuncoid d (principalFuncoidOfFunction f) a
 
