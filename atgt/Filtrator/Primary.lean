@@ -5,6 +5,7 @@ instance FiltratorOfFilters {u : Type*} [inst : PartialOrder u] : Filtrator (Pos
   subset := Principals (U := inst)
 
 /- TODO: Rename? -/
+-- FIXME: The parameter α is superfluous? We otherwise require subset to be isomoprhic rather than equal to α.
 class Filtrator.Primary {base: Type*} (α: Set base) extends Filtrator base where
   is_primary : ∃ β: Type*, ∃ p: PartialOrder β,
     Nonempty (FiltratorIso (FiltratorOfFilters (inst := p)) toFiltrator)
