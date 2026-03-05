@@ -1,6 +1,5 @@
 import atgt.Discont.Limit
 import atgt.Funcoid.Topology
-import Mathlib.Topology.AlexandrovDiscrete
 
 open Filter Topology
 open scoped Topology
@@ -9,7 +8,7 @@ universe u
 
 section
 
-variable {α : Type u} [TopologicalSpace α]
+variable {baseα : Type*} {α: Set baseα} [TopologicalSpace α]
 
 theorem neighborhoodFuncoid_idempotent :
     (neighborhoodFuncoid (inferInstance : TopologicalSpace α)) ∘
@@ -45,19 +44,15 @@ theorem neighborhoodFuncoid_idempotent :
     _ = neighborhoodFuncoid (inferInstance : TopologicalSpace α) := by
           simp [neighborhoodFuncoid, hrel]
 
--- FIXME: Use L from the book.
 theorem tendstotop_iff_fcd
+    {baseα : Type*} {α: Set baseα} {baseβ : Type*} {β: Set baseβ}
     (x : α) (y : β)
-    [TopologicalSpace β]
-    (h : ∃! g : Funcoid β (OrderDual β),
-      IsFwdContinuation1618 (limitPointsOfSet (neighborhoodFuncoid (d : TopologicalSpace β))) g)
+    [TopologicalSpace α] [d: TopologicalSpace β]
     (f : α → β) :
     Filter.Tendsto f (nhds x) (nhds y) ↔
-      IsFunctionLimit
-        (neighborhoodFuncoid (d : TopologicalSpace β))
-        h
-        f
-        (Filtrator.ofMathlibFilter (nhds x)) = (Filtrator.ofMathlibFilter (nhds y)) := by
+      point_limitOfFunction
+        (neighborhoodFuncoid d) f
+        (Filtrator.ofMathlibFilter (nhds x)) y := by
   sorry
 
 end
