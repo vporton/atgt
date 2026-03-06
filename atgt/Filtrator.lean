@@ -16,7 +16,7 @@ def Filtrator.suporder {α : Type*} [Filtrator α] : PartialOrder α := inferIns
 def Filtrator.suborder {α : Type*} [Filtrator α] : PartialOrder (subset : Set α) :=
   Subtype.partialOrder (· ∈ (subset : Set α))
 
-abbrev Filtrator.supset {α : Type u} [Filtrator α] := α
+abbrev Filtrator.supset {α : Type u} [Filtrator α] : Type u := α
 
 -- TODO: Delete?
 def Filtrator.subset_to_suporder {α : Type u} [Filtrator α]

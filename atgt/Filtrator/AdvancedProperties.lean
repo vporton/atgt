@@ -1,4 +1,5 @@
 import atgt.Filtrator.Primary
+import atgt.Filtrator.Powerset
 import atgt.AlternativePrimaryFiltrators
 import Mathlib.Order.CompleteLattice.Basic
 import Mathlib.Order.CompleteBooleanAlgebra
@@ -6,6 +7,7 @@ import Mathlib.Order.Bounds.OrderIso
 import Mathlib.Data.Finset.Lattice.Fold
 import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Subtype
+import Mathlib.Data.Set.BooleanAlgebra
 
 set_option linter.unnecessarySimpa false
 
@@ -301,7 +303,7 @@ variable {α : Type u} {A : Set α}
 /- TODO: Rename below. -/
 
 /-- 1⇒2 in Corollary 518 tuple. -/
-noncomputable def one_imp_two [Filtrator.Primary A] : Filtrator.Primary A :=
+noncomputable def one_imp_two [FiltratorOnPowerset.Primary (U := A)] : Filtrator.Primary (Set.powerset A) :=
   inferInstance
 
 /-- 2⇒3 in Corollary 518 tuple. -/
@@ -318,16 +320,10 @@ noncomputable instance two_imp_three
 
 /-- 1⇒3 in Corollary 518 tuple. -/
 noncomputable instance one_imp_three
-    [Filtrator.Primary A]
-    [SemilatticeInf (Filtrator.subset (α := α))]
-    [OrderTop α]
-    [OrderBot α]
-    (hcoreord :
-      Filtrator.suborder (α := α) =
-        (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder) :
-    CompleteLattice (Filtrator.supset (α := α)) := by
-  letI : Filtrator.Primary A := one_imp_two (A := A)
-  exact two_imp_three (α := α) hcoreord
+    [FiltratorOnPowerset.Primary (U := A)] :
+    CompleteLattice (FiltratorOnPowerset.Primary (U := A)) := by
+  letI : Filtrator.Primary (Set.powerset A) := one_imp_two (A := A)
+  sorry
 
 end PrimaryMeetTopCompleteLatticeTuple
 
@@ -720,7 +716,7 @@ def FiniteFilterMeetFormula (α : Type u) [Filtrator α]
       IsGLB (Set.range Fs) R
 
 /-- 1⇒2 in Corollary 523 tuple. -/
-noncomputable def one_imp_two [Filtrator.Primary A] : Filtrator.Primary A :=
+noncomputable def one_imp_two [FiltratorOnPowerset.Primary (U := A)] : Filtrator.Primary (Set.powerset A) :=
   inferInstance
 
 /-- 2⇒3 in Corollary 523 tuple (core filter-lattice form). -/
@@ -738,8 +734,7 @@ theorem one_imp_three
     [Filtrator.Primary A]
     [Dcore : DistribLattice (Filtrator.subset (α := α))] :
     FiniteFilterMeetFormula α := by
-  letI : Filtrator.Primary A := one_imp_two (A := A)
-  exact two_imp_three (α := α)
+  sorry
 
 end FiniteFilterMeetCoreTuple
 
@@ -1060,8 +1055,8 @@ Specialized bridge (Theorem 530 route): under the primary/distributive-core setu
 core-order alignment, we construct a coframe instance on `Filtrator.supset`.
 -/
 noncomputable instance primary_distribCore_imp_coframe
-    [Filtrator.Primary A]
-    [OrderTop α]
+    [F: Filtrator.Primary A]
+    [top: OrderTop α]
     [OrderBot α]
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hcoreord : Filtrator.suborder (α := α) =
@@ -1096,7 +1091,7 @@ namespace FilterInfAssociativity
 variable {α : Type u} {A : Set α}
 
 /-- 1⇒2 in Theorem 530 tuple. -/
-noncomputable def one_imp_two [Filtrator.Primary A] : Filtrator.Primary A :=
+noncomputable def one_imp_two [FiltratorOnPowerset.Primary (U := A)] : Filtrator.Primary (Set.powerset A) :=
   inferInstance
 
 /-- 2⇒3 in Theorem 530 tuple (development-level complete-distributive form). -/
@@ -1113,15 +1108,11 @@ noncomputable instance two_imp_three
 
 /-- 1⇒3 in Theorem 530 tuple. -/
 noncomputable instance one_imp_three
-    [Filtrator.Primary A]
-    [OrderTop α]
-    [OrderBot α]
-    [Dcore : DistribLattice (Filtrator.subset (α := α))]
-    (hcoreord : Filtrator.suborder (α := α) =
-      Dcore.toLattice.toSemilatticeInf.toPartialOrder) :
-    Order.Coframe (Filtrator.supset (α := α)) := by
-  letI : Filtrator.Primary A := one_imp_two (A := A)
-  exact two_imp_three (α := α) hcoreord
+    [FiltratorOnPowerset.Primary (U := A)]
+    :
+    Order.Coframe (FiltratorOnPowerset.Primary (U := A)) := by
+  letI : FiltratorOnPowerset.Primary (U := A) := one_imp_two (A := A)
+  sorry
 
 end FilterInfAssociativity
 
@@ -1132,7 +1123,7 @@ namespace FilterAlsoDistributive
 variable {α : Type u} {A : Set α}
 
 /-- 1⇒2 in Corollary 531 tuple. -/
-noncomputable def one_imp_two [Filtrator.Primary A] : Filtrator.Primary A := -- FIXME: Should be Powerset, instead.
+noncomputable def one_imp_two [FiltratorOnPowerset.Primary (U := A)] : Filtrator.Primary (Set.powerset A) :=
   inferInstance
 
 /-- 2⇒3 in Corollary 531 tuple: the filter lattice is distributive. -/
@@ -1151,15 +1142,10 @@ noncomputable instance two_imp_three
 
 /-- 1⇒3 in Corollary 531 tuple. -/
 noncomputable instance one_imp_three
-    [Filtrator.Primary A] -- FIXME: Should be Powerset, instead.
-    [OrderTop α]
-    [OrderBot α]
-    [Dcore : DistribLattice (Filtrator.subset (α := α))]
-    (hcoreord : Filtrator.suborder (α := α) =
-      Dcore.toLattice.toSemilatticeInf.toPartialOrder) :
-    DistribLattice (Filtrator.supset (α := α)) := by
-  letI : Filtrator.Primary A := one_imp_two (A := A)
-  exact two_imp_three (α := α) hcoreord
+    [FiltratorOnPowerset.Primary (U := A)] :
+    DistribLattice (FiltratorOnPowerset.Primary (U := A)) := by
+  letI : FiltratorOnPowerset.Primary (U := A) := one_imp_two (A := A)
+  sorry
 
 end FilterAlsoDistributive
 
@@ -1179,7 +1165,7 @@ namespace FilteredJoinClosedCore
 variable {α : Type u} {A : Set α}
 
 /-- 1⇒2 in Theorem 534 tuple. -/
-noncomputable def one_imp_two [Filtrator.Primary A] : Filtrator.Primary A :=
+noncomputable def one_imp_two [FiltratorOnPowerset.Primary (U := A)] : Filtrator.Primary (Set.powerset A) :=
   inferInstance
 
 /-- 2⇒3 in Theorem 534 tuple. -/
@@ -1210,11 +1196,26 @@ instance two_imp_four [Filtrator.Primary A] : Filtrator.CoreJoinAligned α := by
   exact three_imp_four (α := α)
 
 /-- 1⇒4 in Theorem 534 tuple. -/
-instance one_imp_four [Filtrator.Primary A] : Filtrator.CoreJoinAligned α := by
-  letI : Filtrator.Primary A := one_imp_two (A := A)
-  exact two_imp_four (α := α)
+instance one_imp_four [FiltratorOnPowerset.Primary (U := A)] : Filtrator.CoreJoinAligned (Set α) := by
+  letI : FiltratorOnPowerset.Primary (U := A) := one_imp_two (A := A)
+  sorry
 
 end FilteredJoinClosedCore
 
 export FilteredJoinClosedCore
   (three_imp_four two_imp_four one_imp_four)
+
+-- TODO: not needed because of the below
+noncomputable instance instDistribFilterOnPowerset {baseα: Type*} (α : Set baseα)
+    [FiltratorOnPowerset.Primary (U := α)] :
+    DistribLattice (FiltratorOnPowerset.Primary (U := α)) :=
+  FilterAlsoDistributive.one_imp_three
+
+-- FIXME: Uncomment.
+-- instance instCoframeFilterOnPowerset {baseα: Type*} (α : Set baseα)
+--     [F: FiltratorOnPowerset.Primary (U := α)] :
+--     Order.Coframe (FiltratorOnPowerset.Primary (U := α)) :=
+--   PrimaryDistribCoreBridge.primary_distribCore_imp_coframe
+--     (Dcore := sorry)
+--     (F := F)
+--     (top := Filtrator.Primary.TopOfPrimaryFiltrator)

@@ -3,7 +3,6 @@ import Mathlib.Order.Filter.Basic
 import Mathlib.Order.RelIso.Basic
 import atgt.Filtrator
 import atgt.Filtrator.Primary
-import atgt.Filtrator.AdvancedProperties
 
 /-!
 # Powerset filtrators
@@ -130,13 +129,3 @@ export FilterCorrespondence (toMathlibFilter ofMathlibFilter equivMathlibFilter 
 end Filtrator
 
 export Filtrator (FilterOnPowerset FiltratorOnPowerset.Primary)
-
-instance instDistribFilterOnPowerset {baseα: Type*} (α : Set baseα)
-    [FiltratorOnPowerset.Primary (U := α)] :
-    DistribLattice (FiltratorOnPowerset.Primary (U := α)) :=
-  FilterAlsoDistributive.two_imp_three _
-
-instance instCoframeFilterOnPowerset {baseα: Type*} (α : Set baseα)
-    [FiltratorOnPowerset.Primary (U := α)] :
-    Order.Coframe (FiltratorOnPowerset.Primary (U := α)) :=
-  PrimaryDistribCoreBridge.primary_distribCore_imp_coframe _
