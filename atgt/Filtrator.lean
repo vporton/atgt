@@ -25,7 +25,7 @@ def Filtrator.subset_to_suporder {α : Type u} [Filtrator α]
 
 -- variable {α : Type*} [Filtrator α]
 
-def Filtrator.up {α : Type u} [Filtrator α] (x: α) := { y ∈ subset | x ≤ y }
+def Filtrator.up {α : Type u} [F: Filtrator α] (x: α) := { y ∈ subset | x ≤ y }
 
 def Filtrator.up_suborder {α : Type u} [Filtrator α] (x : α) : Set (subset : Set α) :=
   { y | x ≤ y.1 }

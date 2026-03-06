@@ -5,11 +5,10 @@ instance FiltratorOfFilters {u : Type*} [inst : PartialOrder u] : Filtrator (Pos
   subset := Principals (U := inst)
 
 /- TODO: Rename? -/
--- FIXME: The parameter α is superfluous? We otherwise require subset to be isomoprhic rather than equal to α.
-class Filtrator.Primary {base: Type*} (α: Set base) extends Filtrator base where
+class Filtrator.Primary {base: Type*} extends Filtrator base where
   is_primary : ∃ β: Type*, ∃ p: PartialOrder β,
     Nonempty (FiltratorIso (FiltratorOfFilters (inst := p)) toFiltrator)
-  core : subset = α
+  core : (subset : Set base)
 
 theorem Filtrator.filtered_of_filters {β : Type u} (p : PartialOrder β) :
   Filtrator.Filtered (PosetFilter p) := by
@@ -48,17 +47,17 @@ theorem Filtrator.Filtered.of_iso {α β : Type*} [i : Filtrator α] [j : Filtra
   have hyx_pre : iso.toRelIso.symm y ≤ iso.toRelIso.symm x := h.is_filtered _ _ h_preimage_up
   exact (iso.toRelIso.symm.map_rel_iff).1 hyx_pre
 
-theorem Filtrator.primary_imp_filtered {base: Type*} (α: Set base) [Filtrator.Primary α] :
+theorem Filtrator.primary_imp_filtered {base: Type*} [Filtrator.Primary (base := base)] :
     Filtrator.Filtered base := by
-  rcases (‹Filtrator.Primary α›).is_primary with ⟨β, p, ⟨iso⟩⟩
+  rcases (‹Filtrator.Primary›).is_primary with ⟨β, p, ⟨iso⟩⟩
   exact Filtrator.Filtered.of_iso (h := Filtrator.filtered_of_filters p) iso
 
 theorem Filtrator.isomorphicToPrimary_imp_filtered {base: Type*} [i : Filtrator base]
-    (h : ∃ (β : Set Type*) (hprim : Filtrator.Primary β),
+    (h : ∃ (base2: Type*) (hprim : Filtrator.Primary (base := base2)),
       Nonempty (FiltratorIso (Filtrator.Primary.toFiltrator (self := hprim)) i)) :
     Filtrator.Filtered base := by
   rcases h with ⟨β, hprim, ⟨iso⟩⟩
-  letI : Filtrator.Primary β := hprim
+  letI : Filtrator.Primary := hprim
   exact Filtrator.Filtered.of_iso (h := Filtrator.primary_imp_filtered (α := β)) iso
 
 namespace Filtrator.Primary
@@ -69,9 +68,10 @@ variable {base : Type u}
 variable {α : Set base}
 
 section primary_core
-variable [Primary α]
+variable [Primary]
 
-theorem order_determined (a b : base) : a ≤ b ↔ up b ⊆ up a := by
+theorem order_determined {base: Type*} [F: Primary (base := base)] (a b : F.supset) :
+    (a ≤ b ↔ up (F := F.toFiltrator) b ⊆ up (F := F.toFiltrator) a) := by
   let h_filtered := Filtrator.primary_imp_filtered (α := α)
   constructor
   · intro hab y hy
@@ -79,7 +79,7 @@ theorem order_determined (a b : base) : a ≤ b ↔ up b ⊆ up a := by
   · intro h_sub
     exact h_filtered.is_filtered _ _ h_sub
 
-theorem exists_up_in_subset (x : base) : ∃ y : subset, x ≤ y.1 := by
+theorem exists_up_in_subset (x : base) [F: Primary (base := base)] : ∃ y : subset (α := base), x ≤ y.1 := by
   have ⟨β, p, ⟨iso⟩⟩ := (‹Primary α›).is_primary
   -- iso : FiltratorIso (FiltratorOfFilters p) i
   let iso_inv := iso.symm
