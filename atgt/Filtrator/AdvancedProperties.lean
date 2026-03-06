@@ -213,12 +213,12 @@ From Theorem 515, plus top/bottom in the filtrator order, we obtain arbitrary su
 noncomputable def theorem515_completeSemilatticeSup
     {α : Type u} {A : Set α}
     [Filtrator.Primary A]
-    [SemilatticeInf (Filtrator.subset (α := α))]
-    [OrderTop α]
-    [OrderBot α]
+    [SemilatticeInf A] -- TODO: needed?
+    [OrderTop A]
+    [OrderBot A]
     (hcoreord :
       Filtrator.suborder (α := α) =
-        (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder) :
+        (inferInstance : (SemilatticeInf A).toPartialOrder) :
     CompleteSemilatticeSup (Filtrator.supset (α := α)) := by
   classical
   let sSupFun : Set α → α := fun S =>
@@ -259,8 +259,8 @@ noncomputable def theorem515_completeLattice
     {α : Type u} {A : Set α}
     [Filtrator.Primary A]
     [SemilatticeInf (Filtrator.subset (α := α))]
-    [OrderTop α]
-    [OrderBot α]
+    [OrderTop A]
+    [OrderBot A]
     (hcoreord :
       Filtrator.suborder (α := α) =
         (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder) :
@@ -310,8 +310,8 @@ noncomputable def one_imp_two [FiltratorOnPowerset.Primary (U := A)] : Filtrator
 noncomputable instance two_imp_three
     [Filtrator.Primary A]
     [SemilatticeInf (Filtrator.subset (α := α))]
-    [OrderTop α]
-    [OrderBot α]
+    [OrderTop A]
+    [OrderBot A]
     (hcoreord :
       Filtrator.suborder (α := α) =
         (inferInstance : SemilatticeInf (Filtrator.subset (α := α))).toPartialOrder) :
@@ -879,8 +879,8 @@ lemma toCoreFilter_sInf_elements_nonempty
 /-- Nonempty-family distributivity in the filter lattice (Theorem 530, item 3) via core-filters. -/
 lemma sup_sInf_eq_image_nonempty
     [Filtrator.Primary A]
-    [OrderTop α]
-    [OrderBot α]
+    [OrderTop A]
+    [OrderBot A]
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hcoreord : Filtrator.suborder (α := α) =
       Dcore.toLattice.toSemilatticeInf.toPartialOrder)
@@ -1042,8 +1042,8 @@ informal book.
 -/
 noncomputable instance primary_distribCore_imp_completeLattice
     [Filtrator.Primary A]
-    [OrderTop α]
-    [OrderBot α]
+    [OrderTop A]
+    [OrderBot A]
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hcoreord : Filtrator.suborder (α := α) =
       Dcore.toLattice.toSemilatticeInf.toPartialOrder) :
@@ -1056,8 +1056,8 @@ core-order alignment, we construct a coframe instance on `Filtrator.supset`.
 -/
 noncomputable instance primary_distribCore_imp_coframe
     [F: Filtrator.Primary A]
-    [top: OrderTop α]
-    [OrderBot α]
+    [top: OrderTop A]
+    [OrderBot A]
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hcoreord : Filtrator.suborder (α := α) =
       Dcore.toLattice.toSemilatticeInf.toPartialOrder) :
@@ -1097,8 +1097,8 @@ noncomputable def one_imp_two [FiltratorOnPowerset.Primary (U := A)] : Filtrator
 /-- 2⇒3 in Theorem 530 tuple (development-level complete-distributive form). -/
 noncomputable instance two_imp_three
     [Filtrator.Primary A]
-    [OrderTop α]
-    [OrderBot α]
+    [OrderTop A]
+    [OrderBot A]
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hcoreord : Filtrator.suborder (α := α) =
       Dcore.toLattice.toSemilatticeInf.toPartialOrder) :
@@ -1129,8 +1129,8 @@ noncomputable def one_imp_two [FiltratorOnPowerset.Primary (U := A)] : Filtrator
 /-- 2⇒3 in Corollary 531 tuple: the filter lattice is distributive. -/
 noncomputable instance two_imp_three
     [Filtrator.Primary A]
-    [OrderTop α]
-    [OrderBot α]
+    [OrderTop A]
+    [OrderBot A]
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
     (hcoreord : Filtrator.suborder (α := α) =
       Dcore.toLattice.toSemilatticeInf.toPartialOrder) :
