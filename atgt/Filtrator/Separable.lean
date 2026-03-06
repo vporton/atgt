@@ -1,5 +1,4 @@
 import atgt.Filtrator
-import atgt.Filtrator.Powerset
 import atgt.Poset
 import Mathlib.Order.CompleteBooleanAlgebra
 

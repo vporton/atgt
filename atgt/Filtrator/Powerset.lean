@@ -3,6 +3,7 @@ import Mathlib.Order.Filter.Basic
 import Mathlib.Order.RelIso.Basic
 import atgt.Filtrator
 import atgt.Filtrator.Primary
+import atgt.Filtrator.AdvancedProperties
 
 /-!
 # Powerset filtrators
@@ -98,6 +99,7 @@ theorem toMathlibFilter_bijective :
     Function.Bijective (toMathlibFilter (α := α)) :=
   equivMathlibFilter (α := α).bijective
 
+-- TODO: This seems to be unnecessary, because it's anyway a coframe.
 /-- `FilterOnPowerset α` inherits binary infimum from Mathlib filters via the equivalence. -/
 instance instSemilatticeInfFilterOnPowerset (α : Type*) :
     SemilatticeInf (FilterOnPowerset α) where
@@ -127,4 +129,14 @@ export FilterCorrespondence (toMathlibFilter ofMathlibFilter equivMathlibFilter 
 
 end Filtrator
 
-export Filtrator (FilterOnPowerset)
+export Filtrator (FilterOnPowerset FiltratorOnPowerset.Primary)
+
+instance instDistribFilterOnPowerset {baseα: Type*} (α : Set baseα)
+    [FiltratorOnPowerset.Primary (U := α)] :
+    DistribLattice (FiltratorOnPowerset.Primary (U := α)) :=
+  FilterAlsoDistributive.two_imp_three _
+
+instance instCoframeFilterOnPowerset {baseα: Type*} (α : Set baseα)
+    [FiltratorOnPowerset.Primary (U := α)] :
+    Order.Coframe (FiltratorOnPowerset.Primary (U := α)) :=
+  PrimaryDistribCoreBridge.primary_distribCore_imp_coframe _

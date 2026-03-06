@@ -1,5 +1,4 @@
 import atgt.Filtrator.Primary
-import atgt.Filtrator.Powerset
 import atgt.AlternativePrimaryFiltrators
 import Mathlib.Order.CompleteLattice.Basic
 import Mathlib.Order.CompleteBooleanAlgebra
@@ -1133,7 +1132,7 @@ namespace FilterAlsoDistributive
 variable {α : Type u} {A : Set α}
 
 /-- 1⇒2 in Corollary 531 tuple. -/
-noncomputable def one_imp_two [Filtrator.Primary A] : Filtrator.Primary A :=
+noncomputable def one_imp_two [Filtrator.Primary A] : Filtrator.Primary A := -- FIXME: Should be Powerset, instead.
   inferInstance
 
 /-- 2⇒3 in Corollary 531 tuple: the filter lattice is distributive. -/
@@ -1152,7 +1151,7 @@ noncomputable instance two_imp_three
 
 /-- 1⇒3 in Corollary 531 tuple. -/
 noncomputable instance one_imp_three
-    [Filtrator.Primary A]
+    [Filtrator.Primary A] -- FIXME: Should be Powerset, instead.
     [OrderTop α]
     [OrderBot α]
     [Dcore : DistribLattice (Filtrator.subset (α := α))]
