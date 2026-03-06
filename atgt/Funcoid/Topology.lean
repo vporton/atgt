@@ -3,21 +3,28 @@ import atgt.Funcoid
 
 universe u
 
+-- FIXME: nonsense
 def neighborhoodRel {α : Type u} (t : TopologicalSpace α) (x y : α) : Prop :=
   letI : TopologicalSpace α := t
   ∀ U : Set α, IsOpen U → x ∈ U → y ∈ U
 
+-- FIXME: nonsense
 def closureRel {α : Type u} (t : TopologicalSpace α) (x y : α) : Prop :=
   letI : TopologicalSpace α := t
   ∀ F : Set α, IsClosed F → x ∈ F → y ∈ F
 
+-- TODO: Extract constructs used in `neighborhoodFuncoid` into separate definitions.
+
+def neighborhoodFuncoid_fwd {baseα : Type u} {α: Set baseα} (t : TopologicalSpace α) :=
+    λ X => sSup {Filtrator.ofMathlibFilter (nhds t) | x: X}
+
 def neighborhoodFuncoid {baseα : Type u} {α: Set baseα} (t : TopologicalSpace α) :
     Funcoid α α :=
-  principalFuncoid (neighborhoodRel t)
+  theorem1618_pf_cont_f neighborhoodFuncoid_fwd
 
 def closureFuncoid {baseα : Type u} {α: Set baseα} (t : TopologicalSpace α) :
     Funcoid α α :=
-  principalFuncoid (closureRel t)
+  theorem1618_pf_cont_f (principal ∘ closure)
 
 def converseRel {baseα : Type u} {α: Set baseα} (r : α → α → Prop) : α → α → Prop :=
   fun x y => r y x
